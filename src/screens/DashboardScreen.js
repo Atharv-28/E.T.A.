@@ -1,10 +1,17 @@
 import React from 'react';
 import { ScrollView, Text, View, TouchableOpacity } from 'react-native';
 import CustomIcon from '../components/CustomIcon';
+import { 
+  FadeInView, 
+  SlideInView, 
+  ScaleInView, 
+  GradientCard,
+  AnimatedButton 
+} from '../components/AnimatedComponents';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
 import { useAccounts } from '../context/AccountContext';
 import { formatCurrency } from '../utils/currency';
-import { styles } from '../styles/GlobalStyles';
+import { styles, colors } from '../styles/GlobalStyles';
 
 function DashboardScreen() {
   const { 
@@ -43,83 +50,143 @@ function DashboardScreen() {
 
   return (
     <ScrollView style={styles.screen}>
-      <Text style={styles.screenTitle}>Dashboard</Text>
+      <FadeInView>
+        <Text style={styles.screenTitle}>Dashboard</Text>
+      </FadeInView>
       
-      {/* Quick Stats */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <CustomIcon name="account-balance-wallet" size={24} color="#27ae60" />
-          <Text style={[styles.statValue, { color: totalBalance >= 0 ? '#27ae60' : '#e74c3c' }]}>
-            {formatCurrency(Math.abs(totalBalance))}
-          </Text>
-          <Text style={styles.statLabel}>Total Balance</Text>
+      {/* Quick Stats with Animation */}
+      <SlideInView direction="right" delay={200}>
+        <View style={styles.statsContainer}>
+          <ScaleInView delay={300}>
+            <GradientCard 
+              colors={[colors.success, colors.successLight]}
+              style={styles.statCard}
+            >
+              <CustomIcon name="account-balance-wallet" size={32} color={colors.white} />
+              <Text style={[styles.statValue, { color: colors.white }]}>
+                {formatCurrency(Math.abs(totalBalance))}
+              </Text>
+              <Text style={[styles.statLabel, { color: colors.white, opacity: 0.9 }]}>
+                Total Balance
+              </Text>
+            </GradientCard>
+          </ScaleInView>
+          
+          <ScaleInView delay={400}>
+            <GradientCard 
+              colors={[colors.danger, colors.dangerLight]}
+              style={styles.statCard}
+            >
+              <CustomIcon name="trending-down" size={32} color={colors.white} />
+              <Text style={[styles.statValue, { color: colors.white }]}>
+                -{formatCurrency(monthlySpending)}
+              </Text>
+              <Text style={[styles.statLabel, { color: colors.white, opacity: 0.9 }]}>
+                This Month
+              </Text>
+            </GradientCard>
+          </ScaleInView>
         </View>
-        <View style={styles.statCard}>
-          <CustomIcon name="trending-down" size={24} color="#e74c3c" />
-          <Text style={[styles.statValue, { color: '#e74c3c' }]}>
-            -{formatCurrency(monthlySpending)}
-          </Text>
-          <Text style={styles.statLabel}>This Month</Text>
-        </View>
-      </View>
+      </SlideInView>
 
-      {/* Recent Transactions */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Transactions</Text>
-          <CustomIcon name="history" size={20} color="#2c3e50" />
-        </View>
-        
-        {recentTransactions.length === 0 ? (
-          <View style={styles.emptyState}>
-            <CustomIcon name="receipt" size={32} color="#bdc3c7" />
-            <Text style={styles.emptyStateText}>No transactions yet</Text>
+      {/* Recent Transactions with Animation */}
+      <FadeInView delay={500}>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Recent Transactions</Text>
+            <CustomIcon name="history" size={20} color={colors.primary} />
           </View>
+          
+          {recentTransactions.length === 0 ? (
+            <ScaleInView delay={600}>
+              <View style={styles.emptyState}>
+                <CustomIcon name="receipt" size={32} color={colors.grayLight} />
+                <Text style={styles.emptyStateText}>No transactions yet</Text>
+              </View>
+            </ScaleInView>
         ) : (
-          recentTransactions.map((transaction) => {
+          recentTransactions.map((transaction, index) => {
             const categoryInfo = getCategoryInfo(transaction.category, transaction.type);
             const isIncome = transaction.type === 'income';
             
             return (
-              <View key={transaction.id} style={styles.transactionItem}>
-                <View style={styles.transactionLeft}>
+              <SlideInView 
+                key={transaction.id} 
+                direction="left" 
+                delay={600 + (index * 100)}
+              >
+                <AnimatedButton>
                   <View style={[
-                    styles.categoryIconSmall,
-                    { backgroundColor: isIncome ? '#e8f5e8' : '#fdeaea' }
+                    styles.transactionItem,
+                    {
+                      backgroundColor: colors.white,
+                      borderRadius: 12,
+                      marginVertical: 4,
+                      paddingHorizontal: 16,
+                      elevation: 2,
+                      shadowColor: colors.black,
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.05,
+                      shadowRadius: 4,
+                      borderLeftWidth: 4,
+                      borderLeftColor: isIncome ? colors.success : colors.danger,
+                    }
                   ]}>
-                    <CustomIcon 
-                      name={categoryInfo.icon} 
-                      size={16} 
-                      color={isIncome ? '#27ae60' : '#e74c3c'} 
-                    />
-                  </View>
-                  <View>
-                    <Text style={styles.transactionDescription}>
-                      {transaction.description}
+                    <View style={styles.transactionLeft}>
+                      <View style={[
+                        styles.categoryIconSmall,
+                        { 
+                          backgroundColor: isIncome 
+                            ? colors.success + '20' 
+                            : colors.danger + '20' 
+                        }
+                      ]}>
+                        <CustomIcon 
+                          name={categoryInfo.icon} 
+                          size={16} 
+                          color={isIncome ? colors.success : colors.danger} 
+                        />
+                      </View>
+                      <View>
+                        <Text style={[styles.transactionDescription, { fontWeight: '600' }]}>
+                          {transaction.description}
+                        </Text>
+                        <Text style={[styles.transactionCategory, { color: colors.gray }]}>
+                          {categoryInfo.name} • {formatDate(transaction.date)}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={[
+                      styles.transactionAmount,
+                      { 
+                        color: isIncome ? colors.success : colors.danger,
+                        fontSize: 16,
+                        fontWeight: '700'
+                      }
+                    ]}>
+                      {isIncome ? '+' : '-'}{formatCurrency(transaction.amount)}
                     </Text>
-                    <Text style={styles.transactionCategory}>
-                      {categoryInfo.name} • {formatDate(transaction.date)}
-                    </Text>
                   </View>
-                </View>
-                <Text style={[
-                  styles.transactionAmount,
-                  { color: isIncome ? '#27ae60' : '#e74c3c' }
-                ]}>
-                  {isIncome ? '+' : '-'}{formatCurrency(transaction.amount)}
-                </Text>
-              </View>
+                </AnimatedButton>
+              </SlideInView>
             );
           })
         )}
       </View>
+      </FadeInView>
 
-      {/* Monthly Summary */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>This Month Summary</Text>
-          <CustomIcon name="calendar-today" size={20} color="#2c3e50" />
-        </View>
+      {/* Monthly Summary with Animation */}
+      <FadeInView delay={800}>
+        <GradientCard 
+          colors={[colors.cardGradient2Start, colors.cardGradient2End]}
+          style={[styles.section, { borderWidth: 0 }]}
+        >
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.white }]}>
+              This Month Summary
+            </Text>
+            <CustomIcon name="calendar-today" size={20} color={colors.white} />
+          </View>
         
         <View style={styles.summaryContainer}>
           <View style={styles.summaryItem}>
@@ -136,12 +203,13 @@ function DashboardScreen() {
           <View style={styles.summaryItem}>
             <CustomIcon name="remove" size={20} color="#e74c3c" />
             <Text style={styles.summaryLabel}>Expenses</Text>
-            <Text style={[styles.summaryValue, { color: '#e74c3c' }]}>
+            <Text style={[styles.summaryValue, { color: colors.white, opacity: 0.9 }]}>
               -{formatCurrency(monthlySpending)}
             </Text>
           </View>
         </View>
-      </View>
+        </GradientCard>
+      </FadeInView>
 
       {/* Quick Chart Preview */}
       <View style={styles.section}>

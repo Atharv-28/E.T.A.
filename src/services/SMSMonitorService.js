@@ -1,6 +1,5 @@
 import { PermissionsAndroid, Platform, AppState } from 'react-native';
 import SmsAndroid from 'react-native-get-sms-android';
-import BackgroundJob from 'react-native-background-job';
 import SMSParser from '../utils/smsParser';
 
 class SMSMonitorService {
@@ -9,7 +8,6 @@ class SMSMonitorService {
     this.smsListener = null;
     this.onNewTransactionCallback = null;
     this.lastSMSTimestamp = 0;
-    this.backgroundJobStarted = false;
     this.appState = AppState.currentState;
     this.pendingTransactions = [];
     

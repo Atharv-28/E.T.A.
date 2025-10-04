@@ -1,19 +1,87 @@
 import { StyleSheet } from 'react-native';
 
+// Enhanced Color Palette
+export const colors = {
+  // Primary Colors
+  primary: '#3498db',
+  primaryDark: '#2980b9',
+  primaryLight: '#5dade2',
+  
+  // Secondary Colors
+  secondary: '#9b59b6',
+  secondaryDark: '#8e44ad',
+  secondaryLight: '#bb8fce',
+  
+  // Success & Income
+  success: '#27ae60',
+  successDark: '#239b56',
+  successLight: '#58d68d',
+  
+  // Danger & Expense
+  danger: '#e74c3c',
+  dangerDark: '#c0392b',
+  dangerLight: '#f1948a',
+  
+  // Warning
+  warning: '#f39c12',
+  warningDark: '#e67e22',
+  warningLight: '#f8c471',
+  
+  // Info
+  info: '#3498db',
+  infoDark: '#2980b9',
+  infoLight: '#85c1e9',
+  
+  // Neutral Colors
+  background: '#f8f9fa',
+  backgroundDark: '#ecf0f1',
+  white: '#ffffff',
+  black: '#2c3e50',
+  gray: '#7f8c8d',
+  grayLight: '#bdc3c7',
+  grayDark: '#34495e',
+  
+  // Gradient Colors
+  gradientStart: '#667eea',
+  gradientEnd: '#764ba2',
+  
+  // Income Gradient
+  incomeGradientStart: '#56ab2f',
+  incomeGradientEnd: '#a8e6cf',
+  
+  // Expense Gradient
+  expenseGradientStart: '#ff416c',
+  expenseGradientEnd: '#ff4b2b',
+  
+  // Card Gradients
+  cardGradient1Start: '#667eea',
+  cardGradient1End: '#764ba2',
+  cardGradient2Start: '#f093fb',
+  cardGradient2End: '#f5576c',
+  cardGradient3Start: '#4facfe',
+  cardGradient3End: '#00f2fe',
+};
+
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.background,
   },
   header: {
-    backgroundColor: '#3598db',
+    backgroundColor: colors.primary,
     padding: 16,
     alignItems: 'center',
+    elevation: 8,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   headerTitle: {
-    color: '#ffffff',
+    color: colors.white,
     fontSize: 20,
     fontWeight: 'bold',
+    letterSpacing: 0.5,
   },
   headerAccount: {
     flexDirection: 'row',
@@ -21,9 +89,10 @@ export const styles = StyleSheet.create({
     marginTop: 4,
   },
   headerAccountText: {
-    color: '#ecf0f1',
+    color: colors.primaryLight,
     fontSize: 12,
     marginLeft: 4,
+    opacity: 0.9,
   },
   content: {
     flex: 1,
@@ -33,39 +102,44 @@ export const styles = StyleSheet.create({
     padding: 16,
   },
   screenTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2c3e50',
+    fontSize: 28,
+    fontWeight: '800',
+    color: colors.black,
     marginBottom: 20,
+    letterSpacing: 0.5,
   },
   bottomNav: {
     flexDirection: 'row',
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.white,
     paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: '#e1e8ed',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderTopColor: colors.grayLight,
+    elevation: 12,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
   },
   navItem: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginHorizontal: 4,
   },
   activeNavItem: {
-    backgroundColor: '#ecf0f1',
+    backgroundColor: colors.primaryLight + '20',
   },
   navText: {
     fontSize: 12,
-    color: '#7f8c8d',
+    color: colors.gray,
     textAlign: 'center',
+    marginTop: 4,
+    fontWeight: '500',
   },
   activeNavText: {
-    color: '#2c3e50',
-    fontWeight: 'bold',
+    color: colors.primary,
+    fontWeight: '700',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -73,79 +147,92 @@ export const styles = StyleSheet.create({
     marginBottom: 24,
   },
   statCard: {
-    backgroundColor: '#ffffff',
-    padding: 20,
-    borderRadius: 12,
+    backgroundColor: colors.white,
+    padding: 24,
+    borderRadius: 16,
     flex: 1,
-    marginHorizontal: 4,
+    marginHorizontal: 6,
     alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    elevation: 6,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.grayLight + '40',
   },
   statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#27ae60',
-    marginBottom: 4,
+    fontSize: 26,
+    fontWeight: '800',
+    color: colors.success,
+    marginBottom: 6,
+    letterSpacing: 0.5,
   },
   statLabel: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: colors.gray,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   section: {
-    backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
+    backgroundColor: colors.white,
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 20,
+    elevation: 4,
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.grayLight + '30',
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 12,
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.black,
+    marginBottom: 16,
+    letterSpacing: 0.3,
   },
   transactionItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 4,
     borderBottomWidth: 1,
-    borderBottomColor: '#ecf0f1',
+    borderBottomColor: colors.grayLight + '50',
+    backgroundColor: 'transparent',
   },
   transactionDescription: {
     fontSize: 16,
-    color: '#2c3e50',
+    color: colors.black,
+    fontWeight: '600',
   },
   transactionAmount: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   addButton: {
-    backgroundColor: '#3498db',
+    backgroundColor: colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    elevation: 6,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   addButtonText: {
-    color: '#ffffff',
+    color: colors.white,
     fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 6,
+    fontWeight: '700',
+    marginLeft: 8,
+    letterSpacing: 0.5,
   },
   placeholder: {
     fontSize: 16,
@@ -957,5 +1044,264 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 16,
     marginTop: 8,
+  },
+
+  // =================
+  // PHASE 6: ANIMATIONS & ENHANCED UI
+  // =================
+
+  // Gradient Card Styles
+  gradientCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    elevation: 8,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+  },
+
+  gradientButton: {
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    elevation: 6,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+
+  gradientButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '700',
+    textAlign: 'center',
+    letterSpacing: 0.5,
+  },
+
+  // Enhanced Transaction Item with Animation
+  animatedTransactionItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    marginVertical: 4,
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    borderLeftWidth: 4,
+  },
+
+  // Enhanced Account Card
+  enhancedAccountCard: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 20,
+    marginVertical: 8,
+    elevation: 6,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.grayLight + '30',
+  },
+
+  // Loading Animation Styles
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
+
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: colors.gray,
+    fontWeight: '600',
+  },
+
+  // Shimmer Loading Effect
+  shimmerContainer: {
+    backgroundColor: colors.grayLight + '30',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+
+  shimmer: {
+    height: '100%',
+    width: '100%',
+  },
+
+  // Pulse Animation
+  pulseContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Enhanced Modal Styles
+  enhancedModal: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    minHeight: '50%',
+    elevation: 20,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+  },
+
+  enhancedModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.grayLight + '40',
+  },
+
+  enhancedModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.black,
+    letterSpacing: 0.3,
+  },
+
+  // Floating Action Button
+  fab: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+
+  // Enhanced Input Styles
+  enhancedTextInput: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: colors.black,
+    borderWidth: 1,
+    borderColor: colors.grayLight,
+    elevation: 2,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+
+  enhancedTextInputFocused: {
+    borderColor: colors.primary,
+    borderWidth: 2,
+    elevation: 4,
+    shadowOpacity: 0.1,
+  },
+
+  // Notification/Toast Styles
+  toastContainer: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    right: 20,
+    backgroundColor: colors.success,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    elevation: 10,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    zIndex: 1000,
+  },
+
+  toastText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 12,
+    flex: 1,
+  },
+
+  // Enhanced Category Selection
+  enhancedCategoryOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 4,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    elevation: 2,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+
+  enhancedCategoryOptionSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary + '10',
+    elevation: 4,
+    shadowOpacity: 0.1,
+  },
+
+  // Bouncing animation for buttons
+  bounceButton: {
+    transform: [{ scale: 1 }],
+  },
+
+  // Slide in animation
+  slideInFromRight: {
+    transform: [{ translateX: 0 }],
+    opacity: 1,
+  },
+
+  slideInFromLeft: {
+    transform: [{ translateX: 0 }],
+    opacity: 1,
+  },
+
+  // Fade animation
+  fadeIn: {
+    opacity: 1,
+  },
+
+  fadeOut: {
+    opacity: 0,
+  },
+
+  // Scale animation
+  scaleIn: {
+    transform: [{ scale: 1 }],
+    opacity: 1,
+  },
+
+  scaleOut: {
+    transform: [{ scale: 0.8 }],
+    opacity: 0,
   },
 });

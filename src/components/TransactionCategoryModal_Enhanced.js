@@ -3,6 +3,7 @@ import {
   Modal,
   View,
   Text,
+  TouchableOpacity,
   ScrollView,
   Alert,
 } from 'react-native';
@@ -150,14 +151,14 @@ const TransactionCategoryModal = ({
                     />
                   </View>
                   <View style={styles.transactionDetails}>
-                    <Text style={[styles.transactionDescription, { color: colors.white }]}>
-                      {transaction.description || 'Transaction'}
+                    <Text style={[styles.transactionDescription, { color: colors.white, fontWeight: '600' }]}>
+                      {transaction.description}
                     </Text>
                     <Text style={[styles.transactionCategory, { color: colors.white, opacity: 0.8 }]}>
-                      {transaction.bank || 'Bank'} • {new Date().toLocaleDateString()}
+                      {transaction.bank} • {new Date(transaction.date).toLocaleDateString()}
                     </Text>
                     <Text style={[styles.transactionDate, { color: colors.white, opacity: 0.7 }]}>
-                      Account: {transaction.accountNumber || 'N/A'}
+                      Account: {transaction.accountNumber}
                     </Text>
                   </View>
                 </View>
@@ -186,8 +187,8 @@ const TransactionCategoryModal = ({
                 <Text style={styles.exampleText}>
                   Received: {transaction.smsData?.receivedAt?.toLocaleString() || 'Just now'}
                 </Text>
-                <Text style={[styles.exampleText, { fontStyle: 'italic', marginTop: 8 }]}>
-                  "{transaction.smsData?.rawSMS?.substring(0, 100) || 'SMS content'}..."
+                <Text style={[styles.exampleText, { fontStyle: 'italic', marginTop: 8, color: colors.gray }]}>
+                  "{transaction.smsData?.rawSMS?.substring(0, 100)}..."
                 </Text>
               </View>
             </View>
@@ -200,7 +201,7 @@ const TransactionCategoryModal = ({
                 🏷️ Select Category ({transaction.type === 'income' ? 'Income' : 'Expense'})
               </Text>
               <View style={styles.categoryGrid}>
-                {categories.map(renderCategoryOption)}
+                {categories.map((category, index) => renderCategoryOption(category, index))}
               </View>
             </View>
           </FadeInView>
@@ -209,21 +210,32 @@ const TransactionCategoryModal = ({
           <ScaleInView delay={800}>
             <View style={styles.section}>
               <GradientButton
-                colors={[colors.primary, colors.primaryDark]}
-                style={[styles.addButton, { marginBottom: 12 }]}
+                colors={[colors.success, colors.successDark]}
                 onPress={handleConfirm}
+                style={{ marginBottom: 12 }}
               >
-                <CustomIcon name="add" size={20} color={colors.white} />
-                <Text style={[styles.addButtonText, { color: colors.white }]}>Add Transaction</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                  <CustomIcon name="add" size={20} color={colors.white} />
+                  <Text style={[styles.gradientButtonText, { marginLeft: 8 }]}>
+                    Add Transaction
+                  </Text>
+                </View>
               </GradientButton>
               
-              <AnimatedButton 
-                style={[styles.backupButton, { borderColor: colors.danger }]}
+              <AnimatedButton
+                style={[
+                  styles.addButton, 
+                  { 
+                    backgroundColor: colors.grayLight,
+                    borderWidth: 1,
+                    borderColor: colors.gray,
+                  }
+                ]}
                 onPress={onCancel}
               >
-                <CustomIcon name="close" size={18} color={colors.danger} />
-                <Text style={[styles.backupButtonText, { color: colors.danger }]}>
-                  Ignore SMS
+                <CustomIcon name="close" size={20} color={colors.gray} />
+                <Text style={[styles.addButtonText, { color: colors.gray }]}>
+                  Cancel
                 </Text>
               </AnimatedButton>
             </View>

@@ -10,12 +10,20 @@ import {
   FlatList,
 } from 'react-native';
 import CustomIcon from '../components/CustomIcon';
+import { 
+  FadeInView, 
+  SlideInView, 
+  ScaleInView, 
+  GradientCard,
+  AnimatedButton,
+  GradientButton 
+} from '../components/AnimatedComponents';
 import { useAccounts, ACCOUNT_TYPES } from '../context/AccountContext';
 import { useTransactions } from '../context/TransactionContext';
 import { formatCurrency } from '../utils/currency';
 import BackupService from '../services/BackupService';
 import SMSMonitorService from '../services/SMSMonitorService';
-import { styles } from '../styles/GlobalStyles';
+import { styles, colors } from '../styles/GlobalStyles';
 
 function AccountsScreen() {
   const { 
@@ -296,107 +304,124 @@ This will simulate a BOI bank SMS to test the category selection popup. Check co
 
   return (
     <ScrollView style={styles.container}>
-      {/* Header */}
-      <View style={styles.screenHeader}>
-        <Text style={styles.screenTitle}>Accounts</Text>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={handleCreateAccount}
-        >
-          <CustomIcon name="add" size={20} color="#ffffff" />
-          <Text style={styles.addButtonText}>Add Account</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Active Account Summary */}
-      {activeAccount && (
-        <View style={[styles.activeAccountCard, { borderLeftColor: activeAccount.color }]}>
-          <View style={styles.activeAccountHeader}>
-            <CustomIcon name={activeAccount.icon} size={24} color={activeAccount.color} />
-            <Text style={styles.activeAccountName}>{activeAccount.name}</Text>
-            <CustomIcon name="check-circle" size={20} color={activeAccount.color} />
-          </View>
-          <Text style={styles.activeAccountBalance}>
-            {formatCurrency(calculateAccountBalance(activeAccount.id))}
-          </Text>
-          <Text style={styles.activeAccountLabel}>Current Balance</Text>
+      {/* Header with Animation */}
+      <FadeInView>
+        <View style={styles.screenHeader}>
+          <Text style={styles.screenTitle}>Accounts</Text>
+          <GradientButton 
+            colors={[colors.primary, colors.primaryDark]}
+            onPress={handleCreateAccount}
+            style={styles.addButton}
+          >
+            <CustomIcon name="add" size={20} color={colors.white} />
+            <Text style={styles.addButtonText}>Add Account</Text>
+          </GradientButton>
         </View>
+      </FadeInView>
+
+      {/* Active Account Summary with Animation */}
+      {activeAccount && (
+        <SlideInView direction="right" delay={200}>
+          <GradientCard 
+            colors={[colors.cardGradient3Start, colors.cardGradient3End]}
+            style={[styles.activeAccountCard, { borderLeftWidth: 0, borderWidth: 0 }]}
+          >
+            <View style={styles.activeAccountHeader}>
+              <CustomIcon name={activeAccount.icon} size={24} color={colors.white} />
+              <Text style={[styles.activeAccountName, { color: colors.white }]}>{activeAccount.name}</Text>
+              <CustomIcon name="check-circle" size={20} color={colors.white} />
+            </View>
+            <Text style={[styles.activeAccountBalance, { color: colors.white }]}>
+              {formatCurrency(calculateAccountBalance(activeAccount.id))}
+            </Text>
+            <Text style={[styles.activeAccountLabel, { color: colors.white, opacity: 0.9 }]}>Current Balance</Text>
+          </GradientCard>
+        </SlideInView>
       )}
 
 
 
-      {/* Backup & Export Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>💾 Backup & Export</Text>
-        <Text style={styles.sectionDescription}>
-          Export data for the currently active account ({activeAccount?.name || 'No account selected'})
-        </Text>
-        
-        <View style={styles.backupButtonsContainer}>
-          <TouchableOpacity 
-            style={[styles.backupButton, !activeAccount && styles.smsImportButtonDisabled]}
-            onPress={handleExportJSON}
-            disabled={!activeAccount}
-          >
-            <CustomIcon name="save" size={18} color={!activeAccount ? "#95a5a6" : "#3498db"} />
-            <Text style={[
-              styles.backupButtonText,
-              !activeAccount && { color: "#95a5a6" }
-            ]}>
-              Export Backup
-            </Text>
-          </TouchableOpacity>
+      {/* Backup & Export Section with Animation */}
+      <FadeInView delay={400}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>💾 Backup & Export</Text>
+          <Text style={styles.sectionDescription}>
+            Export data for the currently active account ({activeAccount?.name || 'No account selected'})
+          </Text>
           
-          <TouchableOpacity 
-            style={[styles.backupButton, !activeAccount && styles.smsImportButtonDisabled]}
-            onPress={handleExportCSV}
-            disabled={!activeAccount}
-          >
-            <CustomIcon name="table-chart" size={18} color={!activeAccount ? "#95a5a6" : "#3498db"} />
-            <Text style={[
-              styles.backupButtonText,
-              !activeAccount && { color: "#95a5a6" }
-            ]}>
-              Export CSV
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.backupButtonsContainer}>
+            <ScaleInView delay={500}>
+              <GradientButton 
+                colors={[colors.info, colors.infoDark]}
+                style={[styles.backupButton, !activeAccount && styles.smsImportButtonDisabled]}
+                onPress={handleExportJSON}
+                disabled={!activeAccount}
+              >
+                <CustomIcon name="save" size={18} color={colors.white} />
+                <Text style={[styles.backupButtonText, { color: colors.white }]}>
+                  Export Backup
+                </Text>
+              </GradientButton>
+            </ScaleInView>
+            
+            <ScaleInView delay={600}>
+              <GradientButton 
+                colors={[colors.success, colors.successDark]}
+                style={[styles.backupButton, !activeAccount && styles.smsImportButtonDisabled]}
+                onPress={handleExportCSV}
+                disabled={!activeAccount}
+              >
+                <CustomIcon name="table-chart" size={18} color={colors.white} />
+                <Text style={[styles.backupButtonText, { color: colors.white }]}>
+                  Export CSV
+                </Text>
+              </GradientButton>
+            </ScaleInView>
+          </View>
+          
+          <Text style={styles.backupHint}>
+            💡 Will export transactions for "{activeAccount?.name || 'the selected account'}" only
+          </Text>
         </View>
-        
-        <Text style={styles.backupHint}>
-          💡 Will export transactions for "{activeAccount?.name || 'the selected account'}" only
-        </Text>
-      </View>
+      </FadeInView>
 
-      {/* Test SMS Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>🧪 Test SMS Detection</Text>
-        <Text style={styles.sectionDescription}>
-          Test the SMS monitoring feature with a simulated bank transaction SMS
-        </Text>
-        
-        <TouchableOpacity 
-          style={[styles.smsImportButton, { backgroundColor: '#f39c12' }]}
-          onPress={handleTestSMS}
-        >
-          <CustomIcon name="bug-report" size={20} color="#ffffff" />
-          <Text style={styles.smsImportButtonText}>Test SMS Detection</Text>
-        </TouchableOpacity>
-        
-        <Text style={styles.smsImportHint}>
-          💡 This will simulate a Bank of India SMS to test the category selection popup
-        </Text>
-      </View>
+      {/* Test SMS Section with Animation */}
+      <FadeInView delay={600}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>🧪 Test SMS Detection</Text>
+          <Text style={styles.sectionDescription}>
+            Test the SMS monitoring feature with a simulated bank transaction SMS
+          </Text>
+          
+          <ScaleInView delay={700}>
+            <GradientButton 
+              colors={[colors.warning, colors.warningDark]}
+              style={[styles.smsImportButton]}
+              onPress={handleTestSMS}
+            >
+              <CustomIcon name="bug-report" size={20} color={colors.white} />
+              <Text style={[styles.smsImportButtonText, { color: colors.white }]}>Test SMS Detection</Text>
+            </GradientButton>
+          </ScaleInView>
+          
+          <Text style={styles.smsImportHint}>
+            💡 This will simulate a Bank of India SMS to test the category selection popup
+          </Text>
+        </View>
+      </FadeInView>
 
-      {/* Accounts List */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>All Accounts ({accounts.length})</Text>
-        <FlatList
-          data={accounts}
-          keyExtractor={(item) => item.id}
-          renderItem={renderAccountItem}
-          scrollEnabled={false}
-        />
-      </View>
+      {/* Accounts List with Animation */}
+      <FadeInView delay={800}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>All Accounts ({accounts.length})</Text>
+          <FlatList
+            data={accounts}
+            keyExtractor={(item) => item.id}
+            renderItem={renderAccountItem}
+            scrollEnabled={false}
+          />
+        </View>
+      </FadeInView>
 
       {/* Account Form Modal */}
       <Modal
