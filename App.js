@@ -1,6 +1,6 @@
 /**
  * Personal Finance Manager App - ETA
- * Phase 2: Transaction Management (Modular Architecture)
+ * Phase 4: Analytics & Reports (Modular Architecture)
  *
  * @format
  */

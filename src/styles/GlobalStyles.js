@@ -397,4 +397,212 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 2,
   },
+  
+  // Reports screen styles
+  periodSelector: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 4,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  periodButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  activePeriodButton: {
+    backgroundColor: '#3498db',
+  },
+  periodButtonText: {
+    marginLeft: 4,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#2c3e50',
+  },
+  activePeriodButtonText: {
+    color: '#ffffff',
+  },
+  
+  // Summary cards styles
+  summaryCardsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  summaryCard: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 16,
+    marginHorizontal: 4,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  summaryValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    marginTop: 8,
+  },
+  summaryLabel: {
+    fontSize: 12,
+    color: '#7f8c8d',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  
+  // Savings rate card styles
+  savingsRateCard: {
+    backgroundColor: '#ffffff',
+    padding: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  savingsRateHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  savingsRateTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    marginLeft: 8,
+  },
+  savingsRateValue: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  savingsRateSubtext: {
+    fontSize: 14,
+    color: '#7f8c8d',
+  },
+  
+  // Chart styles
+  chartHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  chart: {
+    marginVertical: 8,
+    borderRadius: 12,
+  },
+  
+  // Category breakdown styles
+  categoryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ecf0f1',
+  },
+  categoryInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  categoryColorDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 12,
+  },
+  categoryName: {
+    fontSize: 14,
+    color: '#2c3e50',
+    flex: 1,
+  },
+  categoryAmountContainer: {
+    alignItems: 'flex-end',
+  },
+  categoryAmount: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+  },
+  categoryPercentage: {
+    fontSize: 12,
+    color: '#7f8c8d',
+    marginTop: 2,
+  },
+  
+  // Insights styles
+  insightContainer: {
+    marginTop: 8,
+  },
+  insightCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  insightText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#2c3e50',
+    marginLeft: 12,
+    lineHeight: 18,
+  },
+  
+  // Mini chart styles
+  viewAllButton: {
+    fontSize: 14,
+    color: '#3498db',
+    fontWeight: '600',
+  },
+  miniChart: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 16,
+  },
+  miniChartTitle: {
+    fontSize: 14,
+    color: '#2c3e50',
+    fontWeight: '600',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  miniChartBars: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    height: 60,
+  },
+  miniChartBar: {
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 2,
+  },
+  miniChartBarFill: {
+    width: '80%',
+    borderRadius: 2,
+    marginBottom: 4,
+  },
+  miniChartBarLabel: {
+    fontSize: 10,
+    color: '#7f8c8d',
+  },
 });

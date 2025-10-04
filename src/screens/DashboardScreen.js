@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
 import { styles } from '../styles/GlobalStyles';
@@ -130,6 +130,57 @@ function DashboardScreen() {
             <Text style={[styles.summaryValue, { color: '#e74c3c' }]}>
               -${monthlySpending.toFixed(2)}
             </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Quick Chart Preview */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Spending Trend</Text>
+          <TouchableOpacity onPress={() => console.log('Navigate to Reports')}>
+            <Text style={styles.viewAllButton}>View All</Text>
+          </TouchableOpacity>
+        </View>
+        
+        <View style={styles.miniChart}>
+          <Text style={styles.miniChartTitle}>Last 7 Days Expenses</Text>
+          <View style={styles.miniChartBars}>
+            {Array.from({ length: 7 }, (_, index) => {
+              const dayExpenses = transactions
+                .filter(t => {
+                  const transactionDate = new Date(t.date);
+                  const targetDate = new Date();
+                  targetDate.setDate(targetDate.getDate() - (6 - index));
+                  return t.type === 'expense' && 
+                         transactionDate.toDateString() === targetDate.toDateString();
+                })
+                .reduce((sum, t) => sum + t.amount, 0);
+              
+              const maxExpense = Math.max(1, Math.max(...Array.from({ length: 7 }, (_, i) => {
+                const date = new Date();
+                date.setDate(date.getDate() - (6 - i));
+                return transactions
+                  .filter(t => t.type === 'expense' && 
+                              new Date(t.date).toDateString() === date.toDateString())
+                  .reduce((sum, t) => sum + t.amount, 0);
+              })));
+              
+              const height = Math.max(4, (dayExpenses / maxExpense) * 40);
+              
+              return (
+                <View key={index} style={styles.miniChartBar}>
+                  <View style={[styles.miniChartBarFill, { 
+                    height: height,
+                    backgroundColor: dayExpenses > 0 ? '#e74c3c' : '#ecf0f1'
+                  }]} />
+                  <Text style={styles.miniChartBarLabel}>
+                    {new Date(Date.now() - (6 - index) * 24 * 60 * 60 * 1000)
+                      .toLocaleDateString('en-US', { weekday: 'short' })[0]}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         </View>
       </View>
