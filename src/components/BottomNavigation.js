@@ -7,8 +7,8 @@ function BottomNavigation({ activeTab, setActiveTab }) {
   const navItems = [
     { key: 'dashboard', icon: 'dashboard', label: 'Dashboard' },
     { key: 'transactions', icon: 'account-balance-wallet', label: 'Transactions' },
-    { key: 'budget', icon: 'assignment', label: 'Budget' },
     { key: 'reports', icon: 'trending-up', label: 'Reports' },
+    { key: 'accounts', icon: 'people', label: 'Accounts' },
   ];
 
   return (

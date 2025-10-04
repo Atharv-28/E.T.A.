@@ -11,6 +11,7 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 
 // Context
 import { TransactionProvider } from './src/context/TransactionContext';
+import { AccountProvider } from './src/context/AccountContext';
 
 // Components
 import Header from './src/components/Header';
@@ -19,7 +20,7 @@ import BottomNavigation from './src/components/BottomNavigation';
 // Screens
 import DashboardScreen from './src/screens/DashboardScreen';
 import TransactionsScreen from './src/screens/TransactionsScreen';
-import BudgetScreen from './src/screens/BudgetScreen';
+import AccountsScreen from './src/screens/AccountsScreen';
 import ReportsScreen from './src/screens/ReportsScreen';
 
 // Styles
@@ -29,12 +30,14 @@ function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
   return (
-    <TransactionProvider>
-      <SafeAreaProvider>
-        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-        <AppContent />
-      </SafeAreaProvider>
-    </TransactionProvider>
+    <AccountProvider>
+      <TransactionProvider>
+        <SafeAreaProvider>
+          <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+          <AppContent />
+        </SafeAreaProvider>
+      </TransactionProvider>
+    </AccountProvider>
   );
 }
 
@@ -48,8 +51,8 @@ function AppContent() {
         return <DashboardScreen />;
       case 'transactions':
         return <TransactionsScreen />;
-      case 'budget':
-        return <BudgetScreen />;
+      case 'accounts':
+        return <AccountsScreen />;
       case 'reports':
         return <ReportsScreen />;
       default:

@@ -40,6 +40,15 @@ const ICON_FALLBACKS = {
   'check-circle': '✅',
   'calendar-today': '📅',
   'date-range': '📆',
+  'person': '👤',
+  'people': '👥',
+  'account-circle': '👤',
+  'switch-account': '🔄',
+  'edit': '✏️',
+  'folder': '📁',
+  'savings': '🏦',
+  'credit-card': '💳',
+  'account-balance': '🏦',
 };
 
 function CustomIcon({ name, size = 24, color = '#000', style, fallbackOnly = false }) {
