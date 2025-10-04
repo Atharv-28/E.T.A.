@@ -8,7 +8,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import CustomIcon from './CustomIcon';
 import { CATEGORIES } from '../context/TransactionContext';
 import { styles } from '../styles/GlobalStyles';
 
@@ -61,7 +61,7 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
         {/* Header */}
         <View style={styles.modalHeader}>
           <TouchableOpacity onPress={onClose}>
-            <Icon name="close" size={24} color="#2c3e50" />
+            <CustomIcon name="close" size={24} color="#2c3e50" />
           </TouchableOpacity>
           <Text style={styles.modalTitle}>Add Transaction</Text>
           <TouchableOpacity onPress={handleSubmit}>
@@ -84,7 +84,7 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
                   setSelectedCategory('');
                 }}
               >
-                <Icon 
+                <CustomIcon 
                   name="add" 
                   size={20} 
                   color={type === 'income' ? '#ffffff' : '#27ae60'} 
@@ -107,7 +107,7 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
                   setSelectedCategory('');
                 }}
               >
-                <Icon 
+                <CustomIcon 
                   name="remove" 
                   size={20} 
                   color={type === 'expense' ? '#ffffff' : '#e74c3c'} 
@@ -126,7 +126,7 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Amount</Text>
             <View style={styles.inputContainer}>
-              <Text style={styles.currencySymbol}>$</Text>
+              <Text style={styles.currencySymbol}>₹</Text>
               <TextInput
                 style={styles.amountInput}
                 value={amount}
@@ -163,7 +163,7 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
                   ]}
                   onPress={() => setSelectedCategory(category.id)}
                 >
-                  <Icon
+                  <CustomIcon
                     name={category.icon}
                     size={24}
                     color={selectedCategory === category.id ? '#ffffff' : '#2c3e50'}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import CustomIcon from './CustomIcon';
 import { styles } from '../styles/GlobalStyles';
 
 function BottomNavigation({ activeTab, setActiveTab }) {
@@ -19,7 +19,7 @@ function BottomNavigation({ activeTab, setActiveTab }) {
           style={[styles.navItem, activeTab === item.key && styles.activeNavItem]}
           onPress={() => setActiveTab(item.key)}
         >
-          <Icon 
+          <CustomIcon 
             name={item.icon} 
             size={20} 
             color={activeTab === item.key ? '#2c3e50' : '#7f8c8d'} 

@@ -1,7 +1,8 @@
 import React from 'react';
 import { ScrollView, Text, View, TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import CustomIcon from '../components/CustomIcon';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
+import { formatCurrency } from '../utils/currency';
 import { styles } from '../styles/GlobalStyles';
 
 function DashboardScreen() {
@@ -38,16 +39,16 @@ function DashboardScreen() {
       {/* Quick Stats */}
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
-          <Icon name="account-balance-wallet" size={24} color="#27ae60" />
+          <CustomIcon name="account-balance-wallet" size={24} color="#27ae60" />
           <Text style={[styles.statValue, { color: totalBalance >= 0 ? '#27ae60' : '#e74c3c' }]}>
-            ${Math.abs(totalBalance).toFixed(2)}
+            {formatCurrency(Math.abs(totalBalance))}
           </Text>
           <Text style={styles.statLabel}>Total Balance</Text>
         </View>
         <View style={styles.statCard}>
-          <Icon name="trending-down" size={24} color="#e74c3c" />
+          <CustomIcon name="trending-down" size={24} color="#e74c3c" />
           <Text style={[styles.statValue, { color: '#e74c3c' }]}>
-            -${monthlySpending.toFixed(2)}
+            -{formatCurrency(monthlySpending)}
           </Text>
           <Text style={styles.statLabel}>This Month</Text>
         </View>
@@ -57,12 +58,12 @@ function DashboardScreen() {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Recent Transactions</Text>
-          <Icon name="history" size={20} color="#2c3e50" />
+          <CustomIcon name="history" size={20} color="#2c3e50" />
         </View>
         
         {recentTransactions.length === 0 ? (
           <View style={styles.emptyState}>
-            <Icon name="receipt" size={32} color="#bdc3c7" />
+            <CustomIcon name="receipt" size={32} color="#bdc3c7" />
             <Text style={styles.emptyStateText}>No transactions yet</Text>
           </View>
         ) : (
@@ -77,7 +78,7 @@ function DashboardScreen() {
                     styles.categoryIconSmall,
                     { backgroundColor: isIncome ? '#e8f5e8' : '#fdeaea' }
                   ]}>
-                    <Icon 
+                    <CustomIcon 
                       name={categoryInfo.icon} 
                       size={16} 
                       color={isIncome ? '#27ae60' : '#e74c3c'} 
@@ -96,7 +97,7 @@ function DashboardScreen() {
                   styles.transactionAmount,
                   { color: isIncome ? '#27ae60' : '#e74c3c' }
                 ]}>
-                  {isIncome ? '+' : '-'}${transaction.amount.toFixed(2)}
+                  {isIncome ? '+' : '-'}{formatCurrency(transaction.amount)}
                 </Text>
               </View>
             );
@@ -108,27 +109,26 @@ function DashboardScreen() {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>This Month Summary</Text>
-          <Icon name="calendar-today" size={20} color="#2c3e50" />
+          <CustomIcon name="calendar-today" size={20} color="#2c3e50" />
         </View>
         
         <View style={styles.summaryContainer}>
           <View style={styles.summaryItem}>
-            <Icon name="add" size={20} color="#27ae60" />
+            <CustomIcon name="add" size={20} color="#27ae60" />
             <Text style={styles.summaryLabel}>Income</Text>
             <Text style={[styles.summaryValue, { color: '#27ae60' }]}>
-              +${transactions
+              +{formatCurrency(transactions
                 .filter(t => t.type === 'income' && 
                   new Date(t.date).getMonth() === new Date().getMonth())
-                .reduce((sum, t) => sum + t.amount, 0)
-                .toFixed(2)}
+                .reduce((sum, t) => sum + t.amount, 0))}
             </Text>
           </View>
           
           <View style={styles.summaryItem}>
-            <Icon name="remove" size={20} color="#e74c3c" />
+            <CustomIcon name="remove" size={20} color="#e74c3c" />
             <Text style={styles.summaryLabel}>Expenses</Text>
             <Text style={[styles.summaryValue, { color: '#e74c3c' }]}>
-              -${monthlySpending.toFixed(2)}
+              -{formatCurrency(monthlySpending)}
             </Text>
           </View>
         </View>

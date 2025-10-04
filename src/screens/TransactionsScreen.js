@@ -7,9 +7,10 @@ import {
   FlatList,
   Alert 
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import CustomIcon from '../components/CustomIcon';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
 import AddTransactionModal from '../components/AddTransactionModal';
+import { formatCurrency } from '../utils/currency';
 import { styles } from '../styles/GlobalStyles';
 
 function TransactionsScreen() {
@@ -62,7 +63,7 @@ function TransactionsScreen() {
             styles.categoryIcon,
             { backgroundColor: isIncome ? '#e8f5e8' : '#fdeaea' }
           ]}>
-            <Icon 
+            <CustomIcon 
               name={categoryInfo.icon} 
               size={24} 
               color={isIncome ? '#27ae60' : '#e74c3c'} 
@@ -79,13 +80,13 @@ function TransactionsScreen() {
             styles.transactionAmount,
             { color: isIncome ? '#27ae60' : '#e74c3c' }
           ]}>
-            {isIncome ? '+' : '-'}${item.amount.toFixed(2)}
+            {isIncome ? '+' : '-'}{formatCurrency(item.amount)}
           </Text>
           <TouchableOpacity 
             style={styles.deleteButton}
             onPress={() => handleDeleteTransaction(item.id)}
           >
-            <Icon name="delete" size={20} color="#e74c3c" />
+            <CustomIcon name="delete" size={20} color="#e74c3c" />
           </TouchableOpacity>
         </View>
       </View>
@@ -101,7 +102,7 @@ function TransactionsScreen() {
         style={styles.addButton}
         onPress={() => setModalVisible(true)}
       >
-        <Icon name="add" size={20} color="#ffffff" />
+        <CustomIcon name="add" size={20} color="#ffffff" />
         <Text style={styles.addButtonText}>Add Transaction</Text>
       </TouchableOpacity>
 
@@ -120,7 +121,7 @@ function TransactionsScreen() {
             ]}
             onPress={() => setFilter(item.key)}
           >
-            <Icon 
+            <CustomIcon 
               name={item.icon} 
               size={16} 
               color={filter === item.key ? '#ffffff' : '#2c3e50'} 
@@ -145,7 +146,7 @@ function TransactionsScreen() {
         
         {filteredTransactions.length === 0 ? (
           <View style={styles.emptyState}>
-            <Icon name="receipt" size={48} color="#bdc3c7" />
+            <CustomIcon name="receipt" size={48} color="#bdc3c7" />
             <Text style={styles.emptyStateText}>No transactions found</Text>
             <Text style={styles.emptyStateSubtext}>
               Tap the + button to add your first transaction

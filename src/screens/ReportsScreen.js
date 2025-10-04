@@ -7,8 +7,9 @@ import {
   Dimensions,
 } from 'react-native';
 import { LineChart, PieChart, BarChart } from 'react-native-chart-kit';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import CustomIcon from '../components/CustomIcon';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
+import { formatCurrency } from '../utils/currency';
 import { styles } from '../styles/GlobalStyles';
 
 const screenWidth = Dimensions.get('window').width;
@@ -130,7 +131,7 @@ function ReportsScreen() {
     barPercentage: 0.7,
     useShadowColorFromDataset: false,
     decimalPlaces: 0,
-    formatYLabel: (value) => `$${Math.round(value)}`,
+    formatYLabel: (value) => `₹${Math.round(value)}`,
   };
 
   return (
@@ -152,7 +153,7 @@ function ReportsScreen() {
             ]}
             onPress={() => setSelectedPeriod(period.key)}
           >
-            <Icon 
+            <CustomIcon 
               name={period.icon} 
               size={16} 
               color={selectedPeriod === period.key ? '#ffffff' : '#2c3e50'} 
@@ -170,17 +171,17 @@ function ReportsScreen() {
       {/* Summary Cards */}
       <View style={styles.summaryCardsContainer}>
         <View style={[styles.summaryCard, { backgroundColor: '#e8f5e8' }]}>
-          <Icon name="trending-up" size={28} color="#27ae60" />
+          <CustomIcon name="trending-up" size={28} color="#27ae60" />
           <Text style={styles.summaryValue}>
-            ${totalIncome.toFixed(2)}
+            {formatCurrency(totalIncome)}
           </Text>
           <Text style={styles.summaryLabel}>Total Income</Text>
         </View>
 
         <View style={[styles.summaryCard, { backgroundColor: '#fdeaea' }]}>
-          <Icon name="trending-down" size={28} color="#e74c3c" />
+          <CustomIcon name="trending-down" size={28} color="#e74c3c" />
           <Text style={styles.summaryValue}>
-            ${totalExpense.toFixed(2)}
+            {formatCurrency(totalExpense)}
           </Text>
           <Text style={styles.summaryLabel}>Total Expenses</Text>
         </View>
@@ -188,7 +189,7 @@ function ReportsScreen() {
         <View style={[styles.summaryCard, { 
           backgroundColor: netIncome >= 0 ? '#e8f5e8' : '#fdeaea' 
         }]}>
-          <Icon 
+          <CustomIcon 
             name={netIncome >= 0 ? 'savings' : 'money-off'} 
             size={28} 
             color={netIncome >= 0 ? '#27ae60' : '#e74c3c'} 
@@ -196,7 +197,7 @@ function ReportsScreen() {
           <Text style={[styles.summaryValue, {
             color: netIncome >= 0 ? '#27ae60' : '#e74c3c'
           }]}>
-            ${Math.abs(netIncome).toFixed(2)}
+            {formatCurrency(Math.abs(netIncome))}
           </Text>
           <Text style={styles.summaryLabel}>
             {netIncome >= 0 ? 'Net Savings' : 'Net Loss'}
@@ -208,7 +209,7 @@ function ReportsScreen() {
       <View style={styles.section}>
         <View style={styles.savingsRateCard}>
           <View style={styles.savingsRateHeader}>
-            <Icon name="pie-chart" size={24} color="#3498db" />
+            <CustomIcon name="pie-chart" size={24} color="#3498db" />
             <Text style={styles.savingsRateTitle}>Savings Rate</Text>
           </View>
           <Text style={[styles.savingsRateValue, {
@@ -227,7 +228,7 @@ function ReportsScreen() {
       {Object.keys(monthlyData).length > 0 && (
         <View style={styles.section}>
           <View style={styles.chartHeader}>
-            <Icon name="show-chart" size={20} color="#2c3e50" />
+            <CustomIcon name="show-chart" size={20} color="#2c3e50" />
             <Text style={styles.sectionTitle}>6-Month Trend</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -252,7 +253,7 @@ function ReportsScreen() {
       {pieChartData.length > 0 && (
         <View style={styles.section}>
           <View style={styles.chartHeader}>
-            <Icon name="donut-large" size={20} color="#2c3e50" />
+            <CustomIcon name="donut-large" size={20} color="#2c3e50" />
             <Text style={styles.sectionTitle}>Expense Breakdown</Text>
           </View>
           <PieChart
@@ -272,7 +273,7 @@ function ReportsScreen() {
       {/* Category Details */}
       <View style={styles.section}>
         <View style={styles.chartHeader}>
-          <Icon name="list" size={20} color="#2c3e50" />
+          <CustomIcon name="list" size={20} color="#2c3e50" />
           <Text style={styles.sectionTitle}>Top Expense Categories</Text>
         </View>
         {categoryData.length > 0 ? (
@@ -290,7 +291,7 @@ function ReportsScreen() {
                   <Text style={styles.categoryName}>{category}</Text>
                 </View>
                 <View style={styles.categoryAmountContainer}>
-                  <Text style={styles.categoryAmount}>${amount.toFixed(2)}</Text>
+                  <Text style={styles.categoryAmount}>{formatCurrency(amount)}</Text>
                   <Text style={styles.categoryPercentage}>{percentage.toFixed(1)}%</Text>
                 </View>
               </View>
@@ -298,7 +299,7 @@ function ReportsScreen() {
           })
         ) : (
           <View style={styles.emptyState}>
-            <Icon name="pie-chart" size={48} color="#bdc3c7" />
+            <CustomIcon name="pie-chart" size={48} color="#bdc3c7" />
             <Text style={styles.emptyStateText}>No expense data available</Text>
           </View>
         )}
@@ -307,13 +308,13 @@ function ReportsScreen() {
       {/* Financial Insights */}
       <View style={styles.section}>
         <View style={styles.chartHeader}>
-          <Icon name="lightbulb-outline" size={20} color="#2c3e50" />
+          <CustomIcon name="lightbulb-outline" size={20} color="#2c3e50" />
           <Text style={styles.sectionTitle}>Financial Insights</Text>
         </View>
         <View style={styles.insightContainer}>
           {savingsRate < 10 && (
             <View style={styles.insightCard}>
-              <Icon name="warning" size={20} color="#f39c12" />
+              <CustomIcon name="warning" size={20} color="#f39c12" />
               <Text style={styles.insightText}>
                 Consider reducing expenses to improve your savings rate
               </Text>
@@ -321,7 +322,7 @@ function ReportsScreen() {
           )}
           {categoryData.length > 0 && categoryData[0][1] > totalIncome * 0.3 && (
             <View style={styles.insightCard}>
-              <Icon name="info" size={20} color="#3498db" />
+              <CustomIcon name="info" size={20} color="#3498db" />
               <Text style={styles.insightText}>
                 Your top expense category ({categoryData[0][0]}) takes up a large portion of your income
               </Text>
@@ -329,7 +330,7 @@ function ReportsScreen() {
           )}
           {netIncome > 0 && (
             <View style={styles.insightCard}>
-              <Icon name="check-circle" size={20} color="#27ae60" />
+              <CustomIcon name="check-circle" size={20} color="#27ae60" />
               <Text style={styles.insightText}>
                 Great job! You're saving money this period
               </Text>
@@ -337,7 +338,7 @@ function ReportsScreen() {
           )}
           {filteredTransactions.length === 0 && (
             <View style={styles.insightCard}>
-              <Icon name="info" size={20} color="#95a5a6" />
+              <CustomIcon name="info" size={20} color="#95a5a6" />
               <Text style={styles.insightText}>
                 No data available for the selected period
               </Text>

@@ -8,18 +8,18 @@ export const CATEGORIES = {
   INCOME: [
     { id: 'salary', name: 'Salary', icon: 'work' },
     { id: 'business', name: 'Business', icon: 'business' },
-    { id: 'investment', name: 'Investment', icon: 'trending-up' },
-    { id: 'freelance', name: 'Freelance', icon: 'laptop' },
-    { id: 'other_income', name: 'Other Income', icon: 'attach-money' },
+    { id: 'freelance', name: 'Freelance', icon: 'computer' },
+    { id: 'other_income', name: 'Other Income', icon: 'monetization-on' },
   ],
   EXPENSE: [
     { id: 'food', name: 'Food & Dining', icon: 'restaurant' },
+    { id: 'snacks', name: 'Snacks', icon: 'fastfood' },
     { id: 'transport', name: 'Transportation', icon: 'directions-car' },
     { id: 'shopping', name: 'Shopping', icon: 'shopping-cart' },
     { id: 'entertainment', name: 'Entertainment', icon: 'movie' },
     { id: 'bills', name: 'Bills & Utilities', icon: 'receipt' },
     { id: 'health', name: 'Healthcare', icon: 'local-hospital' },
-    { id: 'education', name: 'Education', icon: 'school' },
+    { id: 'education', name: 'Education/Stationary', icon: 'school' },
     { id: 'other_expense', name: 'Other Expense', icon: 'payment' },
   ],
 };
@@ -30,7 +30,7 @@ export function TransactionProvider({ children }) {
     {
       id: '1',
       type: 'expense',
-      amount: 4.50,
+      amount: 350.00,
       description: 'Coffee Shop',
       category: 'food',
       date: new Date().toISOString(),
@@ -38,7 +38,7 @@ export function TransactionProvider({ children }) {
     {
       id: '2',
       type: 'income',
-      amount: 3200.00,
+      amount: 75000.00,
       description: 'Monthly Salary',
       category: 'salary',
       date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
@@ -46,7 +46,7 @@ export function TransactionProvider({ children }) {
     {
       id: '3',
       type: 'expense',
-      amount: 85.30,
+      amount: 2500.00,
       description: 'Grocery Store',
       category: 'food',
       date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
