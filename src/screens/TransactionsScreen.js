@@ -100,16 +100,17 @@ function TransactionsScreen() {
 
   return (
     <View style={styles.screen}>
-      <Text style={styles.screenTitle}>Transactions</Text>
-      
-      {/* Add Transaction Button */}
-      <TouchableOpacity 
-        style={styles.addButton}
-        onPress={() => setModalVisible(true)}
-      >
-        <CustomIcon name="add" size={20} color="#ffffff" />
-        <Text style={styles.addButtonText}>Add Transaction</Text>
-      </TouchableOpacity>
+      {/* Header */}
+      <View style={styles.screenHeader}>
+        <Text style={styles.screenTitle}>Transactions</Text>
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={() => setModalVisible(true)}
+        >
+          <CustomIcon name="add" size={20} color="#ffffff" />
+          <Text style={styles.addButtonText}>Add</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Filter Buttons */}
       <View style={styles.filterContainer}>

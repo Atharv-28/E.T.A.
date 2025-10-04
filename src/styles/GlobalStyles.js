@@ -6,7 +6,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   header: {
-    backgroundColor: '#2c3e50',
+    backgroundColor: '#3598db',
     padding: 16,
     alignItems: 'center',
   },
@@ -130,15 +130,22 @@ export const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: '#3498db',
-    padding: 16,
-    borderRadius: 12,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   addButtonText: {
     color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 6,
   },
   placeholder: {
     fontSize: 16,
@@ -509,7 +516,7 @@ export const styles = StyleSheet.create({
   
   // Chart styles
   chartHeader: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     marginBottom: 16,
   },
@@ -736,14 +743,6 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#2c3e50',
   },
-  addButton: {
-    backgroundColor: '#3498db',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   
   // SMS Pattern Styles
   smsPattern: {
@@ -781,5 +780,182 @@ export const styles = StyleSheet.create({
     color: '#7f8c8d',
     marginBottom: 2,
     lineHeight: 16,
+  },
+
+  // New styles for improved designs
+  screenHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+
+  addButton: {
+    backgroundColor: '#3498db',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+
+  addButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+
+  // Filter container for Reports screen
+  filterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  miniFilterButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginLeft: 6,
+    borderRadius: 4,
+    backgroundColor: '#ecf0f1',
+  },
+
+  activeMiniFilterButton: {
+    backgroundColor: '#3498db',
+  },
+
+  miniFilterText: {
+    fontSize: 11,
+    color: '#7f8c8d',
+    fontWeight: '500',
+  },
+
+  activeMiniFilterText: {
+    color: '#ffffff',
+  },
+
+  // Account actions and delete button
+  accountActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+
+  actionButton: {
+    padding: 8,
+    marginLeft: 4,
+  },
+
+  deleteButton: {
+    padding: 8,
+    marginLeft: 4,
+  },
+
+  editButton: {
+    padding: 8,
+    marginLeft: 4,
+  },
+
+  // Chart header improvements
+  chartHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+
+  // SMS Import Button Styles
+  smsImportButton: {
+    backgroundColor: '#27ae60',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginVertical: 8,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+
+  smsImportButtonDisabled: {
+    backgroundColor: '#95a5a6',
+    elevation: 0,
+  },
+
+  smsImportButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+
+  smsImportHint: {
+    fontSize: 12,
+    color: '#7f8c8d',
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+
+  // Backup & Export Styles
+  backupButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 12,
+  },
+
+  backupButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#3498db',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginHorizontal: 4,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+
+  backupButtonText: {
+    color: '#3498db',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+
+  backupHint: {
+    fontSize: 12,
+    color: '#7f8c8d',
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+
+  // New layout styles for better alignment
+  sectionTitleWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  filterRowContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    marginTop: 8,
   },
 });

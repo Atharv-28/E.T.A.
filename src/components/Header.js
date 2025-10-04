@@ -4,7 +4,7 @@ import { useAccounts } from '../context/AccountContext';
 import CustomIcon from './CustomIcon';
 import { styles } from '../styles/GlobalStyles';
 
-function Header({ title = 'ETA' }) {
+function Header({ title = 'Expense Track & Analyse' }) {
   const { activeAccount } = useAccounts();
 
   return (

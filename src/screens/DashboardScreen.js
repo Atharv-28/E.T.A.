@@ -147,45 +147,70 @@ function DashboardScreen() {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Spending Trend</Text>
-          <TouchableOpacity onPress={() => console.log('Navigate to Reports')}>
-            <Text style={styles.viewAllButton}>View All</Text>
-          </TouchableOpacity>
         </View>
         
         <View style={styles.miniChart}>
-          <Text style={styles.miniChartTitle}>Last 7 Days Expenses</Text>
+          <Text style={styles.miniChartTitle}>Weeks of This Month</Text>
           <View style={styles.miniChartBars}>
-            {Array.from({ length: 7 }, (_, index) => {
-              const dayExpenses = accountTransactions
+            {Array.from({ length: 4 }, (_, index) => {
+              // Calculate week ranges for current month
+              const now = new Date();
+              const currentMonth = now.getMonth();
+              const currentYear = now.getFullYear();
+              const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+              const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+              
+              // Calculate week start and end dates
+              const weekStart = new Date(firstDayOfMonth);
+              weekStart.setDate(1 + (index * 7));
+              const weekEnd = new Date(weekStart);
+              weekEnd.setDate(weekStart.getDate() + 6);
+              
+              // Ensure we don't go beyond the current month
+              if (weekEnd > lastDayOfMonth) {
+                weekEnd.setTime(lastDayOfMonth.getTime());
+              }
+              
+              const weekExpenses = accountTransactions
                 .filter(t => {
                   const transactionDate = new Date(t.date);
-                  const targetDate = new Date();
-                  targetDate.setDate(targetDate.getDate() - (6 - index));
                   return t.type === 'expense' && 
-                         transactionDate.toDateString() === targetDate.toDateString();
+                         transactionDate >= weekStart && 
+                         transactionDate <= weekEnd &&
+                         transactionDate.getMonth() === currentMonth;
                 })
                 .reduce((sum, t) => sum + t.amount, 0);
               
-              const maxExpense = Math.max(1, Math.max(...Array.from({ length: 7 }, (_, i) => {
-                const date = new Date();
-                date.setDate(date.getDate() - (6 - i));
+              // Calculate max expense for scaling
+              const maxExpense = Math.max(1, Math.max(...Array.from({ length: 4 }, (_, i) => {
+                const wStart = new Date(firstDayOfMonth);
+                wStart.setDate(1 + (i * 7));
+                const wEnd = new Date(wStart);
+                wEnd.setDate(wStart.getDate() + 6);
+                if (wEnd > lastDayOfMonth) {
+                  wEnd.setTime(lastDayOfMonth.getTime());
+                }
                 return accountTransactions
-                  .filter(t => t.type === 'expense' && 
-                              new Date(t.date).toDateString() === date.toDateString())
+                  .filter(t => {
+                    const tDate = new Date(t.date);
+                    return t.type === 'expense' && 
+                           tDate >= wStart && 
+                           tDate <= wEnd &&
+                           tDate.getMonth() === currentMonth;
+                  })
                   .reduce((sum, t) => sum + t.amount, 0);
               })));
               
-              const height = Math.max(4, (dayExpenses / maxExpense) * 40);
+              const height = Math.max(4, (weekExpenses / maxExpense) * 40);
               
               return (
                 <View key={index} style={styles.miniChartBar}>
                   <View style={[styles.miniChartBarFill, { 
                     height: height,
-                    backgroundColor: dayExpenses > 0 ? '#e74c3c' : '#ecf0f1'
+                    backgroundColor: weekExpenses > 0 ? '#e74c3c' : '#ecf0f1'
                   }]} />
                   <Text style={styles.miniChartBarLabel}>
-                    {new Date(Date.now() - (6 - index) * 24 * 60 * 60 * 1000)
-                      .toLocaleDateString('en-US', { weekday: 'short' })[0]}
+                    W{index + 1}
                   </Text>
                 </View>
               );

@@ -17,6 +17,7 @@ const screenWidth = Dimensions.get('window').width;
 function ReportsScreen() {
   const { transactions } = useTransactions();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const [expenseFilter, setExpenseFilter] = useState('month'); // New filter for expense breakdown
 
   // Get current date info
   const now = new Date();
@@ -39,10 +40,29 @@ function ReportsScreen() {
 
   const filteredTransactions = getFilteredTransactions();
 
-  // Calculate analytics data
+  // Calculate analytics data for expense breakdown (with filter)
   const calculateCategoryData = () => {
     const categoryTotals = {};
-    const expenseTransactions = filteredTransactions.filter(t => t.type === 'expense');
+    
+    // Filter transactions based on expenseFilter
+    let expenseTransactions = transactions.filter(t => t.type === 'expense');
+    
+    const cutoffDate = new Date();
+    switch (expenseFilter) {
+      case 'week':
+        cutoffDate.setDate(cutoffDate.getDate() - 7);
+        break;
+      case 'month':
+        cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+        break;
+      case 'year':
+        cutoffDate.setFullYear(cutoffDate.getFullYear() - 1);
+        break;
+      default:
+        cutoffDate.setFullYear(cutoffDate.getFullYear() - 100); // All time
+    }
+    
+    expenseTransactions = expenseTransactions.filter(t => new Date(t.date) >= cutoffDate);
     
     expenseTransactions.forEach(transaction => {
       const categoryInfo = CATEGORIES.EXPENSE.find(cat => cat.id === transaction.category);
@@ -227,9 +247,11 @@ function ReportsScreen() {
       {/* Monthly Trend Chart */}
       {Object.keys(monthlyData).length > 0 && (
         <View style={styles.section}>
-          <View style={styles.chartHeader}>
-            <CustomIcon name="show-chart" size={20} color="#2c3e50" />
-            <Text style={styles.sectionTitle}>6-Month Trend</Text>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleWithIcon}>
+              <CustomIcon name="show-chart" size={20} color="#2c3e50" />
+              <Text style={styles.sectionTitle}>6-Month Trend</Text>
+            </View>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <LineChart
@@ -252,9 +274,30 @@ function ReportsScreen() {
       {/* Expense Categories Pie Chart */}
       {pieChartData.length > 0 && (
         <View style={styles.section}>
-          <View style={styles.chartHeader}>
-            <CustomIcon name="donut-large" size={20} color="#2c3e50" />
-            <Text style={styles.sectionTitle}>Expense Breakdown</Text>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleWithIcon}>
+              <CustomIcon name="donut-large" size={20} color="#2c3e50" />
+              <Text style={styles.sectionTitle}>Expense Breakdown</Text>
+            </View>
+          </View>
+          <View style={styles.filterRowContainer}>
+            {['week', 'month', 'year', 'all'].map((filter) => (
+              <TouchableOpacity
+                key={filter}
+                style={[
+                  styles.miniFilterButton,
+                  expenseFilter === filter && styles.activeMiniFilterButton
+                ]}
+                onPress={() => setExpenseFilter(filter)}
+              >
+                <Text style={[
+                  styles.miniFilterText,
+                  expenseFilter === filter && styles.activeMiniFilterText
+                ]}>
+                  {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
           <PieChart
             data={pieChartData}
@@ -272,13 +315,35 @@ function ReportsScreen() {
 
       {/* Category Details */}
       <View style={styles.section}>
-        <View style={styles.chartHeader}>
-          <CustomIcon name="list" size={20} color="#2c3e50" />
-          <Text style={styles.sectionTitle}>Top Expense Categories</Text>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleWithIcon}>
+            <CustomIcon name="list" size={20} color="#2c3e50" />
+            <Text style={styles.sectionTitle}>Top Expense Categories</Text>
+          </View>
+        </View>
+        <View style={styles.filterRowContainer}>
+          {['week', 'month', 'year', 'all'].map((filter) => (
+            <TouchableOpacity
+              key={filter}
+              style={[
+                styles.miniFilterButton,
+                expenseFilter === filter && styles.activeMiniFilterButton
+              ]}
+              onPress={() => setExpenseFilter(filter)}
+            >
+              <Text style={[
+                styles.miniFilterText,
+                expenseFilter === filter && styles.activeMiniFilterText
+              ]}>
+                {filter.charAt(0).toUpperCase() + filter.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
         {categoryData.length > 0 ? (
           categoryData.map(([category, amount], index) => {
-            const percentage = totalExpense > 0 ? (amount / totalExpense * 100) : 0;
+            const totalExpenseForFilter = categoryData.reduce((sum, [, amt]) => sum + amt, 0);
+            const percentage = totalExpenseForFilter > 0 ? (amount / totalExpenseForFilter * 100) : 0;
             return (
               <View key={category} style={styles.categoryRow}>
                 <View style={styles.categoryInfo}>
@@ -303,48 +368,6 @@ function ReportsScreen() {
             <Text style={styles.emptyStateText}>No expense data available</Text>
           </View>
         )}
-      </View>
-
-      {/* Financial Insights */}
-      <View style={styles.section}>
-        <View style={styles.chartHeader}>
-          <CustomIcon name="lightbulb-outline" size={20} color="#2c3e50" />
-          <Text style={styles.sectionTitle}>Financial Insights</Text>
-        </View>
-        <View style={styles.insightContainer}>
-          {savingsRate < 10 && (
-            <View style={styles.insightCard}>
-              <CustomIcon name="warning" size={20} color="#f39c12" />
-              <Text style={styles.insightText}>
-                Consider reducing expenses to improve your savings rate
-              </Text>
-            </View>
-          )}
-          {categoryData.length > 0 && categoryData[0][1] > totalIncome * 0.3 && (
-            <View style={styles.insightCard}>
-              <CustomIcon name="info" size={20} color="#3498db" />
-              <Text style={styles.insightText}>
-                Your top expense category ({categoryData[0][0]}) takes up a large portion of your income
-              </Text>
-            </View>
-          )}
-          {netIncome > 0 && (
-            <View style={styles.insightCard}>
-              <CustomIcon name="check-circle" size={20} color="#27ae60" />
-              <Text style={styles.insightText}>
-                Great job! You're saving money this period
-              </Text>
-            </View>
-          )}
-          {filteredTransactions.length === 0 && (
-            <View style={styles.insightCard}>
-              <CustomIcon name="info" size={20} color="#95a5a6" />
-              <Text style={styles.insightText}>
-                No data available for the selected period
-              </Text>
-            </View>
-          )}
-        </View>
       </View>
     </ScrollView>
   );
