@@ -2,15 +2,24 @@ import React from 'react';
 import { ScrollView, Text, View, TouchableOpacity } from 'react-native';
 import CustomIcon from '../components/CustomIcon';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
+import { useAccounts } from '../context/AccountContext';
 import { formatCurrency } from '../utils/currency';
 import { styles } from '../styles/GlobalStyles';
 
 function DashboardScreen() {
-  const { transactions, getTotalBalance, getMonthlySpending } = useTransactions();
+  const { 
+    getTransactionsByAccount, 
+    getTotalBalanceForAccount, 
+    getMonthlySpendingForAccount 
+  } = useTransactions();
+  const { activeAccount } = useAccounts();
   
-  const totalBalance = getTotalBalance();
-  const monthlySpending = getMonthlySpending();
-  const recentTransactions = transactions.slice(0, 5);
+  // Use active account data or show empty state
+  const activeAccountId = activeAccount?.id;
+  const accountTransactions = activeAccountId ? getTransactionsByAccount(activeAccountId) : [];
+  const totalBalance = activeAccountId ? getTotalBalanceForAccount(activeAccountId) : 0;
+  const monthlySpending = activeAccountId ? getMonthlySpendingForAccount(activeAccountId) : 0;
+  const recentTransactions = accountTransactions.slice(0, 5);
 
   const getCategoryInfo = (categoryId, type) => {
     const categories = CATEGORIES[type.toUpperCase()];
@@ -117,7 +126,7 @@ function DashboardScreen() {
             <CustomIcon name="add" size={20} color="#27ae60" />
             <Text style={styles.summaryLabel}>Income</Text>
             <Text style={[styles.summaryValue, { color: '#27ae60' }]}>
-              +{formatCurrency(transactions
+              +{formatCurrency(accountTransactions
                 .filter(t => t.type === 'income' && 
                   new Date(t.date).getMonth() === new Date().getMonth())
                 .reduce((sum, t) => sum + t.amount, 0))}
@@ -147,7 +156,7 @@ function DashboardScreen() {
           <Text style={styles.miniChartTitle}>Last 7 Days Expenses</Text>
           <View style={styles.miniChartBars}>
             {Array.from({ length: 7 }, (_, index) => {
-              const dayExpenses = transactions
+              const dayExpenses = accountTransactions
                 .filter(t => {
                   const transactionDate = new Date(t.date);
                   const targetDate = new Date();
@@ -160,7 +169,7 @@ function DashboardScreen() {
               const maxExpense = Math.max(1, Math.max(...Array.from({ length: 7 }, (_, i) => {
                 const date = new Date();
                 date.setDate(date.getDate() - (6 - i));
-                return transactions
+                return accountTransactions
                   .filter(t => t.type === 'expense' && 
                               new Date(t.date).toDateString() === date.toDateString())
                   .reduce((sum, t) => sum + t.amount, 0);

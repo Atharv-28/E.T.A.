@@ -13,7 +13,9 @@ export const CATEGORIES = {
   ],
   EXPENSE: [
     { id: 'food', name: 'Food & Dining', icon: 'restaurant' },
+    { id: 'grocery', name: 'Grocery', icon: 'shopping-basket' },
     { id: 'snacks', name: 'Snacks', icon: 'fastfood' },
+    { id: 'flowers', name: 'Flowers', icon: 'local-florist' },
     { id: 'transport', name: 'Transportation', icon: 'directions-car' },
     { id: 'shopping', name: 'Shopping', icon: 'shopping-cart' },
     { id: 'entertainment', name: 'Entertainment', icon: 'movie' },
@@ -33,6 +35,7 @@ export function TransactionProvider({ children }) {
       amount: 350.00,
       description: 'Coffee Shop',
       category: 'food',
+      accountId: 'default-personal',
       date: new Date().toISOString(),
     },
     {
@@ -41,6 +44,7 @@ export function TransactionProvider({ children }) {
       amount: 75000.00,
       description: 'Monthly Salary',
       category: 'salary',
+      accountId: 'default-personal',
       date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
     },
     {
@@ -48,7 +52,8 @@ export function TransactionProvider({ children }) {
       type: 'expense',
       amount: 2500.00,
       description: 'Grocery Store',
-      category: 'food',
+      category: 'grocery',
+      accountId: 'default-personal',
       date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     },
   ]);
@@ -82,7 +87,30 @@ export function TransactionProvider({ children }) {
     return transactions.filter(transaction => transaction.type === type);
   };
 
-  // Calculate total balance
+  // Get transactions by account
+  const getTransactionsByAccount = (accountId) => {
+    return transactions.filter(transaction => transaction.accountId === accountId);
+  };
+
+  // Get transactions by type for specific account
+  const getTransactionsByTypeForAccount = (type, accountId) => {
+    return transactions.filter(transaction => 
+      transaction.type === type && transaction.accountId === accountId
+    );
+  };
+
+  // Calculate total balance for specific account
+  const getTotalBalanceForAccount = (accountId) => {
+    return transactions
+      .filter(transaction => transaction.accountId === accountId)
+      .reduce((total, transaction) => {
+        return transaction.type === 'income' 
+          ? total + transaction.amount 
+          : total - transaction.amount;
+      }, 0);
+  };
+
+  // Calculate total balance (all accounts)
   const getTotalBalance = () => {
     return transactions.reduce((total, transaction) => {
       return transaction.type === 'income' 
@@ -91,7 +119,23 @@ export function TransactionProvider({ children }) {
     }, 0);
   };
 
-  // Calculate monthly spending
+  // Calculate monthly spending for specific account
+  const getMonthlySpendingForAccount = (accountId) => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    return transactions
+      .filter(transaction => {
+        const transactionDate = new Date(transaction.date);
+        return transactionDate.getMonth() === currentMonth &&
+               transactionDate.getFullYear() === currentYear &&
+               transaction.type === 'expense' &&
+               transaction.accountId === accountId;
+      })
+      .reduce((total, transaction) => total + transaction.amount, 0);
+  };
+
+  // Calculate monthly spending (all accounts)
   const getMonthlySpending = () => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
@@ -112,8 +156,12 @@ export function TransactionProvider({ children }) {
     updateTransaction,
     deleteTransaction,
     getTransactionsByType,
+    getTransactionsByAccount,
+    getTransactionsByTypeForAccount,
     getTotalBalance,
+    getTotalBalanceForAccount,
     getMonthlySpending,
+    getMonthlySpendingForAccount,
   };
 
   return (

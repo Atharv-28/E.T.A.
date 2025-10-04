@@ -9,20 +9,25 @@ import {
 } from 'react-native';
 import CustomIcon from '../components/CustomIcon';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
+import { useAccounts } from '../context/AccountContext';
 import AddTransactionModal from '../components/AddTransactionModal';
 import { formatCurrency } from '../utils/currency';
 import { styles } from '../styles/GlobalStyles';
 
 function TransactionsScreen() {
   const { 
-    transactions, 
+    getTransactionsByAccount, 
     addTransaction, 
     deleteTransaction 
   } = useTransactions();
+  const { activeAccount } = useAccounts();
   const [modalVisible, setModalVisible] = useState(false);
   const [filter, setFilter] = useState('all'); // 'all', 'income', 'expense'
 
-  const filteredTransactions = transactions.filter(transaction => {
+  // Get transactions for active account only
+  const accountTransactions = activeAccount ? getTransactionsByAccount(activeAccount.id) : [];
+  
+  const filteredTransactions = accountTransactions.filter(transaction => {
     if (filter === 'all') return true;
     return transaction.type === filter;
   });

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import CustomIcon from './CustomIcon';
 import { CATEGORIES } from '../context/TransactionContext';
+import { useAccounts } from '../context/AccountContext';
 import { styles } from '../styles/GlobalStyles';
 
 function AddTransactionModal({ visible, onClose, onAddTransaction }) {
@@ -17,6 +18,7 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const { activeAccount } = useAccounts();
 
   const resetForm = () => {
     setType('expense');
@@ -42,6 +44,7 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
       amount: numericAmount,
       description,
       category: selectedCategory,
+      accountId: activeAccount?.id,
     });
 
     resetForm();
