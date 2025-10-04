@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { loadTransactions, saveTransactions } from '../utils/storage';
 
 // Create the context
 const TransactionContext = createContext();
@@ -28,35 +29,41 @@ export const CATEGORIES = {
 
 // Context Provider Component
 export function TransactionProvider({ children }) {
-  const [transactions, setTransactions] = useState([
-    {
-      id: '1',
-      type: 'expense',
-      amount: 350.00,
-      description: 'Coffee Shop',
-      category: 'food',
-      accountId: 'default-personal',
-      date: new Date().toISOString(),
-    },
-    {
-      id: '2',
-      type: 'income',
-      amount: 75000.00,
-      description: 'Monthly Salary',
-      category: 'salary',
-      accountId: 'default-personal',
-      date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: '3',
-      type: 'expense',
-      amount: 2500.00,
-      description: 'Grocery Store',
-      category: 'grocery',
-      accountId: 'default-personal',
-      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-  ]);
+  const [transactions, setTransactions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load transactions from AsyncStorage on app start
+  useEffect(() => {
+    const loadStoredTransactions = async () => {
+      try {
+        setIsLoading(true);
+        const storedTransactions = await loadTransactions();
+        setTransactions(storedTransactions);
+      } catch (error) {
+        console.error('Error loading transactions:', error);
+        // If loading fails, start with empty array
+        setTransactions([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadStoredTransactions();
+  }, []);
+
+  // Save transactions to AsyncStorage whenever transactions change
+  useEffect(() => {
+    if (!isLoading && transactions.length >= 0) {
+      const saveData = async () => {
+        try {
+          await saveTransactions(transactions);
+        } catch (error) {
+          console.error('Error saving transactions:', error);
+        }
+      };
+      saveData();
+    }
+  }, [transactions, isLoading]);
 
   // Add new transaction
   const addTransaction = (transaction) => {
@@ -152,6 +159,7 @@ export function TransactionProvider({ children }) {
 
   const value = {
     transactions,
+    isLoading,
     addTransaction,
     updateTransaction,
     deleteTransaction,

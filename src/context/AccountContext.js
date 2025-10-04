@@ -1,10 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { loadAccounts, saveAccounts, loadSettings, saveSettings } from '../utils/storage';
 
 // Create the Account context
 const AccountContext = createContext();
 
-// Account types and colors
 export const ACCOUNT_TYPES = {
   PERSONAL: {
     id: 'personal',
@@ -38,11 +37,6 @@ export const ACCOUNT_TYPES = {
   },
 };
 
-const STORAGE_KEYS = {
-  ACCOUNTS: '@ETA_ACCOUNTS',
-  ACTIVE_ACCOUNT: '@ETA_ACTIVE_ACCOUNT',
-};
-
 // Account Provider Component
 export function AccountProvider({ children }) {
   const [accounts, setAccounts] = useState([]);
@@ -63,17 +57,16 @@ export function AccountProvider({ children }) {
 
   const loadAccountsFromStorage = async () => {
     try {
-      const storedAccounts = await AsyncStorage.getItem(STORAGE_KEYS.ACCOUNTS);
-      const storedActiveAccount = await AsyncStorage.getItem(STORAGE_KEYS.ACTIVE_ACCOUNT);
+      const storedAccounts = await loadAccounts();
+      const settings = await loadSettings();
       
-      if (storedAccounts) {
-        const parsedAccounts = JSON.parse(storedAccounts);
-        setAccounts(parsedAccounts);
+      if (storedAccounts.length > 0) {
+        setAccounts(storedAccounts);
         
-        if (storedActiveAccount && parsedAccounts.find(acc => acc.id === storedActiveAccount)) {
-          setActiveAccountId(storedActiveAccount);
-        } else if (parsedAccounts.length > 0) {
-          setActiveAccountId(parsedAccounts[0].id);
+        if (settings.activeAccountId && storedAccounts.find(acc => acc.id === settings.activeAccountId)) {
+          setActiveAccountId(settings.activeAccountId);
+        } else {
+          setActiveAccountId(storedAccounts[0].id);
         }
       } else {
         // Create default account if none exists
@@ -89,9 +82,10 @@ export function AccountProvider({ children }) {
 
   const saveAccountsToStorage = async () => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(accounts));
+      await saveAccounts(accounts);
       if (activeAccountId) {
-        await AsyncStorage.setItem(STORAGE_KEYS.ACTIVE_ACCOUNT, activeAccountId);
+        const settings = await loadSettings();
+        await saveSettings({ ...settings, activeAccountId });
       }
     } catch (error) {
       console.error('Error saving accounts:', error);

@@ -4,7 +4,7 @@ import { useAccounts } from '../context/AccountContext';
 import CustomIcon from './CustomIcon';
 import { styles } from '../styles/GlobalStyles';
 
-function Header({ title = 'Personal Finance Manager' }) {
+function Header({ title = 'ETA' }) {
   const { activeAccount } = useAccounts();
 
   return (
