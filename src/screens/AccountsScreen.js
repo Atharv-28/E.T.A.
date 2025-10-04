@@ -14,6 +14,7 @@ import { useAccounts, ACCOUNT_TYPES } from '../context/AccountContext';
 import { useTransactions } from '../context/TransactionContext';
 import { formatCurrency } from '../utils/currency';
 import BackupService from '../services/BackupService';
+import SMSMonitorService from '../services/SMSMonitorService';
 import { styles } from '../styles/GlobalStyles';
 
 function AccountsScreen() {
@@ -144,6 +145,65 @@ function AccountsScreen() {
         [{ text: 'OK' }]
       );
     }
+  };
+
+  const handleTestSMS = () => {
+    const status = SMSMonitorService.getStatus();
+    
+    Alert.alert(
+      'Test SMS Monitoring',
+      `Background Job: ${status.backgroundJobStarted ? '✅ Running' : '❌ Not Running'}
+Foreground Polling: ${status.hasListener ? '✅ Active' : '❌ Inactive'}
+App State: ${status.appState}
+Pending Transactions: ${status.pendingTransactions}
+
+This will simulate a BOI bank SMS to test the category selection popup. Check console logs for detailed debugging.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Test Credit SMS',
+          onPress: () => {
+            console.log('🧪 Starting Credit SMS test...');
+            console.log('📊 Current SMS Monitor Status:', status);
+            SMSMonitorService.testSMSMonitoring();
+            
+            // Show a alert to check if the popup appeared
+            setTimeout(() => {
+              Alert.alert(
+                'SMS Test Result',
+                'If SMS monitoring is working correctly, you should have seen a category selection popup. Check the console logs for detailed information.',
+                [{ text: 'OK' }]
+              );
+            }, 2000);
+          }
+        },
+        {
+          text: 'Test Debit SMS',
+          onPress: () => {
+            console.log('🧪 Starting Debit SMS test...');
+            console.log('📊 Current SMS Monitor Status:', status);
+            
+            // Test with a debit SMS
+            const testDebitSMS = {
+              address: 'BOI',
+              body: 'Rs.500.00 debited A/cXX9326 and credited to test@upi via UPI Ref No 527362569052 on 04Oct25. Call 18001031906, if not done by you. -BOI',
+              date: Date.now().toString()
+            };
+            
+            console.log('📱 Processing test debit SMS:', testDebitSMS.body);
+            SMSMonitorService.handleNewSMS(testDebitSMS);
+            
+            setTimeout(() => {
+              Alert.alert(
+                'SMS Test Result',
+                'If SMS monitoring is working correctly, you should have seen a category selection popup for a debit transaction. Check the console logs for detailed information.',
+                [{ text: 'OK' }]
+              );
+            }, 2000);
+          }
+        }
+      ]
+    );
   };
 
   const renderAccountItem = ({ item: account }) => {
@@ -304,6 +364,26 @@ function AccountsScreen() {
         
         <Text style={styles.backupHint}>
           💡 Will export transactions for "{activeAccount?.name || 'the selected account'}" only
+        </Text>
+      </View>
+
+      {/* Test SMS Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🧪 Test SMS Detection</Text>
+        <Text style={styles.sectionDescription}>
+          Test the SMS monitoring feature with a simulated bank transaction SMS
+        </Text>
+        
+        <TouchableOpacity 
+          style={[styles.smsImportButton, { backgroundColor: '#f39c12' }]}
+          onPress={handleTestSMS}
+        >
+          <CustomIcon name="bug-report" size={20} color="#ffffff" />
+          <Text style={styles.smsImportButtonText}>Test SMS Detection</Text>
+        </TouchableOpacity>
+        
+        <Text style={styles.smsImportHint}>
+          💡 This will simulate a Bank of India SMS to test the category selection popup
         </Text>
       </View>
 

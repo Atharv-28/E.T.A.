@@ -1,72 +1,54 @@
 // SMS Parser for extracting transaction data from bank SMS messages
 
-export function parseBOISMS(smsText, senderAddress = '') {
-  try {
-    // Remove extra spaces and normalize
-    const text = smsText.replace(/\s+/g, ' ').trim();
-    
-    // Credit SMS Pattern: "BOI - Rs.9360.00 Credited to your Ac XX9326 on 03-10-25 by UPI ref No.112115898277.Avl Bal 21080.15"
-    const creditPattern = /Rs\.?([\d,]+\.?\d*)\s*Credited\s*to\s*your\s*Ac\s*(\w+)\s*on\s*([\d-]+).*?ref\s*No\.?(\w+)/i;
+class SMSParser {
+  
+  // Parse BOI (Bank of India) SMS messages
+  parseBOISMS(smsText) {
+    try {
+      // Remove extra spaces and normalize
+      const text = smsText.replace(/\s+/g, ' ').trim();
+      
+      // Credit SMS Pattern: "BOI - Rs.9360.00 Credited to your Ac XX**** on 03-10-25 by UPI ref No.***********.Avl Bal ******"
+      const creditPattern = /Rs\.?([\d,]+\.?\d*)\s*Credited\s*to\s*your\s*Ac\s*(\w+)\s*on\s*([\d-]+)/i;
 
-    // Debit SMS Pattern: "Rs.24.00 debited A/cXX9326 and credited to amolkhot751@okicici via UPI Ref No 527362569052 on 30Sep25"
-    const debitPattern = /Rs\.?([\d,]+\.?\d*)\s*debited\s*A\/c(\w+).*?(?:credited\s*to\s*([^@\s]+@[^@\s]+))?.*?(?:ref\s*No\.?\s*(\w+))?.*?on\s*([\d\w]+)/i;
-    
-    let match = text.match(creditPattern);
-    if (match) {
-      const amount = parseFloat(match[1].replace(/,/g, ''));
-      const accountNumber = match[2];
-      const date = parseDate(match[3]);
-      const refNumber = match[4];
+      // Debit SMS Pattern: "Rs.24.00 debited A/cXX**** and credited to ***********@****** via UPI Ref No *********** on 30Sep25"
+      const debitPattern = /Rs\.?([\d,]+\.?\d*)\s*debited\s*A\/c(\w+).*?on\s*([\d\w]+)/i;
       
-      return {
-        id: `sms_${refNumber}_${Date.now()}`,
-        type: 'income',
-        amount: amount,
-        description: extractCreditDescription(text),
-        category: categorizeTransaction(extractCreditDescription(text), 'income'),
-        accountNumber: accountNumber,
-        date: date,
-        source: 'sms',
-        refNumber: refNumber,
-        bank: 'BOI',
-        rawSMS: smsText,
-        senderAddress: senderAddress
-      };
-    }
-    
-    match = text.match(debitPattern);
-    if (match) {
-      const amount = parseFloat(match[1].replace(/,/g, ''));
-      const accountNumber = match[2];
-      const recipient = match[3] || '';
-      const refNumber = match[4] || '';
-      const date = parseDate(match[5]);
+      let match = text.match(creditPattern);
+      if (match) {
+        return {
+          type: 'income',
+          amount: parseFloat(match[1].replace(/,/g, '')),
+          accountNumber: match[2],
+          date: this.parseDate(match[3]),
+          description: this.extractCreditDescription(text),
+          bank: 'BOI',
+          rawSMS: smsText
+        };
+      }
       
-      return {
-        id: `sms_${refNumber || Date.now()}_${Date.now()}`,
-        type: 'expense',
-        amount: amount,
-        description: extractDebitDescription(text, recipient),
-        category: categorizeTransaction(extractDebitDescription(text, recipient), 'expense'),
-        accountNumber: accountNumber,
-        date: date,
-        source: 'sms',
-        refNumber: refNumber,
-        bank: 'BOI',
-        rawSMS: smsText,
-        senderAddress: senderAddress
-      };
+      match = text.match(debitPattern);
+      if (match) {
+        return {
+          type: 'expense',
+          amount: parseFloat(match[1].replace(/,/g, '')),
+          accountNumber: match[2],
+          date: this.parseDate(match[3]),
+          description: this.extractDebitDescription(text),
+          bank: 'BOI',
+          rawSMS: smsText
+        };
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error parsing BOI SMS:', error);
+      return null;
     }
-    
-    return null;
-  } catch (error) {
-    console.error('Error parsing BOI SMS:', error);
-    return null;
   }
-}
 
   // Parse date from various formats
-  function parseDate(dateStr) {
+  parseDate(dateStr) {
     try {
       // Handle formats like "03-10-25", "30Sep25"
       if (dateStr.includes('-')) {
@@ -103,7 +85,7 @@ export function parseBOISMS(smsText, senderAddress = '') {
   }
 
   // Extract description for credit transactions
-  function extractCreditDescription(text) {
+  extractCreditDescription(text) {
     // Look for UPI reference or transaction type
     if (text.includes('UPI')) {
       return 'UPI Credit Received';
@@ -119,11 +101,12 @@ export function parseBOISMS(smsText, senderAddress = '') {
   }
 
   // Extract description for debit transactions
-  function extractDebitDescription(text, recipient = '') {
+  extractDebitDescription(text) {
     // Extract recipient or merchant info
     if (text.includes('UPI')) {
-      if (recipient) {
-        return `UPI to ${recipient}`;
+      const upiMatch = text.match(/credited\s*to\s*([^@\s]+@[^@\s]+)/i);
+      if (upiMatch) {
+        return `UPI to ${upiMatch[1]}`;
       }
       return 'UPI Payment';
     } else if (text.includes('ATM')) {
@@ -136,7 +119,7 @@ export function parseBOISMS(smsText, senderAddress = '') {
   }
 
   // Categorize transaction based on description
-  function categorizeTransaction(description, type) {
+  categorizeTransaction(description, type) {
     const desc = description.toLowerCase();
     
     if (type === 'income') {
@@ -156,34 +139,41 @@ export function parseBOISMS(smsText, senderAddress = '') {
   }
 
   // Main parsing function that tries different bank patterns
-  export function parseAnySMS(smsText, bankPattern = null) {
+  parseAnySMS(smsText, bankPattern = null) {
+    console.log('🔍 Parsing SMS:', smsText);
+    
     // If specific bank pattern is provided, use it
     if (bankPattern === 'BOI' || smsText.includes('BOI')) {
-      return parseBOISMS(smsText);
+      console.log('🏦 Detected BOI SMS, parsing...');
+      const result = this.parseBOISMS(smsText);
+      console.log('📊 BOI parsing result:', result);
+      return result;
     }
     
     // Try to detect bank and parse accordingly
     if (smsText.includes('BOI') || smsText.includes('Bank of India')) {
-      return parseBOISMS(smsText);
+      console.log('🏦 Detected BOI/Bank of India SMS, parsing...');
+      const result = this.parseBOISMS(smsText);
+      console.log('📊 BOI parsing result:', result);
+      return result;
     }
     
     // Add more bank parsers here in the future
-    // if (smsText.includes('HDFC')) return parseHDFCSMS(smsText);
-    // if (smsText.includes('SBI')) return parseSBISMS(smsText);
+    // if (smsText.includes('HDFC')) return this.parseHDFCSMS(smsText);
+    // if (smsText.includes('SBI')) return this.parseSBISMS(smsText);
     
+    console.log('❌ No matching bank pattern found for SMS');
     return null;
   }
 
   // Test the parser with demo data
-  export function testSMSParser() {
-    const creditSMS = "BOI - Rs.9360.00 Credited to your Ac XX9326 on 03-10-25 by UPI ref No.112115898277.Avl Bal 21080.15";
+  testParser() {
+    const creditSMS = "BOI -  Rs.9360.00 Credited to your Ac XX9326 on 03-10-25 by UPI ref No.112115898277.Avl Bal 21080.15";
     const debitSMS = "Rs.24.00 debited A/cXX9326 and credited to amolkhot751@okicici via UPI Ref No 527362569052 on 30Sep25. Call 18001031906, if not done by you. -BOI";
     
-    console.log('Credit SMS parsed:', parseAnySMS(creditSMS));
-    console.log('Debit SMS parsed:', parseAnySMS(debitSMS));
-    
-    return {
-      credit: parseAnySMS(creditSMS),
-      debit: parseAnySMS(debitSMS)
-    };
+    console.log('Credit SMS parsed:', this.parseAnySMS(creditSMS));
+    console.log('Debit SMS parsed:', this.parseAnySMS(debitSMS));
   }
+}
+
+export default new SMSParser();
