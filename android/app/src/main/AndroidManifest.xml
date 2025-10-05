@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application
       android:name=".MainApplication"
@@ -29,9 +30,22 @@
         </intent-filter>
       </activity>
       
-      <!-- Background job service for SMS monitoring -->
-      <service android:name="com.pilloxa.backgroundjob.BackgroundJobService" 
-               android:enabled="true" 
-               android:exported="false" />
+      <!-- SMS Monitoring Foreground Service -->
+      <service 
+        android:name=".SMSMonitoringService"
+        android:enabled="true"
+        android:exported="false"
+        android:foregroundServiceType="dataSync" />
+      
+      <!-- SMS Broadcast Receiver -->
+      <receiver
+        android:name=".SMSBroadcastReceiver"
+        android:enabled="true"
+        android:exported="true"
+        android:priority="1000">
+        <intent-filter>
+          <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+        </intent-filter>
+      </receiver>
     </application>
 </manifest>

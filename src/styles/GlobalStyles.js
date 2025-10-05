@@ -1,65 +1,65 @@
 import { StyleSheet } from 'react-native';
 
-// Enhanced Color Palette
+// Enhanced Color Palette - Baby Blue Theme
 export const colors = {
-  // Primary Colors
-  primary: '#3498db',
-  primaryDark: '#2980b9',
-  primaryLight: '#5dade2',
+  // Primary Colors - Baby Blue Theme
+  primary: '#87CEEB',      // Sky blue
+  primaryDark: '#4682B4',  // Steel blue
+  primaryLight: '#B0E0E6', // Powder blue
   
-  // Secondary Colors
-  secondary: '#9b59b6',
-  secondaryDark: '#8e44ad',
-  secondaryLight: '#bb8fce',
+  // Secondary Colors - Complementary pastels
+  secondary: '#DDA0DD',    // Plum
+  secondaryDark: '#DA70D6', // Orchid
+  secondaryLight: '#E6E6FA', // Lavender
   
-  // Success & Income
-  success: '#27ae60',
-  successDark: '#239b56',
-  successLight: '#58d68d',
+  // Success & Income - Soft mint/aqua
+  success: '#40E0D0',      // Turquoise
+  successDark: '#20B2AA',  // Light sea green
+  successLight: '#AFEEEE', // Pale turquoise
   
-  // Danger & Expense
-  danger: '#e74c3c',
-  dangerDark: '#c0392b',
-  dangerLight: '#f1948a',
+  // Danger & Expense - Soft coral
+  danger: '#F08080',       // Light coral
+  dangerDark: '#CD5C5C',   // Indian red
+  dangerLight: '#FFB6C1',  // Light pink
   
-  // Warning
-  warning: '#f39c12',
-  warningDark: '#e67e22',
-  warningLight: '#f8c471',
+  // Warning - Soft yellow
+  warning: '#F0E68C',      // Khaki
+  warningDark: '#DAA520',  // Goldenrod
+  warningLight: '#FFFFE0', // Light yellow
   
-  // Info
-  info: '#3498db',
-  infoDark: '#2980b9',
-  infoLight: '#85c1e9',
+  // Info - Baby blue variations
+  info: '#87CEEB',         // Sky blue
+  infoDark: '#4682B4',     // Steel blue
+  infoLight: '#E0F6FF',    // Alice blue
   
-  // Neutral Colors
-  background: '#f8f9fa',
-  backgroundDark: '#ecf0f1',
-  white: '#ffffff',
-  black: '#2c3e50',
-  gray: '#7f8c8d',
-  grayLight: '#bdc3c7',
-  grayDark: '#34495e',
+  // Neutral Colors - Soft and light
+  background: '#F0F8FF',   // Alice blue background
+  backgroundDark: '#E6F3FF', // Light blue background
+  white: '#FFFFFF',
+  black: '#2F4F4F',        // Dark slate gray (softer than pure black)
+  gray: '#708090',         // Slate gray
+  grayLight: '#B0C4DE',    // Light steel blue
+  grayDark: '#2F4F4F',     // Dark slate gray
   
-  // Gradient Colors
-  gradientStart: '#667eea',
-  gradientEnd: '#764ba2',
+  // Gradient Colors - Baby Blue Theme
+  gradientStart: '#87CEEB', // Sky blue
+  gradientEnd: '#4682B4',   // Steel blue
   
-  // Income Gradient
-  incomeGradientStart: '#56ab2f',
-  incomeGradientEnd: '#a8e6cf',
+  // Income Gradient - Aqua theme
+  incomeGradientStart: '#40E0D0', // Turquoise
+  incomeGradientEnd: '#20B2AA',   // Light sea green
   
-  // Expense Gradient
-  expenseGradientStart: '#ff416c',
-  expenseGradientEnd: '#ff4b2b',
+  // Expense Gradient - Soft coral theme
+  expenseGradientStart: '#F08080', // Light coral
+  expenseGradientEnd: '#CD5C5C',   // Indian red
   
-  // Card Gradients
-  cardGradient1Start: '#667eea',
-  cardGradient1End: '#764ba2',
-  cardGradient2Start: '#f093fb',
-  cardGradient2End: '#f5576c',
-  cardGradient3Start: '#4facfe',
-  cardGradient3End: '#00f2fe',
+  // Card Gradients - Baby Blue Variations
+  cardGradient1Start: '#87CEEB',   // Sky blue
+  cardGradient1End: '#4682B4',     // Steel blue
+  cardGradient2Start: '#B0E0E6',   // Powder blue
+  cardGradient2End: '#87CEEB',     // Sky blue
+  cardGradient3Start: '#B0E0E6',   // Powder blue
+  cardGradient3End: '#87CEEB',     // Sky blue
 };
 
 export const styles = StyleSheet.create({
@@ -68,11 +68,11 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primary, // Baby blue header
     padding: 16,
     alignItems: 'center',
     elevation: 8,
-    shadowColor: colors.black,
+    shadowColor: colors.primaryDark,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -113,9 +113,9 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.white,
     paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: colors.grayLight,
+    borderTopColor: colors.primaryLight, // Baby blue border
     elevation: 12,
-    shadowColor: colors.black,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
@@ -128,7 +128,7 @@ export const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   activeNavItem: {
-    backgroundColor: colors.primaryLight + '20',
+    backgroundColor: colors.primaryLight + '40', // Soft baby blue active state
   },
   navText: {
     fontSize: 12,
@@ -154,12 +154,12 @@ export const styles = StyleSheet.create({
     marginHorizontal: 6,
     alignItems: 'center',
     elevation: 6,
-    shadowColor: colors.black,
+    shadowColor: colors.primary, // Baby blue shadow
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     borderWidth: 1,
-    borderColor: colors.grayLight + '40',
+    borderColor: colors.primaryLight + '60', // Soft baby blue border
   },
   statValue: {
     fontSize: 26,
@@ -215,7 +215,7 @@ export const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   addButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primary, // Baby blue buttons
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,

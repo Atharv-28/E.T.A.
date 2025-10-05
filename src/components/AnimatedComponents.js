@@ -281,15 +281,3 @@ export const FloatingActionButton = ({ onPress, icon, style }) => {
     </TouchableOpacity>
   );
 };
-
-export default {
-  AnimatedButton,
-  FadeInView,
-  SlideInView,
-  ScaleInView,
-  PulseView,
-  GradientCard,
-  GradientButton,
-  ShimmerView,
-  FloatingActionButton,
-};

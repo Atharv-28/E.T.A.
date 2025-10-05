@@ -2,8 +2,21 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { useAccounts } from '../context/AccountContext';
 import CustomIcon from './CustomIcon';
-import { FadeInView, SlideInView, GradientCard } from './AnimatedComponents';
+import LinearGradient from 'react-native-linear-gradient';
 import { styles, colors } from '../styles/GlobalStyles';
+
+// Local GradientCard component
+const GradientCard = ({ children, colors: gradientColors = [colors.primary, colors.primaryDark], style, ...props }) => (
+  <LinearGradient
+    colors={gradientColors}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 1 }}
+    style={[{ borderRadius: 16 }, style]}
+    {...props}
+  > 
+    {children}
+  </LinearGradient>
+);
 
 function Header({ title = 'Expense Track & Analyse' }) {
   const { activeAccount } = useAccounts();
@@ -13,16 +26,16 @@ function Header({ title = 'Expense Track & Analyse' }) {
       colors={[colors.primary, colors.primaryDark]}
       style={styles.header}
     >
-      <FadeInView>
+      <View>
         <Text style={styles.headerTitle}>{title}</Text>
-      </FadeInView>
+      </View>
       {activeAccount && (
-        <SlideInView direction="right" delay={300}>
+        <View>
           <View style={styles.headerAccount}>
             <CustomIcon name={activeAccount.icon} size={16} color={colors.white} />
             <Text style={styles.headerAccountText}>{activeAccount.name}</Text>
           </View>
-        </SlideInView>
+        </View>
       )}
     </GradientCard>
   );

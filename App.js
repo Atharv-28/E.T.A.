@@ -25,7 +25,7 @@ import AccountsScreen from './src/screens/AccountsScreen';
 import ReportsScreen from './src/screens/ReportsScreen';
 
 // Services
-import SMSMonitorService from './src/services/SMSMonitorService';
+import NativeSMSService from './src/services/NativeSMSService';
 
 // Styles
 import { styles } from './src/styles/GlobalStyles';
@@ -56,28 +56,34 @@ function AppContent() {
 
   // Start SMS monitoring when app loads
   useEffect(() => {
-    const startSMSMonitoring = async () => {
+    let smsListener = null;
+
+    const startNativeSMSMonitoring = async () => {
       try {
-        const success = await SMSMonitorService.startMonitoring(handleNewTransaction);
-        if (success) {
-          console.log('📱 SMS monitoring started successfully with background support');
-          console.log('🔍 Monitoring status:', SMSMonitorService.getStatus());
+        if (NativeSMSService.isAvailable()) {
+          console.log('📱 Starting native SMS monitoring');
+          
+          // Add listener for SMS transaction events
+          smsListener = NativeSMSService.addTransactionListener(handleNativeSMSTransaction);
+          
+          // Start the native monitoring service
+          NativeSMSService.startMonitoring();
+          
+          console.log('✅ Native SMS monitoring started successfully');
+        } else {
+          console.warn('⚠️ Native SMS service not available, fallback needed');
         }
       } catch (error) {
-        console.error('❌ Failed to start SMS monitoring:', error);
+        console.error('❌ Failed to start native SMS monitoring:', error);
       }
     };
 
-    startSMSMonitoring();
+    startNativeSMSMonitoring();
 
-    // Listen for app state changes to process pending transactions
+    // Listen for app state changes
     const handleAppStateChange = (nextAppState) => {
       if (nextAppState === 'active') {
-        console.log('🔄 App became active, processing any pending transactions...');
-        // Give a small delay to ensure SMS service is ready
-        setTimeout(() => {
-          SMSMonitorService.processPendingTransactions();
-        }, 500);
+        console.log('🔄 App became active');
       }
     };
 
@@ -85,10 +91,33 @@ function AppContent() {
 
     // Cleanup when component unmounts
     return () => {
-      SMSMonitorService.stopMonitoring();
+      if (smsListener) {
+        NativeSMSService.removeListener(smsListener);
+      }
+      NativeSMSService.stopMonitoring();
       subscription?.remove();
     };
   }, []);
+
+  // Handle SMS transaction from native service
+  const handleNativeSMSTransaction = async (smsData) => {
+    try {
+      console.log('📨 Native SMS transaction received:', smsData);
+      
+      // Parse the SMS using existing parser
+      const { parseSMS } = require('./src/utils/smsParser');
+      const transactionData = parseSMS(smsData.sender, smsData.messageBody, smsData.timestamp);
+      
+      if (transactionData) {
+        console.log('✅ SMS parsed successfully:', transactionData);
+        handleNewTransaction(transactionData);
+      } else {
+        console.log('❌ SMS could not be parsed as transaction');
+      }
+    } catch (error) {
+      console.error('❌ Error handling native SMS transaction:', error);
+    }
+  };
 
   // Handle new transaction detected from SMS
   const handleNewTransaction = (transactionData) => {
