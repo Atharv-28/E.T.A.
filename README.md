@@ -1,54 +1,210 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Expense Track & Analyse - E.T.A. 💰
 
-# Getting Started
+A modern, feature-rich React Native app for managing personal finances with automatic SMS transaction detection, multi-account support, and beautiful analytics.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## 🌟 Features
 
-## Step 1: Start Metro
+### 💳 Multi-Account Support
+- Create and manage multiple bank accounts
+- Switch between accounts seamlessly
+- Account-specific transaction tracking
+- Different account types (Personal, Business, Joint, Savings)
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+### 📱 SMS Transaction Detection
+- **Native SMS Monitoring**: Real-time SMS parsing even when app is closed
+- **Automatic Categorization**: Smart detection of bank transaction messages
+- **Background Service**: Continues monitoring in background
+- **Bank Support**: Currently supports Bank of India (BOI) SMS patterns
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+### 💰 Transaction Management
+- Add income and expense transactions manually
+- Automatic transaction detection from SMS
+- Category-based organization (Food, Transport, Shopping, etc.)
+- Transaction filtering and search
+- Edit and delete transactions
 
-```sh
-# Using npm
+### 📊 Analytics & Reports
+- Monthly/yearly financial summaries
+- Category-wise spending breakdown
+- Income vs Expense charts
+- Savings rate calculation
+- Visual spending insights
+
+### 🎨 Modern UI/UX
+- **Baby Blue Theme**: Soothing color palette
+- **Animations**: Smooth transitions and micro-interactions
+- **Responsive Design**: Works on all screen sizes
+- **Gradient Cards**: Beautiful visual elements
+- **Icon System**: Comprehensive icon support
+
+### 💾 Data Management
+- **Local Storage**: AsyncStorage for data persistence
+- **Export Options**: JSON backup and CSV export
+- **Account-specific exports**: Export data per account
+- **Data Privacy**: All data stays on your device
+
+## 🚀 Getting Started
+
+### Prerequisites
+- React Native development environment
+- Android Studio (for Android)
+- Xcode (for iOS development)
+- Node.js and npm/yarn
+
+### Installation
+
+1. **Clone the repository**
+```bash
+git clone <repository-url>
+cd ETA
+```
+
+2. **Install dependencies**
+```bash
+npm install
+# OR
+yarn install
+```
+
+3. **Install iOS dependencies** (iOS only)
+```bash
+cd ios && pod install && cd ..
+```
+
+4. **Start Metro bundler**
+```bash
 npm start
-
-# OR using Yarn
+# OR
 yarn start
 ```
 
-## Step 2: Build and run your app
+5. **Run the app**
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
+For Android:
+```bash
 npm run android
-
-# OR using Yarn
+# OR
 yarn android
 ```
 
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
+For iOS:
+```bash
+npm run ios
+# OR
+yarn ios
 ```
 
-Then, and every time you update your native dependencies, run:
+## 📱 App Structure
 
-```sh
-bundle exec pod install
+### Main Screens
+- **Dashboard**: Overview of finances, recent transactions
+- **Transactions**: View and manage all transactions
+- **Accounts**: Multi-account management and settings
+- **Reports**: Analytics and financial insights
+
+### Core Components
+- **TransactionCategoryModal**: Smart category selection for SMS transactions
+- **AddTransactionModal**: Manual transaction entry
+- **AnimatedComponents**: Reusable UI components with animations
+- **Header & Navigation**: Consistent navigation experience
+
+## 🔧 Technical Features
+
+### Native SMS Integration
+- **Java Service**: `SMSMonitoringService` for background SMS monitoring
+- **Broadcast Receiver**: `SMSBroadcastReceiver` for SMS event handling
+- **React Native Bridge**: Seamless communication between native and JS
+- **Permissions**: Runtime SMS permission handling
+
+### Data Management
+- **Context API**: Centralized state management
+- **AsyncStorage**: Persistent local data storage
+- **Export Services**: JSON and CSV export functionality
+
+### UI/UX
+- **Gradient Components**: Beautiful gradient cards and buttons
+- **Animations**: Fade, slide, and scale animations
+- **Icons**: Custom icon system with fallbacks
+- **Responsive**: Adaptive layouts for different screen sizes
+
+## 🎨 Design System
+
+### Color Palette (Baby Blue Theme)
+- **Primary**: Sky Blue (#87CEEB)
+- **Secondary**: Powder Blue (#B0E0E6)
+- **Success**: Turquoise (#40E0D0)
+- **Danger**: Light Coral (#F08080)
+- **Warning**: Khaki (#F0E68C)
+
+### Typography
+- Clean, readable fonts
+- Consistent sizing hierarchy
+- Proper contrast ratios
+
+## 📱 SMS Features
+
+### Supported Banks
+- **Bank of India (BOI)**: Full SMS pattern support
+- Easily extensible for other banks
+
+### SMS Patterns
+- Debit transactions
+- Credit transactions
+- Account balance updates
+- Transaction descriptions and amounts
+
+### Privacy & Security
+- SMS data processed locally only
+- No data sent to external servers
+- User consent required for SMS access
+
+## 🔒 Permissions
+
+### Required Permissions
+- **READ_SMS**: Read bank transaction SMS
+- **RECEIVE_SMS**: Receive incoming SMS messages
+- **FOREGROUND_SERVICE**: Background SMS monitoring
+
+### Privacy Policy
+- All data stays on device
+- SMS content is processed locally
+- No external data transmission
+
+## 📁 Project Structure
+
+```
+src/
+├── components/          # Reusable UI components
+├── screens/            # Main app screens
+├── context/            # State management
+├── services/           # Business logic services
+├── styles/             # Global styles and themes
+├── utils/              # Utility functions
+└── assets/             # Images and static assets
+
+android/
+├── app/src/main/java/com/eta/  # Native Android code
+│   ├── SMSMonitoringService.java
+│   ├── SMSBroadcastReceiver.java
+│   └── SMSBridgeModule.java
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+## 🛠️ Development
+
+### Adding New Banks
+1. Add SMS patterns in `utils/smsParser.js`
+2. Test patterns with sample SMS messages
+3. Update bank list in configuration
+
+### Extending Categories
+1. Update `CATEGORIES` in `context/TransactionContext.js`
+2. Add corresponding icons
+3. Test category assignment
+
+### Custom Themes
+1. Update color palette in `styles/GlobalStyles.js`
+2. Adjust gradient combinations
+3. Test across all components
 
 ```sh
 # Using npm
@@ -95,4 +251,62 @@ To learn more about React Native, take a look at the following resources:
 - [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
 - [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
 - [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
-# E.T.A.
+
+## 🚨 Known Issues & Limitations
+
+### Current Limitations
+- SMS parsing currently supports Bank of India (BOI) only
+- Android-only SMS monitoring (iOS has SMS restrictions)
+- Local data storage only (no cloud sync)
+
+### Development Mode
+- SMS simulation buttons are for testing only
+- Use real SMS messages for production testing
+
+## 🧪 Testing
+
+### SMS Testing
+1. Use the "Simulate Transaction" button for initial testing
+2. Send real bank SMS messages for full testing
+3. Check permissions are granted in device settings
+
+### Manual Testing
+1. Add transactions manually
+2. Switch between accounts
+3. Test export functionality
+4. Verify data persistence
+
+## 🤝 Contributing
+
+### Development Setup
+1. Fork the repository
+2. Create a feature branch
+3. Make changes and test thoroughly
+4. Submit a pull request
+
+### Code Standards
+- Follow React Native best practices
+- Use consistent naming conventions
+- Add comments for complex logic
+- Test on both Android and iOS
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 👨‍💻 Author
+
+**Personal Finance Manager - ETA**
+- Modern React Native app for financial management
+- Built with React Native, Java (Android)
+
+## 🙏 Acknowledgments
+
+- React Native community for excellent documentation
+- react-native-vector-icons for icon system
+- React Native team for the amazing framework
+- Contributors and testers
+
+---
+
+**Made with ❤️ for better financial management**
