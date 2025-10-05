@@ -26,6 +26,7 @@ import ReportsScreen from './src/screens/ReportsScreen';
 
 // Services
 import NativeSMSService from './src/services/NativeSMSService';
+import { checkSMSPermissions } from './src/utils/permissions';
 
 // Styles
 import { styles } from './src/styles/GlobalStyles';
@@ -58,32 +59,38 @@ function AppContent() {
   useEffect(() => {
     let smsListener = null;
 
-    const startNativeSMSMonitoring = async () => {
+    const initializeSMSMonitoring = async () => {
       try {
-        if (NativeSMSService.isAvailable()) {
-          console.log('📱 Starting native SMS monitoring');
+        console.log('📱 Initializing SMS monitoring...');
+        
+        // Check if permissions are granted
+        const hasPermissions = await checkSMSPermissions();
+        
+        if (hasPermissions) {
+          console.log('✅ SMS permissions granted, starting monitoring');
           
           // Add listener for SMS transaction events
           smsListener = NativeSMSService.addTransactionListener(handleNativeSMSTransaction);
           
           // Start the native monitoring service
-          NativeSMSService.startMonitoring();
+          await NativeSMSService.startMonitoring();
           
           console.log('✅ Native SMS monitoring started successfully');
         } else {
-          console.warn('⚠️ Native SMS service not available, fallback needed');
+          console.log('⚠️ SMS permissions not granted. User needs to enable them manually from AccountsScreen.');
         }
       } catch (error) {
-        console.error('❌ Failed to start native SMS monitoring:', error);
+        console.error('❌ Failed to initialize SMS monitoring:', error);
       }
     };
 
-    startNativeSMSMonitoring();
+    initializeSMSMonitoring();
 
     // Listen for app state changes
     const handleAppStateChange = (nextAppState) => {
       if (nextAppState === 'active') {
-        console.log('🔄 App became active');
+        console.log('🔄 App became active, checking SMS service status');
+        // Could re-check permissions here if needed
       }
     };
 

@@ -1,4 +1,5 @@
 import { NativeModules, NativeEventEmitter, DeviceEventEmitter } from 'react-native';
+import { checkSMSPermissions } from '../utils/permissions';
 
 const { SMSBridge } = NativeModules;
 
@@ -6,15 +7,46 @@ class NativeSMSService {
   constructor() {
     this.eventEmitter = DeviceEventEmitter;
     this.listeners = [];
+    this.isMonitoring = false;
+  }
+
+  // Check if SMS monitoring is available
+  async isAvailable() {
+    try {
+      if (!SMSBridge) {
+        console.warn('NativeSMSService: SMSBridge module not available');
+        return false;
+      }
+      
+      const hasPermissions = await checkSMSPermissions();
+      return hasPermissions;
+    } catch (error) {
+      console.warn('NativeSMSService: Error checking availability:', error);
+      return false;
+    }
   }
 
   // Start the native SMS monitoring service
-  startMonitoring() {
+  async startMonitoring() {
     console.log('NativeSMSService: Starting monitoring');
-    if (SMSBridge && SMSBridge.startSMSMonitoring) {
-      SMSBridge.startSMSMonitoring();
-    } else {
-      console.warn('NativeSMSService: SMSBridge module not available');
+    
+    try {
+      // Check permissions first
+      const hasPermissions = await checkSMSPermissions();
+      if (!hasPermissions) {
+        throw new Error('SMS permissions not granted');
+      }
+
+      if (SMSBridge && SMSBridge.startSMSMonitoring) {
+        SMSBridge.startSMSMonitoring();
+        this.isMonitoring = true;
+        console.log('NativeSMSService: Monitoring started successfully');
+      } else {
+        throw new Error('SMSBridge module not available');
+      }
+    } catch (error) {
+      console.warn('NativeSMSService: Failed to start monitoring:', error);
+      throw error;
     }
   }
 
@@ -23,9 +55,19 @@ class NativeSMSService {
     console.log('NativeSMSService: Stopping monitoring');
     if (SMSBridge && SMSBridge.stopSMSMonitoring) {
       SMSBridge.stopSMSMonitoring();
+      this.isMonitoring = false;
+      console.log('NativeSMSService: Monitoring stopped');
     } else {
       console.warn('NativeSMSService: SMSBridge module not available');
     }
+  }
+
+  // Get monitoring status
+  getMonitoringStatus() {
+    return {
+      isMonitoring: this.isMonitoring,
+      isAvailable: SMSBridge ? true : false,
+    };
   }
 
   // Add listener for SMS transaction events

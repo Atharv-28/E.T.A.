@@ -23,6 +23,7 @@ import { useTransactions } from '../context/TransactionContext';
 import { formatCurrency } from '../utils/currency';
 import BackupService from '../services/BackupService';
 import NativeSMSService from '../services/NativeSMSService';
+import { requestSMSPermissionsWithDialog, checkSMSPermissions } from '../utils/permissions';
 import { styles, colors } from '../styles/GlobalStyles';
 
 function AccountsScreen({ onSimulateTransaction }) {
@@ -155,20 +156,81 @@ function AccountsScreen({ onSimulateTransaction }) {
     }
   };
 
-  const handleNativeSMSStatus = () => {
-    const isAvailable = NativeSMSService.isAvailable();
-    
-    Alert.alert(
-      'Native SMS Service Status',
-      `Native Service: ${isAvailable ? '✅ Available' : '❌ Not Available'}
-Real-time Detection: ${isAvailable ? '✅ Active' : '❌ Inactive'}
-Background Support: ${isAvailable ? '✅ Enabled' : '❌ Disabled'}
+  const handleNativeSMSStatus = async () => {
+    try {
+      // Check current permissions
+      const hasPermissions = await checkSMSPermissions();
+      const serviceStatus = NativeSMSService.getMonitoringStatus();
+      
+      if (!hasPermissions) {
+        Alert.alert(
+          'SMS Permissions Required',
+          `📱 SMS Service Status:
+• Permissions: ❌ Not Granted
+• Service: ❌ Cannot Start
+• Real-time Detection: ❌ Disabled
 
-The native SMS service provides real-time transaction detection even when the app is closed or backgrounded. This is the most reliable way to capture bank transaction SMS messages.`,
-      [
-        { text: 'OK' }
-      ]
-    );
+To enable automatic transaction detection, this app needs permission to read SMS messages from your bank. 
+
+Your SMS data is processed locally and never shared.`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+              text: 'Grant Permissions', 
+              onPress: async () => {
+                const granted = await requestSMSPermissionsWithDialog();
+                if (granted) {
+                  try {
+                    await NativeSMSService.startMonitoring();
+                    Alert.alert(
+                      'SMS Service Started',
+                      '✅ SMS monitoring is now active!\n\nBank transaction SMS will be automatically detected and categorized.',
+                      [{ text: 'OK' }]
+                    );
+                  } catch (error) {
+                    Alert.alert('Error', 'Failed to start SMS monitoring service');
+                  }
+                }
+              }
+            }
+          ]
+        );
+        return;
+      }
+
+      // If permissions are granted, show current status
+      Alert.alert(
+        'SMS Service Status',
+        `📱 SMS Service Status:
+• Permissions: ✅ Granted
+• Service: ${serviceStatus.isMonitoring ? '✅ Running' : '⚠️ Stopped'}
+• Real-time Detection: ${serviceStatus.isMonitoring ? '✅ Active' : '❌ Inactive'}
+• Background Support: ✅ Enabled
+
+${serviceStatus.isMonitoring 
+  ? 'The SMS service is actively monitoring for bank transaction messages.' 
+  : 'The SMS service is available but not currently running.'
+}`,
+        [
+          ...(serviceStatus.isMonitoring ? [] : [
+            { 
+              text: 'Start Service', 
+              onPress: async () => {
+                try {
+                  await NativeSMSService.startMonitoring();
+                  Alert.alert('Success', 'SMS monitoring started successfully');
+                } catch (error) {
+                  Alert.alert('Error', 'Failed to start SMS service');
+                }
+              }
+            }
+          ]),
+          { text: 'OK' }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Failed to check SMS service status');
+    }
   };
 
   const handleTransactionMessageExample = () => {
@@ -380,15 +442,15 @@ This will trigger the real category selection modal just like when an actual SMS
       <FadeInView delay={600}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📡 Native SMS Monitoring</Text>
-          <Text style={styles.sectionDescription}>
-            Real-time SMS transaction detection with background support
+          <Text style={[styles.sectionDescription, { color: colors.danger, fontWeight: '600' }]}>
+            🚨For development testing only. Don't use below buttons 🚨
           </Text>
           
-          <View style={styles.backupButtonsContainer}>
+          <View style={{ flexDirection: 'column' }}>
             <ScaleInView delay={700}>
               <GradientButton 
                 colors={[colors.primary, colors.primaryDark]}
-                style={[styles.smsImportButton]}
+                style={[styles.smsImportButton, { marginBottom: 12 }]}
                 onPress={handleNativeSMSStatus}
               >
                 <CustomIcon name="settings-remote" size={20} color={colors.white} />
