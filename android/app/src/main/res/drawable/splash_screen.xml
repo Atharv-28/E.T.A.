@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background Color (Baby Blue) -->
+    <item android:drawable="@color/splash_background"/>
+    
+    <!-- App Logo/Icon -->
+    <item
+        android:drawable="@drawable/splash_logo"
+        android:gravity="center"
+        android:width="120dp"
+        android:height="120dp"/>
+        
+    <!-- App Name Text (Optional) -->
+    <item android:gravity="center|bottom" android:bottom="100dp">
+        <shape>
+            <solid android:color="@android:color/transparent"/>
+        </shape>
+    </item>
+</layer-list>
