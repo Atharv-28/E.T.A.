@@ -178,6 +178,7 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.white,
     padding: 20,
     borderRadius: 16,
+    marginTop: 10,
     marginBottom: 20,
     elevation: 4,
     shadowColor: colors.black,
@@ -712,19 +713,19 @@ export const styles = StyleSheet.create({
   
   // Account Management Styles
   accountItem: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.white, // Pure white background
     padding: 16,
     marginVertical: 4,
     borderRadius: 12,
-    borderWidth: 2,
+    borderWidth: 0, // Remove border
     borderColor: 'transparent',
     flexDirection: 'row',
     alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    elevation: 0, // Remove elevation
+    shadowColor: 'transparent', // Remove shadow
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
   },
   accountLeft: {
     flexDirection: 'row',
@@ -874,21 +875,22 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
+    marginTop: 10,
   },
 
   addButton: {
-    backgroundColor: '#3498db',
+    backgroundColor: 'transparent', // Remove blue background
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 0, // Remove padding
+    paddingVertical: 0, // Remove padding
     borderRadius: 8,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    elevation: 0, // Remove elevation
+    shadowColor: 'transparent', // Remove shadow
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
   },
 
   addButtonText: {
@@ -958,7 +960,7 @@ export const styles = StyleSheet.create({
 
   // SMS Import Button Styles
   smsImportButton: {
-    backgroundColor: '#27ae60',
+    backgroundColor: 'transparent', // Remove green background
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -966,11 +968,11 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 10,
     marginVertical: 8,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
+    elevation: 0, // Remove elevation
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
   },
 
   smsImportButtonDisabled: {
@@ -1005,18 +1007,18 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#ffffff',
-    borderWidth: 2,
-    borderColor: '#3498db',
+    backgroundColor: 'transparent', // Remove white background
+    borderWidth: 0, // Remove border
+    borderColor: 'transparent', // Remove border color
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
     marginHorizontal: 4,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    elevation: 0, // Remove elevation
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
   },
 
   backupButtonText: {

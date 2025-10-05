@@ -369,8 +369,8 @@ The native SMS service provides real-time transaction detection even when the ap
 
       {/* Accounts List with Animation */}
       <FadeInView delay={800}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>All Accounts ({accounts.length})</Text>
+        <View style={[styles.section, { backgroundColor: 'transparent', elevation: 0, shadowOpacity: 0, borderWidth: 0, padding: 0 }]}>
+          <Text style={[styles.sectionTitle, { paddingHorizontal: 20, marginBottom: 16 }]}>All Accounts ({accounts.length})</Text>
           <FlatList
             data={accounts}
             keyExtractor={(item) => item.id}
