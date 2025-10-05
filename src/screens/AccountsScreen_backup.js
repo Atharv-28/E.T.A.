@@ -25,7 +25,7 @@ import BackupService from '../services/BackupService';
 import NativeSMSService from '../services/NativeSMSService';
 import { styles, colors } from '../styles/GlobalStyles';
 
-function AccountsScreen({ onSimulateTransaction }) {
+function AccountsScreen() {
   const { 
     accounts, 
     activeAccount, 
@@ -172,35 +172,107 @@ The native SMS service provides real-time transaction detection even when the ap
   };
 
   const handleTransactionMessageExample = () => {
-    if (!onSimulateTransaction) {
-      Alert.alert('Error', 'Simulation function not available');
-      return;
-    }
-
     Alert.alert(
       'Simulate Transaction Detection',
       `📱 Simulating SMS Message:
 "Your A/c XX1234 debited by Rs.500.00 on ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })} at BOI ATM. Avl Bal: Rs.2500.00"
 
-This will trigger the real category selection modal just like when an actual SMS is received.`,
+This will simulate the category selection popup that appears when SMS transactions are detected.`,
       [
         { text: 'Cancel', style: 'cancel' },
         { 
           text: 'Simulate', 
           onPress: () => {
-            // Create a simulated transaction without category to trigger the real modal
-            const simulatedTransaction = {
-              type: 'expense',
-              amount: 500.00,
-              description: 'ATM Withdrawal - BOI',
-              date: new Date().toISOString(),
-              accountId: activeAccount?.id || accounts[0]?.id,
-              id: Date.now().toString()
-              // No category - this will trigger the category selection modal
-            };
-            
-            // Trigger the real category modal from App.js
-            onSimulateTransaction(simulatedTransaction);
+            // Simulate the category selection popup that would appear from SMS detection
+            Alert.alert(
+              'Select Transaction Category',
+              `💳 Transaction Detected:
+₹500.00 - ATM Withdrawal - BOI
+
+Please select a category for this transaction:`,
+              [
+                { 
+                  text: '🍔 Food & Dining', 
+                  onPress: () => {
+                    const transaction = {
+                      type: 'expense',
+                      amount: 500.00,
+                      description: 'ATM Withdrawal - BOI',
+                      date: new Date().toISOString(),
+                      accountId: activeAccount?.id || accounts[0]?.id,
+                      category: 'food',
+                      id: Date.now().toString()
+                    };
+                    addTransaction(transaction);
+                    Alert.alert('✅ Success', 'Transaction added with Food & Dining category!');
+                  }
+                },
+                { 
+                  text: '🚗 Transportation', 
+                  onPress: () => {
+                    const transaction = {
+                      type: 'expense',
+                      amount: 500.00,
+                      description: 'ATM Withdrawal - BOI',
+                      date: new Date().toISOString(),
+                      accountId: activeAccount?.id || accounts[0]?.id,
+                      category: 'transport',
+                      id: Date.now().toString()
+                    };
+                    addTransaction(transaction);
+                    Alert.alert('✅ Success', 'Transaction added with Transportation category!');
+                  }
+                },
+                { 
+                  text: '🛍️ Shopping', 
+                  onPress: () => {
+                    const transaction = {
+                      type: 'expense',
+                      amount: 500.00,
+                      description: 'ATM Withdrawal - BOI',
+                      date: new Date().toISOString(),
+                      accountId: activeAccount?.id || accounts[0]?.id,
+                      category: 'shopping',
+                      id: Date.now().toString()
+                    };
+                    addTransaction(transaction);
+                    Alert.alert('✅ Success', 'Transaction added with Shopping category!');
+                  }
+                },
+                { 
+                  text: '💡 Bills & Utilities', 
+                  onPress: () => {
+                    const transaction = {
+                      type: 'expense',
+                      amount: 500.00,
+                      description: 'ATM Withdrawal - BOI',
+                      date: new Date().toISOString(),
+                      accountId: activeAccount?.id || accounts[0]?.id,
+                      category: 'bills',
+                      id: Date.now().toString()
+                    };
+                    addTransaction(transaction);
+                    Alert.alert('✅ Success', 'Transaction added with Bills & Utilities category!');
+                  }
+                },
+                { 
+                  text: '📂 Other', 
+                  onPress: () => {
+                    const transaction = {
+                      type: 'expense',
+                      amount: 500.00,
+                      description: 'ATM Withdrawal - BOI',
+                      date: new Date().toISOString(),
+                      accountId: activeAccount?.id || accounts[0]?.id,
+                      category: 'other',
+                      id: Date.now().toString()
+                    };
+                    addTransaction(transaction);
+                    Alert.alert('✅ Success', 'Transaction added with Other category!');
+                  }
+                }
+              ]
+            );
           }
         }
       ]

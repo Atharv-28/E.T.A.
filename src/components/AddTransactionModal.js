@@ -171,10 +171,14 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
                     size={24}
                     color={selectedCategory === category.id ? '#ffffff' : '#2c3e50'}
                   />
-                  <Text style={[
-                    styles.categoryText,
-                    selectedCategory === category.id && styles.activeCategoryText,
-                  ]}>
+                  <Text 
+                    style={[
+                      styles.categoryText,
+                      selectedCategory === category.id && styles.activeCategoryText,
+                    ]}
+                    numberOfLines={2}
+                    ellipsizeMode="tail"
+                  >
                     {category.name}
                   </Text>
                 </TouchableOpacity>

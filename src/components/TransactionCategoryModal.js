@@ -64,22 +64,38 @@ const TransactionCategoryModal = ({
           onPress={() => setSelectedCategory(category.id)}
           bounceScale={0.95}
         >
-          <View style={[
-            {
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: isSelected ? colors.primary : colors.primaryLight + '30',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginRight: 12,
-            }
-          ]}>
-            <CustomIcon 
-              name={category.icon} 
-              size={20} 
-              color={isSelected ? colors.white : colors.primary} 
-            />
+          <View style={{
+            alignItems: 'center',
+            marginRight: 12,
+          }}>
+            <View style={[
+              {
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: isSelected ? colors.primary : colors.primaryLight + '30',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: 4,
+              }
+            ]}>
+              <CustomIcon 
+                name={category.icon} 
+                size={20} 
+                color={isSelected ? colors.white : colors.primary} 
+              />
+            </View>
+            <Text style={{
+              fontSize: 8,
+              color: isSelected ? colors.primary : colors.gray,
+              textAlign: 'center',
+              fontWeight: '500',
+            }}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            >
+              {category.name}
+            </Text>
           </View>
           <Text style={[
             {
@@ -88,12 +104,12 @@ const TransactionCategoryModal = ({
               color: isSelected ? colors.primary : colors.black,
               flex: 1,
             }
-          ]}>
+          ]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          >
             {category.name}
           </Text>
-          {isSelected && (
-            <CustomIcon name="check-circle" size={20} color={colors.primary} />
-          )}
         </AnimatedButton>
       </SlideInView>
     );
@@ -199,7 +215,7 @@ const TransactionCategoryModal = ({
               <Text style={styles.sectionTitle}>
                 🏷️ Select Category ({transaction.type === 'income' ? 'Income' : 'Expense'})
               </Text>
-              <View style={styles.categoryGrid}>
+              <View style={[styles.categoryGrid, { justifyContent: 'center' }]}>
                 {categories.map(renderCategoryOption)}
               </View>
             </View>
@@ -210,19 +226,39 @@ const TransactionCategoryModal = ({
             <View style={styles.section}>
               <GradientButton
                 colors={[colors.primary, colors.primaryDark]}
-                style={[styles.addButton, { marginBottom: 12 }]}
+                style={[
+                  styles.addButton, 
+                  { 
+                    marginBottom: 12,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingHorizontal: 20,
+                    paddingVertical: 14,
+                  }
+                ]}
                 onPress={handleConfirm}
               >
                 <CustomIcon name="add" size={20} color={colors.white} />
-                <Text style={[styles.addButtonText, { color: colors.white }]}>Add Transaction</Text>
+                <Text style={[styles.addButtonText, { color: colors.white, marginLeft: 8 }]}>Add Transaction</Text>
               </GradientButton>
               
               <AnimatedButton 
-                style={[styles.backupButton, { borderColor: colors.danger }]}
+                style={[
+                  styles.backupButton, 
+                  { 
+                    borderColor: colors.danger,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingHorizontal: 20,
+                    paddingVertical: 14,
+                  }
+                ]}
                 onPress={onCancel}
               >
                 <CustomIcon name="close" size={18} color={colors.danger} />
-                <Text style={[styles.backupButtonText, { color: colors.danger }]}>
+                <Text style={[styles.backupButtonText, { color: colors.danger, marginLeft: 8 }]}>
                   Ignore SMS
                 </Text>
               </AnimatedButton>

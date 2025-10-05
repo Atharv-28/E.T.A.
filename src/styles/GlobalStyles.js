@@ -342,6 +342,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginHorizontal: -4,
+    justifyContent: 'center', // Center align the category buttons
+    alignItems: 'center',
   },
   categoryItem: {
     width: '48%',
@@ -349,19 +351,31 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e1e8ed',
-    padding: 16,
+    padding: 10, // Further reduced padding
     margin: 4,
     alignItems: 'center',
+    justifyContent: 'center',
+    height: 65, // Consistent fixed height
+    maxHeight: 65, // Prevent expansion
+    minHeight: 65, // Prevent shrinking
+    flexDirection: 'column',
+    overflow: 'hidden', // Prevent content overflow
   },
   activeCategoryItem: {
     backgroundColor: '#3498db',
     borderColor: '#3498db',
   },
   categoryText: {
-    marginTop: 8,
-    fontSize: 12,
+    marginTop: 4, // Minimal margin top
+    fontSize: 10, // Smaller font for better consistency
     color: '#2c3e50',
     textAlign: 'center',
+    lineHeight: 11, // Tight line height
+    numberOfLines: 2, // Limit to 2 lines
+    ellipsizeMode: 'tail', // Truncate long text
+    maxHeight: 22, // Maximum height for text
+    overflow: 'hidden',
+    width: '100%', // Ensure text takes full width
   },
   activeCategoryText: {
     color: '#ffffff',
@@ -1257,18 +1271,18 @@ export const styles = StyleSheet.create({
     marginVertical: 4,
     borderWidth: 2,
     borderColor: 'transparent',
-    elevation: 2,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    elevation: 0, // Remove shadow
+    shadowColor: 'transparent', // Remove shadow
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
   },
 
   enhancedCategoryOptionSelected: {
     borderColor: colors.primary,
     backgroundColor: colors.primary + '10',
-    elevation: 4,
-    shadowOpacity: 0.1,
+    elevation: 0, // Remove shadow
+    shadowOpacity: 0,
   },
 
   // Bouncing animation for buttons

@@ -187,7 +187,14 @@ export const GradientButton = ({
         colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
-        style={{ borderRadius: 12, paddingHorizontal: 20, paddingVertical: 14 }}
+        style={{ 
+          borderRadius: 12, 
+          paddingHorizontal: 20, 
+          paddingVertical: 14,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
         {...props}
       >
         {children}

@@ -197,7 +197,12 @@ function AppContent() {
       case 'transactions':
         return <TransactionsScreen />;
       case 'accounts':
-        return <AccountsScreen />;
+        return <AccountsScreen 
+          onSimulateTransaction={(transaction) => {
+            setPendingTransaction(transaction);
+            setCategoryModalVisible(true);
+          }}
+        />;
       case 'reports':
         return <ReportsScreen />;
       default:
