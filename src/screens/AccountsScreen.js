@@ -26,7 +26,7 @@ import NativeSMSService from '../services/NativeSMSService';
 import { requestSMSPermissionsWithDialog, checkSMSPermissions } from '../utils/permissions';
 import { styles, colors } from '../styles/GlobalStyles';
 
-function AccountsScreen({ onSimulateTransaction }) {
+function AccountsScreen({ onSimulateTransaction, onAddAccount }) {
   const { 
     accounts, 
     activeAccount, 
@@ -55,6 +55,13 @@ function AccountsScreen({ onSimulateTransaction }) {
   };
 
   const handleCreateAccount = () => {
+    // If parent provided an onAddAccount handler (App opens LoginScreen), use it.
+    if (typeof onAddAccount === 'function') {
+      onAddAccount();
+      return;
+    }
+
+    // Fallback to in-place modal if no handler provided
     setEditingAccount(null);
     setFormData({ bankName: '', type: 'personal' });
     setModalVisible(true);

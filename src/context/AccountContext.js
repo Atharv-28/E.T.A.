@@ -57,24 +57,29 @@ export function AccountProvider({ children }) {
 
   const loadAccountsFromStorage = async () => {
     try {
-      const storedAccounts = await loadAccounts();
-      const settings = await loadSettings();
-      
+      // loadAccounts returns an object { accounts, activeAccountId }
+      const stored = await loadAccounts();
+      const storedAccounts = Array.isArray(stored.accounts) ? stored.accounts : [];
+      const storedActiveId = stored.activeAccountId || null;
+
       if (storedAccounts.length > 0) {
         setAccounts(storedAccounts);
-        
-        if (settings.activeAccountId && storedAccounts.find(acc => acc.id === settings.activeAccountId)) {
-          setActiveAccountId(settings.activeAccountId);
+
+        if (storedActiveId && storedAccounts.find(acc => acc.id === storedActiveId)) {
+          setActiveAccountId(storedActiveId);
         } else {
           setActiveAccountId(storedAccounts[0].id);
         }
       } else {
-        // Create default account if none exists
-        createDefaultAccount();
+        // No stored accounts - leave empty so onboarding/login can run
+        setAccounts([]);
+        setActiveAccountId(null);
       }
     } catch (error) {
       console.error('Error loading accounts:', error);
-      createDefaultAccount();
+      // On error, do not create a default account; keep accounts empty and allow onboarding
+      setAccounts([]);
+      setActiveAccountId(null);
     } finally {
       setIsLoading(false);
     }
@@ -82,28 +87,14 @@ export function AccountProvider({ children }) {
 
   const saveAccountsToStorage = async () => {
     try {
-      await saveAccounts(accounts);
-      if (activeAccountId) {
-        const settings = await loadSettings();
-        await saveSettings({ ...settings, activeAccountId });
-      }
+      // save both accounts and activeAccountId
+      await saveAccounts(accounts, activeAccountId);
+      // Also persist activeAccountId in settings for backward compatibility
+      const settings = await loadSettings();
+      await saveSettings({ ...settings, activeAccountId });
     } catch (error) {
       console.error('Error saving accounts:', error);
     }
-  };
-
-  const createDefaultAccount = () => {
-    const defaultAccount = {
-      id: 'default-personal',
-      name: 'My Personal Account',
-      type: 'personal',
-      color: ACCOUNT_TYPES.PERSONAL.color,
-      icon: ACCOUNT_TYPES.PERSONAL.icon,
-      createdAt: new Date().toISOString(),
-    };
-    
-    setAccounts([defaultAccount]);
-    setActiveAccountId(defaultAccount.id);
   };
 
   const createAccount = (accountData) => {
@@ -114,6 +105,8 @@ export function AccountProvider({ children }) {
     };
     
     setAccounts(prev => [...prev, newAccount]);
+    // Set the newly created account as active immediately
+    setActiveAccountId(newAccount.id);
     return newAccount;
   };
 

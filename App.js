@@ -23,6 +23,7 @@ import DashboardScreen from './src/screens/DashboardScreen';
 import TransactionsScreen from './src/screens/TransactionsScreen';
 import AccountsScreen from './src/screens/AccountsScreen';
 import ReportsScreen from './src/screens/ReportsScreen';
+import LoginScreen from './src/screens/LoginScreen';
 
 // Services
 import NativeSMSService from './src/services/NativeSMSService';
@@ -51,9 +52,19 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [pendingTransaction, setPendingTransaction] = useState(null);
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
+  const [showLoginScreen, setShowLoginScreen] = useState(false);
+  const [loginScreenMode, setLoginScreenMode] = useState('firstTime'); // 'firstTime' or 'addAccount'
 
   const { addTransaction } = useTransactions();
-  const { accounts, activeAccount } = useAccounts();
+  const { accounts, activeAccount, createAccount, switchAccount } = useAccounts();
+
+  // Show login screen if no accounts exist
+  useEffect(() => {
+    if (accounts.length === 0) {
+      setShowLoginScreen(true);
+      setLoginScreenMode('firstTime');
+    }
+  }, [accounts]);
 
   // Start SMS monitoring when app loads
   useEffect(() => {
@@ -197,6 +208,28 @@ function AppContent() {
     setPendingTransaction(null);
   };
 
+  // Handler for account setup from LoginScreen - create account and switch to it
+  const handleAccountSetup = (accountData) => {
+    try {
+      const newAccount = createAccount(accountData);
+      // switch to new account if possible
+      if (newAccount && newAccount.id) {
+        switchAccount(newAccount.id);
+      }
+      setShowLoginScreen(false);
+      setLoginScreenMode('firstTime');
+    } catch (error) {
+      console.error('Failed to create account from onboarding:', error);
+      setShowLoginScreen(false);
+    }
+  };
+
+  // Handler for opening add account modal from AccountsScreen
+  const handleAddAccount = () => {
+    setShowLoginScreen(true);
+    setLoginScreenMode('addAccount');
+  };
+
   const renderScreen = () => {
     switch (activeTab) {
       case 'dashboard':
@@ -204,12 +237,7 @@ function AppContent() {
       case 'transactions':
         return <TransactionsScreen />;
       case 'accounts':
-        return <AccountsScreen 
-          onSimulateTransaction={(transaction) => {
-            setPendingTransaction(transaction);
-            setCategoryModalVisible(true);
-          }}
-        />;
+        return <AccountsScreen onAddAccount={handleAddAccount} />;
       case 'reports':
         return <ReportsScreen />;
       default:
@@ -217,15 +245,24 @@ function AppContent() {
     }
   };
 
+  // Show LoginScreen modal if needed
+  if (showLoginScreen) {
+    return (
+      <LoginScreen
+        isFirstTime={loginScreenMode === 'firstTime'}
+        onAccountSetup={handleAccountSetup}
+        onClose={() => setShowLoginScreen(false)}
+      />
+    );
+  }
+
   return (
-    <View style={[styles.container, { paddingTop: safeAreaInsets.top }]}>
+    <View style={[styles.container, { paddingTop: safeAreaInsets.top }]}> 
       <Header />
       <View style={styles.content}>
         {renderScreen()}
       </View>
       <BottomNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
-      
-      {/* Transaction Category Selection Modal */}
       <TransactionCategoryModal
         visible={categoryModalVisible}
         transaction={pendingTransaction}
