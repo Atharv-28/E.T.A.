@@ -16,7 +16,6 @@ import { styles, colors } from '../styles/GlobalStyles';
 function DashboardScreen() {
   const { 
     getTransactionsByAccount, 
-    getTotalBalanceForAccount, 
     getMonthlySpendingForAccount 
   } = useTransactions();
   const { activeAccount } = useAccounts();
@@ -24,7 +23,6 @@ function DashboardScreen() {
   // Use active account data or show empty state
   const activeAccountId = activeAccount?.id;
   const accountTransactions = activeAccountId ? getTransactionsByAccount(activeAccountId) : [];
-  const totalBalance = activeAccountId ? getTotalBalanceForAccount(activeAccountId) : 0;
   const monthlySpending = activeAccountId ? getMonthlySpendingForAccount(activeAccountId) : 0;
   const recentTransactions = accountTransactions.slice(0, 5);
 
@@ -57,21 +55,6 @@ function DashboardScreen() {
       {/* Quick Stats with Animation */}
       <SlideInView direction="right" delay={200}>
         <View style={styles.statsContainer}>
-          <ScaleInView delay={300}>
-            <GradientCard 
-              colors={[colors.success, colors.successLight]}
-              style={styles.statCard}
-            >
-              <CustomIcon name="account-balance-wallet" size={32} color={colors.white} />
-              <Text style={[styles.statValue, { color: colors.white }]}>
-                {formatCurrency(Math.abs(totalBalance))}
-              </Text>
-              <Text style={[styles.statLabel, { color: colors.white, opacity: 0.9 }]}>
-                Total Balance
-              </Text>
-            </GradientCard>
-          </ScaleInView>
-          
           <ScaleInView delay={400}>
             <GradientCard 
               colors={[colors.danger, colors.dangerLight]}

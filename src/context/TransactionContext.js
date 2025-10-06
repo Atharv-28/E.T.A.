@@ -106,26 +106,6 @@ export function TransactionProvider({ children }) {
     );
   };
 
-  // Calculate total balance for specific account
-  const getTotalBalanceForAccount = (accountId) => {
-    return transactions
-      .filter(transaction => transaction.accountId === accountId)
-      .reduce((total, transaction) => {
-        return transaction.type === 'income' 
-          ? total + transaction.amount 
-          : total - transaction.amount;
-      }, 0);
-  };
-
-  // Calculate total balance (all accounts)
-  const getTotalBalance = () => {
-    return transactions.reduce((total, transaction) => {
-      return transaction.type === 'income' 
-        ? total + transaction.amount 
-        : total - transaction.amount;
-    }, 0);
-  };
-
   // Calculate monthly spending for specific account
   const getMonthlySpendingForAccount = (accountId) => {
     const currentMonth = new Date().getMonth();
@@ -166,8 +146,6 @@ export function TransactionProvider({ children }) {
     getTransactionsByType,
     getTransactionsByAccount,
     getTransactionsByTypeForAccount,
-    getTotalBalance,
-    getTotalBalanceForAccount,
     getMonthlySpending,
     getMonthlySpendingForAccount,
   };
