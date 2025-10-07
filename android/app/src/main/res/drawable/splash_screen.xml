@@ -3,15 +3,15 @@
     <!-- Background Color (Baby Blue) -->
     <item android:drawable="@color/splash_background"/>
     
-    <!-- App Logo/Icon -->
+    <!-- App Logo/Icon (use logo.png placed in res/drawable as @drawable/logo) -->
     <item
-        android:drawable="@drawable/splash_logo"
+        android:drawable="@drawable/logo"
         android:gravity="center"
         android:width="120dp"
         android:height="120dp"/>
         
-    <!-- App Name Text (Optional) -->
-    <item android:gravity="center|bottom" android:bottom="100dp">
+    <!-- App Name Text (Expense Track & Analyse) - kept as optional overlay in layout/activity if needed -->
+    <item android:gravity="center|bottom" android:bottom="120dp">
         <shape>
             <solid android:color="@android:color/transparent"/>
         </shape>
