@@ -247,34 +247,44 @@ ${serviceStatus.isMonitoring
     }
 
     Alert.alert(
-      'Simulate Transaction Detection',
-      `📱 Simulating SMS Message:
-"Your A/c XX1234 debited by Rs.500.00 on ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })} at BOI ATM. Avl Bal: Rs.2500.00"
-
-This will trigger the real category selection modal just like when an actual SMS is received.`,
+      'Simulate Transaction',
+      'Choose simulation type',
       [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Simulate', 
-          onPress: () => {
-            // Create a simulated transaction without category to trigger the real modal
+        // only provide 'Use another saved account' if there is another account besides active
+        ...(accounts.find(a => a.id !== activeAccount?.id) ? [{ text: 'Use another saved account', onPress: () => {
+            const targetAccount = accounts.find(a => a.id !== activeAccount?.id);
+
             const simulatedTransaction = {
               type: 'expense',
               amount: 500.00,
-              description: 'ATM Withdrawal - BOI',
+              description: `ATM Withdrawal - ${targetAccount?.bank || targetAccount?.name}`,
               date: new Date().toISOString(),
-              accountId: activeAccount?.id || accounts[0]?.id,
+              accountId: targetAccount?.id,
+              accountNumber: targetAccount?.accountNumber || null,
+              bank: targetAccount?.bank || targetAccount?.name || 'Unknown Bank',
               id: Date.now().toString()
-              // No category - this will trigger the category selection modal
             };
-            
-            // Trigger the real category modal from App.js
             onSimulateTransaction(simulatedTransaction);
-          }
-        }
-      ]
-    );
-  };
+          } }] : []),
+         { text: 'Simulate custom last-4 (1234)', onPress: () => {
+             // Simulate an SMS from a bank with last-4 = 1234 regardless of saved accounts
+             const simulatedTransaction = {
+               type: 'expense',
+               amount: 500.00,
+               description: 'ATM Withdrawal - ICICI',
+               date: new Date().toISOString(),
+               accountId: null, // intentionally null to test unmatched behavior
+               accountNumber: '1234',
+               bank: 'ICICI Bank',
+               id: Date.now().toString()
+             };
+             onSimulateTransaction(simulatedTransaction);
+           }
+         },
+         { text: 'Cancel', style: 'cancel' }
+       ]
+     );
+   };
 
   const renderAccountItem = ({ item: account }) => {
     const isActive = activeAccount?.id === account.id;

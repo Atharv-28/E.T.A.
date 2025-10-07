@@ -5,6 +5,7 @@ import {
   Text,
   ScrollView,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import CustomIcon from './CustomIcon';
 import { 
@@ -18,6 +19,7 @@ import {
 import { CATEGORIES } from '../context/TransactionContext';
 import { formatCurrency } from '../utils/currency';
 import { styles, colors } from '../styles/GlobalStyles';
+import { useAccounts } from '../context/AccountContext';
 
 const TransactionCategoryModal = ({ 
   visible, 
@@ -28,6 +30,9 @@ const TransactionCategoryModal = ({
   const [selectedCategory, setSelectedCategory] = useState(
     transaction?.category || 'other_expense'
   );
+
+  const { accounts } = useAccounts();
+  const [selectedAccountId, setSelectedAccountId] = useState(transaction?.accountId || null);
 
   if (!transaction) return null;
 
@@ -41,9 +46,16 @@ const TransactionCategoryModal = ({
       return;
     }
 
+    // If incoming SMS did not include a matched account, require user to choose one
+    if (!transaction.accountId && !selectedAccountId) {
+      Alert.alert('Choose Account', 'Please select an account to save this transaction under.');
+      return;
+    }
+
     const finalTransaction = {
       ...transaction,
       category: selectedCategory,
+      accountId: selectedAccountId || transaction.accountId,
       id: `sms_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       source: 'sms_auto'
     };
@@ -150,9 +162,41 @@ const TransactionCategoryModal = ({
               }
               style={[styles.section, { borderWidth: 0 }]}
             >
-              <Text style={[styles.sectionTitle, { color: colors.white }]}>
+              <Text style={[styles.sectionTitle, { color: colors.white }] }>
                 📱 From SMS
               </Text>
+
+              {/* Account selector when accountId missing */}
+              {!transaction.accountId && (
+                <View style={{ marginBottom: 12 }}>
+                  <Text style={[styles.sectionTitle, { color: colors.white, fontSize: 14 }]}>Select Account</Text>
+                  <View style={{ flexDirection: 'row', marginTop: 8, flexWrap: 'wrap' }}>
+                    {accounts.length === 0 ? (
+                      <Text style={{ color: colors.white }}>No accounts found. Please add an account first.</Text>
+                    ) : (
+                      accounts.map(acc => (
+                        <TouchableOpacity
+                          key={acc.id}
+                          onPress={() => setSelectedAccountId(acc.id)}
+                          style={{
+                            paddingVertical: 8,
+                            paddingHorizontal: 12,
+                            borderRadius: 20,
+                            marginRight: 8,
+                            marginBottom: 8,
+                            backgroundColor: selectedAccountId === acc.id ? colors.white : colors.white + '20'
+                          }}
+                        >
+                          <Text style={{ color: selectedAccountId === acc.id ? colors.primary : colors.white }}>
+                            {acc.name} (••{acc.accountNumber?.slice(-4)})
+                          </Text>
+                        </TouchableOpacity>
+                      ))
+                    )}
+                  </View>
+                </View>
+              )}
+
               <View style={styles.transactionCard}>
                 <View style={styles.transactionLeft}>
                   <View style={[
@@ -173,7 +217,7 @@ const TransactionCategoryModal = ({
                       {transaction.bank || 'Bank'} • {new Date().toLocaleDateString()}
                     </Text>
                     <Text style={[styles.transactionDate, { color: colors.white, opacity: 0.7 }]}>
-                      Account: {transaction.accountNumber || 'N/A'}
+                      Account: { (selectedAccountId && accounts.find(a => a.id === selectedAccountId)?.accountNumber) || transaction.accountNumber || 'N/A' }
                     </Text>
                   </View>
                 </View>
@@ -203,7 +247,7 @@ const TransactionCategoryModal = ({
                   Received: {transaction.smsData?.receivedAt?.toLocaleString() || 'Just now'}
                 </Text>
                 <Text style={[styles.exampleText, { fontStyle: 'italic', marginTop: 8 }]}>
-                  "{transaction.smsData?.rawSMS?.substring(0, 100) || 'SMS content'}..."
+                  "{transaction.smsData?.rawSMS?.substring(0, 100) || transaction.rawSMS?.substring(0,100) || 'SMS content'}..."
                 </Text>
               </View>
             </View>
