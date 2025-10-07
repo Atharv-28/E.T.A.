@@ -197,61 +197,16 @@ const TransactionCategoryModal = ({
                 </View>
               )}
 
-              <View style={styles.transactionCard}>
-                <View style={styles.transactionLeft}>
-                  <View style={[
-                    styles.categoryIcon, 
-                    { backgroundColor: colors.white + '30' }
-                  ]}>
-                    <CustomIcon 
-                      name={transaction.type === 'income' ? 'trending-up' : 'trending-down'} 
-                      size={24} 
-                      color={colors.white} 
-                    />
-                  </View>
-                  <View style={styles.transactionDetails}>
-                    <Text style={[styles.transactionDescription, { color: colors.white }]}>
-                      {transaction.description || 'Transaction'}
-                    </Text>
-                    <Text style={[styles.transactionCategory, { color: colors.white, opacity: 0.8 }]}>
-                      {transaction.bank || 'Bank'} • {new Date().toLocaleDateString()}
-                    </Text>
-                    <Text style={[styles.transactionDate, { color: colors.white, opacity: 0.7 }]}>
-                      Account: { (selectedAccountId && accounts.find(a => a.id === selectedAccountId)?.accountNumber) || transaction.accountNumber || 'N/A' }
-                    </Text>
-                  </View>
-                </View>
-                <Text style={[
-                  styles.transactionAmount,
-                  { 
-                    color: colors.white,
-                    fontSize: 20,
-                    fontWeight: '800' 
-                  }
-                ]}>
-                  {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+
+              {/* Show full SMS content (selectable) */}
+              <View style={{ marginTop: 12, padding: 12, backgroundColor: colors.white + '10', borderRadius: 8 }}>
+                <Text style={{ color: colors.white, fontWeight: '600', marginBottom: 6 }}>Full SMS</Text>
+                <Text selectable={true} style={{ color: colors.white, opacity: 0.95, lineHeight: 20 }}>
+                  {transaction.smsData?.rawSMS || transaction.rawSMS || 'No SMS content available.'}
                 </Text>
               </View>
             </GradientCard>
           </SlideInView>
-
-          {/* SMS Details */}
-          <FadeInView delay={400}>
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>📄 SMS Details</Text>
-              <View style={styles.exampleContainer}>
-                <Text style={styles.exampleText}>
-                  From: {transaction.smsData?.sender || 'Unknown'}
-                </Text>
-                <Text style={styles.exampleText}>
-                  Received: {transaction.smsData?.receivedAt?.toLocaleString() || 'Just now'}
-                </Text>
-                <Text style={[styles.exampleText, { fontStyle: 'italic', marginTop: 8 }]}>
-                  "{transaction.smsData?.rawSMS?.substring(0, 100) || transaction.rawSMS?.substring(0,100) || 'SMS content'}..."
-                </Text>
-              </View>
-            </View>
-          </FadeInView>
 
           {/* Category Selection */}
           <FadeInView delay={600}>

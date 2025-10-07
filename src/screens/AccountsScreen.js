@@ -262,7 +262,13 @@ ${serviceStatus.isMonitoring
               accountId: targetAccount?.id,
               accountNumber: targetAccount?.accountNumber || null,
               bank: targetAccount?.bank || targetAccount?.name || 'Unknown Bank',
-              id: Date.now().toString()
+              id: Date.now().toString(),
+              rawSMS: `Your A/c XX${targetAccount?.accountNumber || 'XXXX'} debited by Rs.${(500).toFixed(2)} on ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })} at ATM. Avl Bal: Rs.2500.00`,
+              smsData: {
+                sender: (targetAccount?.bank || 'Bank').slice(0, 20),
+                date: new Date().toISOString(),
+                rawSMS: `Your A/c XX${targetAccount?.accountNumber || 'XXXX'} debited by Rs.${(500).toFixed(2)} on ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })} at ATM. Avl Bal: Rs.2500.00`
+              }
             };
             onSimulateTransaction(simulatedTransaction);
           } }] : []),
@@ -276,7 +282,13 @@ ${serviceStatus.isMonitoring
                accountId: null, // intentionally null to test unmatched behavior
                accountNumber: '1234',
                bank: 'ICICI Bank',
-               id: Date.now().toString()
+               id: Date.now().toString(),
+              rawSMS: `Your A/c XX1234 debited by Rs.500.00 on ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })} at ICICI ATM. Avl Bal: Rs.2500.00`,
+              smsData: {
+                sender: 'ICICI',
+                date: new Date().toISOString(),
+                rawSMS: `Your A/c XX1234 debited by Rs.500.00 on ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })} at ICICI ATM. Avl Bal: Rs.2500.00`
+              }
              };
              onSimulateTransaction(simulatedTransaction);
            }
