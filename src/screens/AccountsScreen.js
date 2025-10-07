@@ -570,7 +570,7 @@ ${serviceStatus.isMonitoring
                 <Text style={[styles.smsImportButtonText, { color: colors.white }]}>Check SMS Service Status</Text>
               </GradientButton>
             </ScaleInView>
-            
+            {/*
             <ScaleInView delay={750}>
               <GradientButton 
                 colors={[colors.warning, colors.warningDark]}
@@ -581,6 +581,7 @@ ${serviceStatus.isMonitoring
                 <Text style={[styles.smsImportButtonText, { color: colors.white }]}>Simulate Transaction</Text>
               </GradientButton>
             </ScaleInView>
+            */}
           </View>
           
           <Text style={styles.smsImportHint}>
