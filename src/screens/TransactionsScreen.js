@@ -75,8 +75,8 @@ function TransactionsScreen() {
             />
           </View>
           <View style={styles.transactionDetails}>
-            <Text style={styles.transactionDescription}>{item.description}</Text>
-            <Text style={styles.transactionCategory}>{categoryInfo.name}</Text>
+            <Text style={styles.transactionDescription}>{item.type === 'income' ? 'Credit' : 'Debit'}</Text>
+            <Text style={styles.transactionCategory}>{item.bank || categoryInfo.name}</Text>
             <Text style={styles.transactionDate}>{formatDate(item.date)}</Text>
           </View>
         </View>

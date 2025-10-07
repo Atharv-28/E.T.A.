@@ -132,10 +132,10 @@ function DashboardScreen() {
                       </View>
                       <View>
                         <Text style={[styles.transactionDescription, { fontWeight: '600' }]}>
-                          {transaction.description}
+                          {transaction.type === 'income' ? 'Credit' : 'Debit'}
                         </Text>
                         <Text style={[styles.transactionCategory, { color: colors.gray }]}>
-                          {categoryInfo.name} • {formatDate(transaction.date)}
+                          {(transaction.bank || categoryInfo.name)} • {formatDate(transaction.date)}
                         </Text>
                       </View>
                     </View>

@@ -9,6 +9,7 @@ import {
 import { LineChart, PieChart, BarChart } from 'react-native-chart-kit';
 import CustomIcon from '../components/CustomIcon';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
+import { useAccounts } from '../context/AccountContext';
 import { formatCurrency } from '../utils/currency';
 import { styles } from '../styles/GlobalStyles';
 
@@ -16,6 +17,11 @@ const screenWidth = Dimensions.get('window').width;
 
 function ReportsScreen() {
   const { transactions } = useTransactions();
+  const { activeAccountId } = useAccounts();
+  // Only consider transactions belonging to the currently active account
+  const activeTransactions = Array.isArray(transactions)
+    ? transactions.filter(t => t.accountId === activeAccountId)
+    : [];
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [expenseFilter, setExpenseFilter] = useState('month'); // New filter for expense breakdown
 
@@ -24,9 +30,9 @@ function ReportsScreen() {
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
 
-  // Filter transactions based on selected period
+  // Filter active account transactions based on selected period
   const getFilteredTransactions = () => {
-    return transactions.filter(transaction => {
+    return activeTransactions.filter(transaction => {
       const transactionDate = new Date(transaction.date);
       if (selectedPeriod === 'month') {
         return transactionDate.getMonth() === currentMonth && 
@@ -45,7 +51,7 @@ function ReportsScreen() {
     const categoryTotals = {};
     
     // Filter transactions based on expenseFilter
-    let expenseTransactions = transactions.filter(t => t.type === 'expense');
+    let expenseTransactions = activeTransactions.filter(t => t.type === 'expense');
     
     const cutoffDate = new Date();
     switch (expenseFilter) {
@@ -85,7 +91,7 @@ function ReportsScreen() {
       monthlyData[monthKey] = { income: 0, expense: 0 };
     }
 
-    transactions.forEach(transaction => {
+    activeTransactions.forEach(transaction => {
       const transactionDate = new Date(transaction.date);
       if (transactionDate.getFullYear() === currentYear && 
           transactionDate.getMonth() >= currentMonth - 5) {
