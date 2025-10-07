@@ -48,6 +48,26 @@ function App() {
 }
 
 function AppContent() {
+  // Helper: extract robust last-4 digits from SMS text (handles XX1234, **1234, A/cXX1234, etc.)
+  const extractLast4FromSMS = (smsText) => {
+    if (!smsText || typeof smsText !== 'string') return null;
+    try {
+      // Prefer explicit A/c or Acct patterns (handles X or * masks)
+      const acMatch = smsText.match(/A\/?c\s*[X\*x\*]*?(\d{4})/i);
+      if (acMatch && acMatch[1]) return acMatch[1];
+
+      const acctMatch = smsText.match(/Acct(?:ount)?\D*?(\d{4})/i);
+      if (acctMatch && acctMatch[1]) return acctMatch[1];
+
+      // Fallback: take the last 4-digit group in the message
+      const allMatches = smsText.match(/(\d{4})/g);
+      if (allMatches && allMatches.length > 0) return allMatches[allMatches.length - 1];
+    } catch (e) {
+      console.warn('extractLast4FromSMS failed', e);
+    }
+    return null;
+  };
+
   const safeAreaInsets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [pendingTransaction, setPendingTransaction] = useState(null);
@@ -164,8 +184,8 @@ function AppContent() {
            const amountMatch = smsText.match(/Rs\.?\s*([\d,]+\.?\d*)/i);
            const accMatch = smsText.match(/A\/?c\s*X{0,2}(\d{4})|Acct(?:ount)?\s*.*?(\d{4})|(?:\b|\D)(\d{4})\b/);
            const amount = amountMatch ? parseFloat(amountMatch[1].replace(/,/g, '')) : null;
-           const acc4 = accMatch ? (accMatch[1] || accMatch[2] || accMatch[3]) : null;
-
+           // Use robust extractor to handle masked formats like XX1234 or **1234
+           const acc4 = extractLast4FromSMS(smsText);
            if (!transactionData) transactionData = {};
            if (amount && !transactionData.amount) transactionData.amount = amount;
            if (acc4 && !transactionData.accountNumber) transactionData.accountNumber = acc4;
@@ -178,9 +198,10 @@ function AppContent() {
        }
 
        if (transactionData.accountNumber) {
+         // Normalize to last 4 digits (strip non-digits) then match strictly against stored account last-4
+         const smsLast4 = transactionData.accountNumber.toString().replace(/\D/g, '').slice(-4);
          matchedAccount = accounts.find(account => 
-           account.accountNumber &&
-           transactionData.accountNumber.toString().includes(account.accountNumber.slice(-4))
+           account.accountNumber && account.accountNumber.slice(-4) === smsLast4
          );
 
          if (matchedAccount) {
@@ -228,7 +249,7 @@ function AppContent() {
            // SMS had a last-4 but no stored account matched it — show explicit toast and open modal without assigning an account
            setMatchedToast({
              title: 'Unmatched Account',
-             message: `No saved account found for ••${transactionData.accountNumber.slice(-4)}. Please choose an account.`,
+             message: `No saved account found for ••${transactionData.accountNumber.toString().replace(/\D/g,'').slice(-4)}. Please choose an account.`,
            });
            setTimeout(() => setMatchedToast(null), 4000);
            setPendingTransaction(transactionWithAccount);

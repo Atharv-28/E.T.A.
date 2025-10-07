@@ -113,10 +113,13 @@ export function TransactionProvider({ children }) {
     
     return transactions
       .filter(transaction => {
+        if (!transaction || !transaction.date) return false;
         const transactionDate = new Date(transaction.date);
+        // Treat 'debit' as expense as some flows use that label
+        const isExpenseType = transaction.type === 'expense' || transaction.type === 'debit';
         return transactionDate.getMonth() === currentMonth &&
                transactionDate.getFullYear() === currentYear &&
-               transaction.type === 'expense' &&
+               isExpenseType &&
                transaction.accountId === accountId;
       })
       .reduce((total, transaction) => total + transaction.amount, 0);
@@ -129,10 +132,12 @@ export function TransactionProvider({ children }) {
     
     return transactions
       .filter(transaction => {
+        if (!transaction || !transaction.date) return false;
         const transactionDate = new Date(transaction.date);
+        const isExpenseType = transaction.type === 'expense' || transaction.type === 'debit';
         return transactionDate.getMonth() === currentMonth &&
                transactionDate.getFullYear() === currentYear &&
-               transaction.type === 'expense';
+               isExpenseType;
       })
       .reduce((total, transaction) => total + transaction.amount, 0);
   };

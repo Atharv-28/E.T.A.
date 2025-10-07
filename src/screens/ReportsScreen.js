@@ -118,7 +118,6 @@ function ReportsScreen() {
     .reduce((sum, t) => sum + t.amount, 0);
 
   const netIncome = totalIncome - totalExpense;
-  const savingsRate = totalIncome > 0 ? ((netIncome / totalIncome) * 100) : 0;
 
   // Prepare chart data
   const pieChartData = categoryData.map(([category, amount], index) => ({
@@ -227,25 +226,6 @@ function ReportsScreen() {
           </Text>
           <Text style={styles.summaryLabel}>
             {netIncome >= 0 ? 'Net Savings' : 'Net Loss'}
-          </Text>
-        </View>
-      </View>
-
-      {/* Savings Rate Card */}
-      <View style={styles.section}>
-        <View style={styles.savingsRateCard}>
-          <View style={styles.savingsRateHeader}>
-            <CustomIcon name="pie-chart" size={24} color="#3498db" />
-            <Text style={styles.savingsRateTitle}>Savings Rate</Text>
-          </View>
-          <Text style={[styles.savingsRateValue, {
-            color: savingsRate >= 20 ? '#27ae60' : savingsRate >= 10 ? '#f39c12' : '#e74c3c'
-          }]}>
-            {savingsRate.toFixed(1)}%
-          </Text>
-          <Text style={styles.savingsRateSubtext}>
-            {savingsRate >= 20 ? 'Excellent!' : 
-             savingsRate >= 10 ? 'Good progress' : 'Needs improvement'}
           </Text>
         </View>
       </View>

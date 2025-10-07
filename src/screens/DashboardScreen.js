@@ -20,6 +20,14 @@ function DashboardScreen() {
   } = useTransactions();
   const { activeAccount } = useAccounts();
   
+  // Normalize transaction type labels to 'income' or 'expense'
+  const normalizeType = (type) => {
+    if (!type) return 'expense';
+    const t = type.toString().toLowerCase();
+    if (t === 'income' || t === 'credit') return 'income';
+    return 'expense';
+  };
+   
   // Use active account data or show empty state
   const activeAccountId = activeAccount?.id;
   const accountTransactions = activeAccountId ? getTransactionsByAccount(activeAccountId) : [];
@@ -27,7 +35,9 @@ function DashboardScreen() {
   const recentTransactions = accountTransactions.slice(0, 5);
 
   const getCategoryInfo = (categoryId, type) => {
-    const categories = CATEGORIES[type.toUpperCase()];
+    // Ensure we map alternative labels like 'debit'/'credit' to EXPENSE/INCOME
+    const normalized = normalizeType(type);
+    const categories = CATEGORIES[normalized.toUpperCase()] || CATEGORIES.EXPENSE;
     return categories.find(cat => cat.id === categoryId) || { name: 'Other', icon: 'help' };
   };
 
@@ -90,7 +100,7 @@ function DashboardScreen() {
         ) : (
           recentTransactions.map((transaction, index) => {
             const categoryInfo = getCategoryInfo(transaction.category, transaction.type);
-            const isIncome = transaction.type === 'income';
+            const isIncome = normalizeType(transaction.type) === 'income';
             
             return (
               <SlideInView 
@@ -132,7 +142,7 @@ function DashboardScreen() {
                       </View>
                       <View>
                         <Text style={[styles.transactionDescription, { fontWeight: '600' }]}>
-                          {transaction.type === 'income' ? 'Credit' : 'Debit'}
+                          {isIncome ? 'Credit' : 'Debit'}
                         </Text>
                         <Text style={[styles.transactionCategory, { color: colors.gray }]}>
                           {(transaction.bank || categoryInfo.name)} • {formatDate(transaction.date)}
@@ -177,7 +187,7 @@ function DashboardScreen() {
             <Text style={styles.summaryLabel}>Income</Text>
             <Text style={[styles.summaryValue, { color: '#27ae60' }]}>
               +{formatCurrency(accountTransactions
-                .filter(t => t.type === 'income' && 
+                .filter(t => normalizeType(t.type) === 'income' && 
                   new Date(t.date).getMonth() === new Date().getMonth())
                 .reduce((sum, t) => sum + t.amount, 0))}
             </Text>
@@ -186,7 +196,7 @@ function DashboardScreen() {
           <View style={styles.summaryItem}>
             <CustomIcon name="remove" size={20} color="#e74c3c" />
             <Text style={styles.summaryLabel}>Expenses</Text>
-            <Text style={[styles.summaryValue, { color: colors.white, opacity: 0.9 }]}>
+            <Text style={[styles.summaryValue, { color: colors.dangerDark, opacity: 0.9 }]}>
               -{formatCurrency(monthlySpending)}
             </Text>
           </View>
@@ -194,81 +204,7 @@ function DashboardScreen() {
         </GradientCard>
       </FadeInView>
 
-      {/* Quick Chart Preview */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Spending Trend</Text>
-        </View>
-        
-        <View style={styles.miniChart}>
-          <Text style={styles.miniChartTitle}>Weeks of This Month</Text>
-          <View style={styles.miniChartBars}>
-            {Array.from({ length: 4 }, (_, index) => {
-              // Calculate week ranges for current month
-              const now = new Date();
-              const currentMonth = now.getMonth();
-              const currentYear = now.getFullYear();
-              const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-              const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
-              
-              // Calculate week start and end dates
-              const weekStart = new Date(firstDayOfMonth);
-              weekStart.setDate(1 + (index * 7));
-              const weekEnd = new Date(weekStart);
-              weekEnd.setDate(weekStart.getDate() + 6);
-              
-              // Ensure we don't go beyond the current month
-              if (weekEnd > lastDayOfMonth) {
-                weekEnd.setTime(lastDayOfMonth.getTime());
-              }
-              
-              const weekExpenses = accountTransactions
-                .filter(t => {
-                  const transactionDate = new Date(t.date);
-                  return t.type === 'expense' && 
-                         transactionDate >= weekStart && 
-                         transactionDate <= weekEnd &&
-                         transactionDate.getMonth() === currentMonth;
-                })
-                .reduce((sum, t) => sum + t.amount, 0);
-              
-              // Calculate max expense for scaling
-              const maxExpense = Math.max(1, Math.max(...Array.from({ length: 4 }, (_, i) => {
-                const wStart = new Date(firstDayOfMonth);
-                wStart.setDate(1 + (i * 7));
-                const wEnd = new Date(wStart);
-                wEnd.setDate(wStart.getDate() + 6);
-                if (wEnd > lastDayOfMonth) {
-                  wEnd.setTime(lastDayOfMonth.getTime());
-                }
-                return accountTransactions
-                  .filter(t => {
-                    const tDate = new Date(t.date);
-                    return t.type === 'expense' && 
-                           tDate >= wStart && 
-                           tDate <= wEnd &&
-                           tDate.getMonth() === currentMonth;
-                  })
-                  .reduce((sum, t) => sum + t.amount, 0);
-              })));
-              
-              const height = Math.max(4, (weekExpenses / maxExpense) * 40);
-              
-              return (
-                <View key={index} style={styles.miniChartBar}>
-                  <View style={[styles.miniChartBarFill, { 
-                    height: height,
-                    backgroundColor: weekExpenses > 0 ? '#e74c3c' : '#ecf0f1'
-                  }]} />
-                  <Text style={styles.miniChartBarLabel}>
-                    W{index + 1}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        </View>
-      </View>
+      {/* Spending Trend removed (simplified dashboard) */}
     </ScrollView>
   );
 }
