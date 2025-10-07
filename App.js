@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { StatusBar, useColorScheme, View, Text, Alert, AppState } from 'react-native';
+import { StatusBar, useColorScheme, View, Text, Alert, AppState, DeviceEventEmitter } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Context
@@ -90,6 +90,7 @@ function AppContent() {
   // Start SMS monitoring when app loads
   useEffect(() => {
     let smsListener = null;
+    let intentListener = null;
 
     const initializeSMSMonitoring = async () => {
       try {
@@ -116,6 +117,29 @@ function AppContent() {
       }
     };
 
+    // Listen for intents forwarded from MainActivity (when app launched/tapped from notification)
+    intentListener = DeviceEventEmitter.addListener('NativeSMSReceived', (payload) => {
+      try {
+        console.log('🔔 Intent payload received from native MainActivity:', payload);
+        const raw = payload?.raw || '';
+        const sender = payload?.sender || payload?.address || null;
+        const timestamp = payload?.timestamp || new Date().toISOString();
+
+        // Re-use the existing native SMS handler path by building an smsData-like object
+        handleNativeSMSTransaction({
+          messageBody: raw,
+          body: raw,
+          message: raw,
+          sender: sender,
+          address: sender,
+          timestamp: timestamp,
+          date: timestamp,
+        });
+      } catch (e) {
+        console.error('Error handling intent payload', e);
+      }
+    });
+ 
     initializeSMSMonitoring();
 
     // Listen for app state changes
@@ -132,6 +156,9 @@ function AppContent() {
     return () => {
       if (smsListener) {
         NativeSMSService.removeListener(smsListener);
+      }
+      if (intentListener) {
+        intentListener.remove();
       }
       NativeSMSService.stopMonitoring();
       subscription?.remove();

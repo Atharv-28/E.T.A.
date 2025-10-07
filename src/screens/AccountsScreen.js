@@ -26,6 +26,10 @@ import NativeSMSService from '../services/NativeSMSService';
 import { requestSMSPermissionsWithDialog, checkSMSPermissions } from '../utils/permissions';
 import { styles, colors } from '../styles/GlobalStyles';
 
+// Document picker (migrated API)
+import { pick, keepLocalCopy, types, isCancel } from '@react-native-documents/picker';
+import RNFS from 'react-native-fs';
+
 function AccountsScreen({ onSimulateTransaction, onAddAccount }) {
   const { 
     accounts, 
@@ -37,6 +41,11 @@ function AccountsScreen({ onSimulateTransaction, onAddAccount }) {
   } = useAccounts();
   
   const { transactions, addTransaction } = useTransactions();
+  const [importModalVisible, setImportModalVisible] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [importFileName, setImportFileName] = useState(null);
+  const [importFileUri, setImportFileUri] = useState(null);
+  const [isImporting, setIsImporting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
   const [formData, setFormData] = useState({
@@ -143,23 +152,98 @@ function AccountsScreen({ onSimulateTransaction, onAddAccount }) {
     }
   };
 
-  const handleExportCSV = async () => {
-    if (!activeAccount) {
-      Alert.alert('No Active Account', 'Please select an account first before exporting data.');
-      return;
-    }
-    
+  const handleImportJSON = () => {
+    setImportText('');
+    setImportFileName(null);
+    setImportFileUri(null);
+    setImportModalVisible(true);
+  };
+
+  const handleSelectBackupFile = async () => {
     try {
-      // Filter transactions for active account only
-      const activeAccountTransactions = transactions.filter(t => t.accountId === activeAccount.id);
-      await BackupService.exportTransactionsToCSV(activeAccountTransactions, activeAccount.name);
+      // New picker API: returns array; pick a single file
+      const [file] = await pick({ allowMultiSelection: false, types: [types.allFiles] });
+
+      // Accept only .json files
+      if (!file?.name || !file.name.toLowerCase().endsWith('.json')) {
+        Alert.alert('Invalid File', 'Please select a .json backup file.');
+        return;
+      }
+
+      setImportFileName(file.name);
+      setImportFileUri(file.uri);
+
+      // To ensure we have a local copy (fast subsequent reads), request a local copy
+      try {
+        const [localCopy] = await keepLocalCopy({
+          files: [
+            {
+              uri: file.uri,
+              fileName: file.name ?? 'backup.json',
+            }
+          ],
+          destination: 'documentDirectory'
+        });
+
+        // localCopy may provide a uri or fileCopyUri depending on platform
+        let localPath = localCopy?.uri || localCopy?.fileCopyUri || file.uri;
+        if (localPath.startsWith('file://')) localPath = localPath.replace('file://', '');
+
+        const fileContent = await RNFS.readFile(localPath, 'utf8');
+        setImportText(fileContent);
+      } catch (err) {
+        // Fallback: try to fetch content for content:// URIs or read directly
+        try {
+          let path = file.uri;
+          if (path.startsWith('content://')) {
+            const fetched = await fetch(path);
+            const text = await fetched.text();
+            setImportText(text);
+          } else {
+            if (path.startsWith('file://')) path = path.replace('file://', '');
+            const text = await RNFS.readFile(path, 'utf8');
+            setImportText(text);
+          }
+        } catch (readErr) {
+          console.warn('Could not read selected file for preview:', readErr);
+          setImportText('');
+        }
+      }
+    } catch (err) {
+      if (isCancel && isCancel(err)) {
+        // user cancelled
+        return;
+      }
+      console.error('File pick error', err);
+      Alert.alert('Error', 'Failed to select file.');
+    }
+   };
+
+  const performImport = async () => {
+    setIsImporting(true);
+    try {
+      // Prefer file URI (if selected) or pasted text
+      if (importFileUri) {
+        // Try passing file path/uri directly to service (it will handle reading)
+        await BackupService.importFromBackup(importFileUri);
+      } else if (importText && importText.trim().length > 0) {
+        await BackupService.importFromBackup(importText);
+      } else {
+        Alert.alert('Error', 'Please either paste backup JSON or select a .json file to import.');
+        setIsImporting(false);
+        return;
+      }
+
+      setImportModalVisible(false);
+      setImportText('');
+      setImportFileName(null);
+      setImportFileUri(null);
+      Alert.alert('Import Started', 'Import process initiated. Follow prompts if any.');
     } catch (error) {
-      console.error('Export CSV error:', error);
-      Alert.alert(
-        'Export Failed',
-        'Failed to export CSV file. Please try again.',
-        [{ text: 'OK' }]
-      );
+      console.error('Import error:', error);
+      Alert.alert('Import Failed', error.message || 'Failed to import backup.');
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -450,12 +534,12 @@ ${serviceStatus.isMonitoring
               <GradientButton 
                 colors={[colors.success, colors.successDark]}
                 style={[styles.backupButton, !activeAccount && styles.smsImportButtonDisabled]}
-                onPress={handleExportCSV}
+                onPress={handleImportJSON}
                 disabled={!activeAccount}
               >
-                <CustomIcon name="table-chart" size={18} color={colors.white} />
+                <CustomIcon name="save" size={18} color={colors.white} />
                 <Text style={[styles.backupButtonText, { color: colors.white }]}>
-                  Export CSV
+                  Import Backup
                 </Text>
               </GradientButton>
             </ScaleInView>
@@ -557,6 +641,67 @@ ${serviceStatus.isMonitoring
               <View style={styles.typeGrid}>
                 {Object.values(ACCOUNT_TYPES).map((type) => renderTypeOption(type))}
               </View>
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* Import Backup Modal */}
+      <Modal
+        visible={importModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setImportModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setImportModalVisible(false)}>
+              <CustomIcon name="close" size={24} color="#2c3e50" />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Import Backup (.json)</Text>
+            <TouchableOpacity onPress={performImport}>
+              <Text style={styles.saveButton}>Import</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent}>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Paste Backup JSON</Text>
+              <TextInput
+                style={[styles.textInput, { height: 200, textAlignVertical: 'top' }]}
+                value={importText}
+                onChangeText={setImportText}
+                placeholder="Paste the backup JSON here"
+                placeholderTextColor="#7f8c8d"
+                multiline
+                numberOfLines={10}
+              />
+
+              {/* File picker button and selected filename (selecting a file takes precedence over pasted text) */}
+              <View style={{ marginTop: 12 }}>
+                <GradientButton
+                  colors={[colors.info, colors.infoDark]}
+                  style={[styles.backupButton]}
+                  onPress={handleSelectBackupFile}
+                >
+                  <CustomIcon name="folder-open" size={16} color={colors.white} />
+                  <Text style={[styles.backupButtonText, { color: colors.white }]}>Select .json File</Text>
+                </GradientButton>
+
+                {importFileName ? (
+                  <View style={{ marginTop: 8 }}>
+                    <Text style={styles.helpText}>Selected: {importFileName}</Text>
+                    <TouchableOpacity onPress={() => { setImportFileName(null); setImportFileUri(null); setImportText(''); }}>
+                      <Text style={[styles.saveButton, { marginTop: 6 }]}>Clear Selection</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
+
+                <Text style={styles.helpText}>
+                  You can paste JSON or select a .json file. If a file is selected it will be used automatically when you press Import.
+                </Text>
+              </View>
+
             </View>
           </ScrollView>
         </View>
