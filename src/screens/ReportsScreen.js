@@ -267,23 +267,29 @@ function ReportsScreen() {
             </View>
           </View>
           <View style={styles.filterRowContainer}>
-            {['week', 'month', 'year', 'all'].map((filter) => (
-              <TouchableOpacity
-                key={filter}
-                style={[
-                  styles.miniFilterButton,
-                  expenseFilter === filter && styles.activeMiniFilterButton
-                ]}
-                onPress={() => setExpenseFilter(filter)}
-              >
-                <Text style={[
-                  styles.miniFilterText,
-                  expenseFilter === filter && styles.activeMiniFilterText
-                ]}>
-                  {filter.charAt(0).toUpperCase() + filter.slice(1)}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {/* Use horizontal scroll to avoid overflow on small screens */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 6 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                {['week', 'month', 'year', 'all'].map((filter) => (
+                  <TouchableOpacity
+                    key={filter}
+                    style={[
+                      styles.miniFilterButton,
+                      expenseFilter === filter && styles.activeMiniFilterButton,
+                      { marginRight: 8 }
+                    ]}
+                    onPress={() => setExpenseFilter(filter)}
+                  >
+                    <Text style={[
+                      styles.miniFilterText,
+                      expenseFilter === filter && styles.activeMiniFilterText
+                    ]}>
+                      {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
           </View>
           <PieChart
             data={pieChartData}
