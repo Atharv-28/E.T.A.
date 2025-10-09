@@ -81,11 +81,18 @@ function AppContent() {
 
   // Show login screen if no accounts exist
   useEffect(() => {
-    if (accounts.length === 0) {
+    // If accounts are not yet loaded or empty, show the first-time login.
+    // If accounts exist, ensure we close the login screen unless the user explicitly opened it to add an account.
+    if (!accounts || accounts.length === 0) {
       setShowLoginScreen(true);
       setLoginScreenMode('firstTime');
+    } else {
+      // Keep Add Account modal from being auto-closed while user intends to add an account
+      if (loginScreenMode !== 'addAccount') {
+        setShowLoginScreen(false);
+      }
     }
-  }, [accounts]);
+  }, [accounts, loginScreenMode]);
 
   // Start SMS monitoring when app loads
   useEffect(() => {
