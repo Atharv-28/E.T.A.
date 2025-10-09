@@ -92,39 +92,90 @@ export class BackupService {
       const accountSuffix = specificAccounts ? `_${specificAccounts[0]?.name.replace(/\s+/g, '_')}` : '';
       const fileName = `ETA_Backup${accountSuffix}_${timestamp}.json`;
 
-      // Write JSON to a file in app document directory and open share sheet
-      try {
-        const backupJson = JSON.stringify(backupData, null, 2);
-        const path = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+      // Prepare JSON
+      const backupJson = JSON.stringify(backupData, null, 2);
 
-        await RNFS.writeFile(path, backupJson, 'utf8');
-
+      // Helper to write and share a file
+      const writeAndShare = async (targetPath) => {
         try {
-          // Share the file using the native share dialog
+          await RNFS.writeFile(targetPath, backupJson, 'utf8');
+
           const shareOptions = {
             title: fileName,
-            message: 'ETA backup file',
-            url: Platform.OS === 'android' ? `file://${path}` : path
+            message: backupJson, // include raw JSON as fallback for apps that only accept text
+            url: Platform.OS === 'android' ? `file://${targetPath}` : targetPath
           };
 
           await Share.share(shareOptions);
-
-          Alert.alert('Backup Saved', `Backup saved and share dialog opened for ${fileName}`);
-          return { success: true, fileName, path, data: backupData };
-        } catch (shareErr) {
-          console.warn('Share failed or was dismissed', shareErr);
-          // If share fails, still inform the user where the file is saved
-          Alert.alert('Backup Created', `Backup file has been saved to:
-${path}
-
-You can access it using your device's file manager.`, [{ text: 'OK' }]);
-          return { success: true, fileName, path, data: backupData };
+          Alert.alert('Backup Saved', `Backup saved and share dialog opened for ${fileName}\n\nSaved to: ${targetPath}`);
+          return { success: true, fileName, path: targetPath };
+        } catch (err) {
+          console.error('Write or share failed:', err);
+          throw err;
         }
-      } catch (fsError) {
-        console.error('Failed to write backup file:', fsError);
-        Alert.alert('Export Failed', 'Could not write backup file to device storage.');
-        return { success: false };
-      }
+      };
+
+      // Ask the user where to save / share
+      const options = [
+        { text: 'Save to Downloads and Share', onPress: async () => {
+          try {
+            if (!RNFS.DownloadDirectoryPath) throw new Error('Downloads directory not available');
+            const downloadPath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
+            const res = await writeAndShare(downloadPath);
+            return res;
+          } catch (err) {
+            console.warn('Failed to save to Downloads, falling back to app files:', err);
+            try {
+              const appPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+              const res2 = await writeAndShare(appPath);
+              return res2;
+            } catch (err2) {
+              console.error('Failed to save to app path as well', err2);
+              Alert.alert('Export Failed', 'Failed to save backup file. Sharing raw JSON instead.');
+              try {
+                await Share.share({ title: fileName, message: backupJson });
+                return { success: true, fallback: true };
+              } catch (shareErr) {
+                console.error('Fallback share failed', shareErr);
+                Alert.alert('Export Failed', 'Unable to create backup file or share raw JSON.');
+                return { success: false };
+              }
+            }
+          }
+        }},
+        { text: 'Save to App Files and Share', onPress: async () => {
+          try {
+            const appPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+            const res = await writeAndShare(appPath);
+            return res;
+          } catch (err) {
+            console.error('Failed to write to app files', err);
+            Alert.alert('Export Failed', 'Could not write backup file to device storage.');
+            return { success: false };
+          }
+        }},
+        { text: 'Share Raw JSON', onPress: async () => {
+          try {
+            await Share.share({ title: fileName, message: backupJson });
+            Alert.alert('Shared', 'Backup JSON shared as raw text.');
+            return { success: true, fallback: true };
+          } catch (err) {
+            console.error('Raw share failed', err);
+            Alert.alert('Export Failed', 'Unable to share backup JSON.');
+            return { success: false };
+          }
+        }},
+        { text: 'Cancel', style: 'cancel' }
+      ];
+
+      // Convert options into Alert buttons (Android supports up to 3 actions nicely)
+      Alert.alert(
+        'Export Backup',
+        `Choose where to save the backup file "${fileName}". Select "Downloads" to save it to your device's Downloads folder (visible in file manager).`,
+        options
+      );
+
+      return { success: true, fileName, data: backupData };
     } catch (error) {
       console.error('Error exporting to JSON:', error);
       throw new Error('Failed to export backup file');
