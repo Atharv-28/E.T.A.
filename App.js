@@ -367,7 +367,14 @@ function AppContent() {
   const renderScreen = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardScreen />;
+        return (
+          <DashboardScreen 
+            onManualTransaction={(transaction) => {
+              setPendingTransaction(transaction);
+              setCategoryModalVisible(true);
+            }}
+          />
+        );
       case 'transactions':
         return <TransactionsScreen />;
       case 'accounts':
@@ -383,7 +390,14 @@ function AppContent() {
       case 'reports':
         return <ReportsScreen />;
       default:
-        return <DashboardScreen />;
+        return (
+          <DashboardScreen 
+            onManualTransaction={(transaction) => {
+              setPendingTransaction(transaction);
+              setCategoryModalVisible(true);
+            }}
+          />
+        );
     }
   };
 

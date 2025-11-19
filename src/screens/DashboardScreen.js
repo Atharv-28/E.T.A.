@@ -1,24 +1,29 @@
 import React from 'react';
-import { ScrollView, Text, View, TouchableOpacity } from 'react-native';
+import { ScrollView, Text, View, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
 import CustomIcon from '../components/CustomIcon';
 import { 
   FadeInView, 
   SlideInView, 
   ScaleInView, 
   GradientCard,
-  AnimatedButton 
+  AnimatedButton,
+  GradientButton
 } from '../components/AnimatedComponents';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
 import { useAccounts } from '../context/AccountContext';
 import { formatCurrency } from '../utils/currency';
 import { styles, colors } from '../styles/GlobalStyles';
 
-function DashboardScreen() {
+function DashboardScreen({ onManualTransaction }) {
   const { 
     getTransactionsByAccount, 
     getMonthlySpendingForAccount 
   } = useTransactions();
   const { activeAccount } = useAccounts();
+  
+  const [showAddModal, setShowAddModal] = React.useState(false);
+  const [transactionType, setTransactionType] = React.useState('expense'); // 'expense' or 'income'
+  const [amount, setAmount] = React.useState('');
   
   // Normalize transaction type labels to 'income' or 'expense'
   const normalizeType = (type) => {
@@ -53,6 +58,37 @@ function DashboardScreen() {
       return 'Yesterday';
     } else {
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+  };
+
+  const handleAddTransaction = () => {
+    if (!amount || parseFloat(amount) <= 0) {
+      return Alert.alert('Validation', 'Please enter a valid amount');
+    }
+    
+    // Create a transaction payload similar to SMS-detected transactions
+    const transactionData = {
+      amount: parseFloat(amount),
+      type: transactionType, // 'expense' or 'income'
+      description: `Manual ${transactionType === 'income' ? 'Credit' : 'Debit'}`,
+      date: new Date().toISOString(),
+      accountId: null, // Let user pick in modal
+      accountNumber: null,
+      bank: 'Manual Entry',
+      rawSMS: `Manual ${transactionType === 'income' ? 'Credit' : 'Debit'} entry for amount Rs.${parseFloat(amount).toFixed(2)}`,
+      smsData: {
+        sender: 'Manual',
+        date: new Date().toISOString(),
+        rawSMS: `Manual entry`
+      }
+    };
+    
+    // Close amount modal and trigger category modal via parent
+    setShowAddModal(false);
+    setAmount('');
+    
+    if (onManualTransaction) {
+      onManualTransaction(transactionData);
     }
   };
 
@@ -204,7 +240,102 @@ function DashboardScreen() {
         </GradientCard>
       </FadeInView>
 
-      {/* Spending Trend removed (simplified dashboard) */}
+      {/* Floating Action Button for Adding Transactions */}
+      <TouchableOpacity 
+        style={styles.fab}
+        onPress={() => setShowAddModal(true)}
+      >
+        <CustomIcon name="add" size={28} color={colors.white} />
+      </TouchableOpacity>
+
+      {/* Add Transaction Modal */}
+      <Modal
+        visible={showAddModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowAddModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowAddModal(false)}>
+              <CustomIcon name="close" size={24} color="#2c3e50" />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Add Transaction</Text>
+            <TouchableOpacity onPress={handleAddTransaction}>
+              <Text style={styles.saveButton}>Add</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent}>
+            {/* Transaction Type Selection */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Transaction Type</Text>
+              <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
+                <TouchableOpacity
+                  style={[
+                    styles.typeButton,
+                    transactionType === 'expense' && styles.typeButtonActive,
+                    { backgroundColor: transactionType === 'expense' ? colors.danger : colors.grayLight }
+                  ]}
+                  onPress={() => setTransactionType('expense')}
+                >
+                  <CustomIcon 
+                    name="trending-down" 
+                    size={20} 
+                    color={transactionType === 'expense' ? colors.white : colors.gray} 
+                  />
+                  <Text style={[
+                    styles.typeButtonText,
+                    { color: transactionType === 'expense' ? colors.white : colors.gray }
+                  ]}>
+                    Debit
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.typeButton,
+                    transactionType === 'income' && styles.typeButtonActive,
+                    { backgroundColor: transactionType === 'income' ? colors.success : colors.grayLight }
+                  ]}
+                  onPress={() => setTransactionType('income')}
+                >
+                  <CustomIcon 
+                    name="trending-up" 
+                    size={20} 
+                    color={transactionType === 'income' ? colors.white : colors.gray} 
+                  />
+                  <Text style={[
+                    styles.typeButtonText,
+                    { color: transactionType === 'income' ? colors.white : colors.gray }
+                  ]}>
+                    Credit
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Amount Input */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Amount (₹)</Text>
+              <TextInput
+                style={[styles.textInput, { fontSize: 24, fontWeight: '600' }]}
+                value={amount}
+                onChangeText={setAmount}
+                placeholder="0.00"
+                placeholderTextColor="#95a5a6"
+                keyboardType="decimal-pad"
+              />
+            </View>
+
+            <View style={{ padding: 16 }}>
+              <Text style={styles.helpText}>
+                💡 After clicking "Add", you'll be able to select the category and account for this transaction.
+              </Text>
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
