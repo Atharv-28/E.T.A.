@@ -115,6 +115,32 @@ function DashboardScreen({ onManualTransaction }) {
               </Text>
             </GradientCard>
           </ScaleInView>
+
+          {/* Add Transaction Button */}
+          <ScaleInView delay={500}>
+            <TouchableOpacity 
+              style={{
+                flex: 0.45,
+                backgroundColor: colors.primary,
+                borderRadius: 16,
+                padding: 20,
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 140,
+                elevation: 4,
+                shadowColor: colors.primary,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+              }}
+              onPress={() => setShowAddModal(true)}
+            >
+              <CustomIcon name="add-circle" size={40} color={colors.white} />
+              <Text style={[styles.statLabel, { color: colors.white, opacity: 0.9, marginTop: 8 }]}>
+                Add Transaction
+              </Text>
+            </TouchableOpacity>
+          </ScaleInView>
         </View>
       </SlideInView>
 
@@ -239,14 +265,6 @@ function DashboardScreen({ onManualTransaction }) {
         </View>
         </GradientCard>
       </FadeInView>
-
-      {/* Floating Action Button for Adding Transactions */}
-      <TouchableOpacity 
-        style={styles.fab}
-        onPress={() => setShowAddModal(true)}
-      >
-        <CustomIcon name="add" size={28} color={colors.white} />
-      </TouchableOpacity>
 
       {/* Add Transaction Modal */}
       <Modal
