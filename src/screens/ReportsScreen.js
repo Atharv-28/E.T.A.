@@ -53,22 +53,47 @@ function ReportsScreen() {
     // Filter transactions based on expenseFilter
     let expenseTransactions = activeTransactions.filter(t => t.type === 'expense');
     
-    const cutoffDate = new Date();
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+    
+    // Filter based on calendar periods instead of relative dates
     switch (expenseFilter) {
       case 'week':
-        cutoffDate.setDate(cutoffDate.getDate() - 7);
+        // Current week (Monday to Sunday)
+        const firstDayOfWeek = new Date(today);
+        const dayOfWeek = today.getDay();
+        const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Adjust if Sunday (0), otherwise Monday is day 1
+        firstDayOfWeek.setDate(today.getDate() - diff);
+        firstDayOfWeek.setHours(0, 0, 0, 0);
+        
+        expenseTransactions = expenseTransactions.filter(t => {
+          const transactionDate = new Date(t.date);
+          return transactionDate >= firstDayOfWeek;
+        });
         break;
+        
       case 'month':
-        cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+        // Current calendar month
+        expenseTransactions = expenseTransactions.filter(t => {
+          const transactionDate = new Date(t.date);
+          return transactionDate.getMonth() === currentMonth && 
+                 transactionDate.getFullYear() === currentYear;
+        });
         break;
+        
       case 'year':
-        cutoffDate.setFullYear(cutoffDate.getFullYear() - 1);
+        // Current calendar year
+        expenseTransactions = expenseTransactions.filter(t => {
+          const transactionDate = new Date(t.date);
+          return transactionDate.getFullYear() === currentYear;
+        });
         break;
+        
       default:
-        cutoffDate.setFullYear(cutoffDate.getFullYear() - 100); // All time
+        // All time - no filter
+        break;
     }
-    
-    expenseTransactions = expenseTransactions.filter(t => new Date(t.date) >= cutoffDate);
     
     expenseTransactions.forEach(transaction => {
       const categoryInfo = CATEGORIES.EXPENSE.find(cat => cat.id === transaction.category);
