@@ -221,7 +221,7 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: colors.black,
-    marginBottom: 16,
+    // marginBottom: 16,
     letterSpacing: 0.3,
   },
   transactionItem: {

@@ -235,7 +235,7 @@ function ReportsScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleWithIcon}>
-              <CustomIcon name="show-chart" size={20} color="#2c3e50" />
+              <CustomIcon name="show-chart" size={28} color="#2c3e50" />
               <Text style={styles.sectionTitle}>6-Month Trend</Text>
             </View>
           </View>
@@ -262,7 +262,7 @@ function ReportsScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleWithIcon}>
-              <CustomIcon name="donut-large" size={20} color="#2c3e50" />
+              <CustomIcon name="donut-large" size={28} color="#2c3e50" />
               <Text style={styles.sectionTitle}>Expense Breakdown</Text>
             </View>
           </View>
@@ -309,7 +309,7 @@ function ReportsScreen() {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleWithIcon}>
-            <CustomIcon name="list" size={20} color="#2c3e50" />
+            <CustomIcon name="list" size={28} color="#2c3e50" />
             <Text style={styles.sectionTitle}>Top Expense Categories</Text>
           </View>
         </View>
