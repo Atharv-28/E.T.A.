@@ -53,6 +53,18 @@ const ICON_FALLBACKS = {
   'savings': '🏦',
   'credit-card': '💳',
   'account-balance': '🏦',
+  'notifications-none': '🔔',
+  'grid-view': '🧩',
+  'receipt-long': '🧾',
+  'bar-chart': '📊',
+  'search': '🔎',
+  'currency-rupee': '₹',
+  'wifi-tethering': '📶',
+  'verified-user': '🛡️',
+  'cloud-upload': '☁️',
+  'download': '⬇️',
+  'lock': '🔒',
+  'notifications': '🔔',
 };
 
 function CustomIcon({ name, size = 24, color = '#000', style, fallbackOnly = false }) {

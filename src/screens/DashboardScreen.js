@@ -1,361 +1,274 @@
-import React from 'react';
-import { ScrollView, Text, View, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
-import CustomIcon from '../components/CustomIcon';
-import { 
-  FadeInView, 
-  SlideInView, 
-  ScaleInView, 
-  GradientCard,
-  AnimatedButton,
-  GradientButton
-} from '../components/AnimatedComponents';
+import React, { useMemo, useState } from 'react';
+import { Modal, View, TouchableOpacity } from 'react-native';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
 import { useAccounts } from '../context/AccountContext';
-import { formatCurrency } from '../utils/currency';
-import { styles, colors } from '../styles/GlobalStyles';
+import TransactionRow from '../modules/transactions/components/TransactionRow';
+import {
+  AppButton,
+  AppCard,
+  AppChipTabs,
+  AppIcon,
+  AppInput,
+  AppProgressBar,
+  AppScrollScreen,
+  AppText,
+  palette,
+  spacing,
+  radius,
+} from '../ui';
 
-function DashboardScreen({ onManualTransaction }) {
-  const { 
-    getTransactionsByAccount, 
-    getMonthlySpendingForAccount 
-  } = useTransactions();
+function getCategoryIcon(categoryId, type) {
+  const categories = type === 'income' ? CATEGORIES.INCOME : CATEGORIES.EXPENSE;
+  const found = categories.find((item) => item.id === categoryId);
+  return found ? found.icon : 'receipt-long';
+}
+
+function formatDateLabel(dateString) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === now.toDateString()) return 'TODAY';
+  if (date.toDateString() === yesterday.toDateString()) return 'YESTERDAY';
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
+}
+
+export default function DashboardScreen({ onManualTransaction }) {
+  const { getTransactionsByAccount } = useTransactions();
   const { activeAccount } = useAccounts();
-  
-  const [showAddModal, setShowAddModal] = React.useState(false);
-  const [transactionType, setTransactionType] = React.useState('expense'); // 'expense' or 'income'
-  const [amount, setAmount] = React.useState('');
-  
-  // Normalize transaction type labels to 'income' or 'expense'
-  const normalizeType = (type) => {
-    if (!type) return 'expense';
-    const t = type.toString().toLowerCase();
-    if (t === 'income' || t === 'credit') return 'income';
-    return 'expense';
-  };
-   
-  // Use active account data or show empty state
-  const activeAccountId = activeAccount?.id;
-  const accountTransactions = activeAccountId ? getTransactionsByAccount(activeAccountId) : [];
-  const monthlySpending = activeAccountId ? getMonthlySpendingForAccount(activeAccountId) : 0;
-  const recentTransactions = accountTransactions.slice(0, 5);
 
-  const getCategoryInfo = (categoryId, type) => {
-    // Ensure we map alternative labels like 'debit'/'credit' to EXPENSE/INCOME
-    const normalized = normalizeType(type);
-    const categories = CATEGORIES[normalized.toUpperCase()] || CATEGORIES.EXPENSE;
-    return categories.find(cat => cat.id === categoryId) || { name: 'Other', icon: 'help' };
-  };
+  const [addVisible, setAddVisible] = useState(false);
+  const [type, setType] = useState('expense');
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('Manual Entry');
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
+  const accountTransactions = useMemo(() => {
+    if (!activeAccount) return [];
+    return getTransactionsByAccount(activeAccount.id);
+  }, [activeAccount, getTransactionsByAccount]);
 
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-  };
+  const month = new Date().getMonth();
+  const year = new Date().getFullYear();
 
-  const handleAddTransaction = () => {
-    if (!amount || parseFloat(amount) <= 0) {
-      return Alert.alert('Validation', 'Please enter a valid amount');
-    }
-    
-    // Create a transaction payload similar to SMS-detected transactions
-    const transactionData = {
-      amount: parseFloat(amount),
-      type: transactionType, // 'expense' or 'income'
-      description: `Manual ${transactionType === 'income' ? 'Credit' : 'Debit'}`,
+  const monthlyIncome = accountTransactions
+    .filter((t) => new Date(t.date).getMonth() === month && new Date(t.date).getFullYear() === year && t.type === 'income')
+    .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+  const monthlyExpense = accountTransactions
+    .filter((t) => new Date(t.date).getMonth() === month && new Date(t.date).getFullYear() === year && (t.type === 'expense' || t.type === 'debit'))
+    .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+  const balance = monthlyIncome - monthlyExpense;
+  const savingsRate = monthlyIncome > 0 ? Math.max(0, Math.min(100, ((balance / monthlyIncome) * 100))) : 0;
+  const recent = accountTransactions.slice(0, 6);
+
+  const submitManual = () => {
+    const numericAmount = Number(amount);
+    if (!numericAmount || numericAmount <= 0) return;
+
+    const payload = {
+      amount: numericAmount,
+      type,
+      description,
       date: new Date().toISOString(),
-      accountId: null, // Let user pick in modal
+      accountId: null,
       accountNumber: null,
       bank: 'Manual Entry',
-      rawSMS: `Manual ${transactionType === 'income' ? 'Credit' : 'Debit'} entry for amount Rs.${parseFloat(amount).toFixed(2)}`,
+      rawSMS: `Manual ${type} entry`,
       smsData: {
         sender: 'Manual',
         date: new Date().toISOString(),
-        rawSMS: `Manual entry`
-      }
+        rawSMS: 'Manual entry',
+      },
     };
-    
-    // Close amount modal and trigger category modal via parent
-    setShowAddModal(false);
+
+    setAddVisible(false);
     setAmount('');
-    
-    if (onManualTransaction) {
-      onManualTransaction(transactionData);
-    }
+    setDescription('Manual Entry');
+    if (onManualTransaction) onManualTransaction(payload);
   };
 
   return (
-    <ScrollView style={styles.screen}>
-      <FadeInView>
-        <Text style={styles.screenTitle}>Dashboard</Text>
-      </FadeInView>
-      
-      {/* Quick Stats with Animation */}
-      <SlideInView direction="right" delay={200}>
-        <View style={styles.statsContainer}>
-          <ScaleInView delay={400}>
-            <GradientCard 
-              colors={[colors.danger, colors.dangerLight]}
-              style={styles.statCard}
-            >
-              <CustomIcon name="trending-down" size={32} color={colors.white} />
-              <Text style={[styles.statValue, { color: colors.white }]}>
-                -{formatCurrency(monthlySpending)}
-              </Text>
-              <Text style={[styles.statLabel, { color: colors.white, opacity: 0.9 }]}>
-                This Month
-              </Text>
-            </GradientCard>
-          </ScaleInView>
+    <>
+      <AppScrollScreen>
+        <AppCard
+          style={{
+            backgroundColor: palette.primary,
+            borderWidth: 0,
+            borderRadius: 34,
+            padding: spacing.xxl,
+          }}
+        >
+          <AppText variant="label" color="#BFD6FF" style={{ letterSpacing: 2 }}>
+            THIS MONTH BALANCE
+          </AppText>
+          <AppText variant="h2" color={palette.surface} style={{ marginTop: spacing.sm }}>
+            {balance < 0 ? '-' : ''}₹{Math.abs(balance).toFixed(2)}
+          </AppText>
 
-          {/* Add Transaction Button */}
-          <ScaleInView delay={500}>
-            <TouchableOpacity 
+          <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl }}>
+            <View
               style={{
-                flex: 0.45,
-                backgroundColor: colors.primary,
-                borderRadius: 16,
-                padding: 20,
+                flex: 1,
+                borderRadius: radius.xl,
+                backgroundColor: 'rgba(255,255,255,0.14)',
+                padding: spacing.lg,
+              }}
+            >
+              <AppText variant="h4" color="#91F1E7">
+                INCOME
+              </AppText>
+              <AppText variant="h4" color={palette.surface} style={{ marginTop: spacing.xs }}>
+                +₹{monthlyIncome.toFixed(2)}
+              </AppText>
+            </View>
+            <View
+              style={{
+                flex: 1,
+                borderRadius: radius.xl,
+                backgroundColor: 'rgba(255,255,255,0.14)',
+                padding: spacing.lg,
+              }}
+            >
+              <AppText variant="h4" color="#FFCAD7">
+                EXPENSES
+              </AppText>
+              <AppText variant="h4" color={palette.surface} style={{ marginTop: spacing.xs }}>
+                -₹{monthlyExpense.toFixed(2)}
+              </AppText>
+            </View>
+          </View>
+        </AppCard>
+
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <AppText variant="h3">Monthly Summary</AppText>
+          <AppButton title="Details" variant="ghost" />
+        </View>
+
+        <AppCard>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flex: 1 }}>
+              <AppText variant="h3">Savings Rate</AppText>
+              <AppText variant="h3" color={palette.primary} style={{ marginTop: spacing.sm }}>
+                {savingsRate.toFixed(1)}%
+              </AppText>
+            </View>
+            <View
+              style={{
+                width: 74,
+                height: 74,
+                borderRadius: 37,
+                backgroundColor: '#DCE6FB',
                 alignItems: 'center',
                 justifyContent: 'center',
-                minHeight: 140,
-                elevation: 4,
-                shadowColor: colors.primary,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
               }}
-              onPress={() => setShowAddModal(true)}
             >
-              <CustomIcon name="add-circle" size={40} color={colors.white} />
-              <Text style={[styles.statLabel, { color: colors.white, opacity: 0.9, marginTop: 8 }]}>
-                Add Transaction
-              </Text>
-            </TouchableOpacity>
-          </ScaleInView>
-        </View>
-      </SlideInView>
-
-      {/* Recent Transactions with Animation */}
-      <FadeInView delay={500}>
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Transactions</Text>
-            <CustomIcon name="history" size={20} color={colors.primary} />
+              <AppIcon name="bar-chart" size={30} color={palette.primary} />
+            </View>
           </View>
-          
-          {recentTransactions.length === 0 ? (
-            <ScaleInView delay={600}>
-              <View style={styles.emptyState}>
-                <CustomIcon name="receipt" size={32} color={colors.grayLight} />
-                <Text style={styles.emptyStateText}>No transactions yet</Text>
-              </View>
-            </ScaleInView>
+          <AppProgressBar value={savingsRate} color={palette.primary} style={{ marginTop: spacing.lg }} />
+        </AppCard>
+
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <AppText variant="h3">Recent Transactions</AppText>
+          <AppButton title="View all" variant="secondary" />
+        </View>
+
+        {recent.length === 0 ? (
+          <AppCard>
+            <AppText variant="body" color={palette.textSecondary}>
+              No transactions available for the selected account.
+            </AppText>
+          </AppCard>
         ) : (
-          recentTransactions.map((transaction, index) => {
-            const categoryInfo = getCategoryInfo(transaction.category, transaction.type);
-            const isIncome = normalizeType(transaction.type) === 'income';
-            
+          recent.map((item) => {
+            const income = item.type === 'income';
             return (
-              <SlideInView 
-                key={transaction.id} 
-                direction="left" 
-                delay={600 + (index * 100)}
-              >
-                <AnimatedButton>
-                  <View style={[
-                    styles.transactionItem,
-                    {
-                      backgroundColor: colors.white,
-                      borderRadius: 12,
-                      marginVertical: 4,
-                      paddingHorizontal: 16,
-                      elevation: 2,
-                      shadowColor: colors.black,
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.05,
-                      shadowRadius: 4,
-                      borderLeftWidth: 4,
-                      borderLeftColor: isIncome ? colors.success : colors.danger,
-                    }
-                  ]}>
-                    <View style={styles.transactionLeft}>
-                      <View style={[
-                        styles.categoryIconSmall,
-                        { 
-                          backgroundColor: isIncome 
-                            ? colors.success + '20' 
-                            : colors.danger + '20' 
-                        }
-                      ]}>
-                        <CustomIcon 
-                          name={categoryInfo.icon} 
-                          size={16} 
-                          color={isIncome ? colors.success : colors.danger} 
-                        />
-                      </View>
-                      <View>
-                        <Text style={[styles.transactionDescription, { fontWeight: '600' }]}>
-                          {isIncome ? 'Credit' : 'Debit'}
-                        </Text>
-                        <Text style={[styles.transactionCategory, { color: colors.gray }]}>
-                          {(transaction.bank || categoryInfo.name)} • {formatDate(transaction.date)}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text style={[
-                      styles.transactionAmount,
-                      { 
-                        color: isIncome ? colors.success : colors.danger,
-                        fontSize: 16,
-                        fontWeight: '700'
-                      }
-                    ]}>
-                      {isIncome ? '+' : '-'}{formatCurrency(transaction.amount)}
-                    </Text>
-                  </View>
-                </AnimatedButton>
-              </SlideInView>
+              <TransactionRow
+                key={item.id}
+                title={item.description || (income ? 'Income' : 'Expense')}
+                subtitle={item.bank || 'Transaction'}
+                amount={item.amount}
+                dateLabel={formatDateLabel(item.date)}
+                icon={getCategoryIcon(item.category, income ? 'income' : 'expense')}
+                income={income}
+              />
             );
           })
         )}
-      </View>
-      </FadeInView>
+      </AppScrollScreen>
 
-      {/* Monthly Summary with Animation */}
-      <FadeInView delay={800}>
-        <GradientCard 
-          colors={[colors.cardGradient2Start, colors.cardGradient2End]}
-          style={[styles.section, { borderWidth: 0 }]}
-        >
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.white }]}>
-              This Month Summary
-            </Text>
-            <CustomIcon name="calendar-today" size={20} color={colors.white} />
-          </View>
-        
-        <View style={styles.summaryContainer}>
-          <View style={styles.summaryItem}>
-            <CustomIcon name="add" size={20} color="#27ae60" />
-            <Text style={styles.summaryLabel}>Income</Text>
-            <Text style={[styles.summaryValue, { color: '#27ae60' }]}>
-              +{formatCurrency(accountTransactions
-                .filter(t => normalizeType(t.type) === 'income' && 
-                  new Date(t.date).getMonth() === new Date().getMonth())
-                .reduce((sum, t) => sum + t.amount, 0))}
-            </Text>
-          </View>
-          
-          <View style={styles.summaryItem}>
-            <CustomIcon name="remove" size={20} color="#e74c3c" />
-            <Text style={styles.summaryLabel}>Expenses</Text>
-            <Text style={[styles.summaryValue, { color: colors.dangerDark, opacity: 0.9 }]}>
-              -{formatCurrency(monthlySpending)}
-            </Text>
-          </View>
-        </View>
-        </GradientCard>
-      </FadeInView>
-
-      {/* Add Transaction Modal */}
-      <Modal
-        visible={showAddModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowAddModal(false)}
+      <TouchableOpacity
+        activeOpacity={0.86}
+        onPress={() => setAddVisible(true)}
+        style={{
+          position: 'absolute',
+          right: spacing.xl,
+          bottom: 104,
+          width: 74,
+          height: 74,
+          borderRadius: 37,
+          backgroundColor: palette.primary,
+          alignItems: 'center',
+          justifyContent: 'center',
+          elevation: 9,
+          shadowColor: '#0F172A',
+          shadowOffset: { width: 0, height: 7 },
+          shadowOpacity: 0.22,
+          shadowRadius: 14,
+        }}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setShowAddModal(false)}>
-              <CustomIcon name="close" size={24} color="#2c3e50" />
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Add Transaction</Text>
-            <TouchableOpacity onPress={handleAddTransaction}>
-              <Text style={styles.saveButton}>Add</Text>
-            </TouchableOpacity>
+        <AppIcon name="add" size={36} color={palette.surface} />
+      </TouchableOpacity>
+
+      <Modal visible={addVisible} transparent animationType="slide" onRequestClose={() => setAddVisible(false)}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'flex-end',
+            backgroundColor: 'rgba(9,14,28,0.35)',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: palette.surface,
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              padding: spacing.xl,
+              gap: spacing.lg,
+            }}
+          >
+            <AppText variant="h3">Add Transaction</AppText>
+            <AppChipTabs
+              value={type}
+              onChange={setType}
+              tabs={[
+                { label: 'Expense', value: 'expense' },
+                { label: 'Income', value: 'income' },
+              ]}
+            />
+            <AppInput
+              label="Amount"
+              value={amount}
+              onChangeText={setAmount}
+              placeholder="0.00"
+              keyboardType="numeric"
+              leftIcon="currency-rupee"
+            />
+            <AppInput
+              label="Description"
+              value={description}
+              onChangeText={setDescription}
+              placeholder="What is this for?"
+              leftIcon="edit"
+            />
+            <View style={{ flexDirection: 'row', gap: spacing.md }}>
+              <AppButton title="Cancel" variant="ghost" onPress={() => setAddVisible(false)} style={{ flex: 1 }} />
+              <AppButton title="Continue" onPress={submitManual} style={{ flex: 1 }} />
+            </View>
           </View>
-
-          <ScrollView style={styles.modalContent}>
-            {/* Transaction Type Selection */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Transaction Type</Text>
-              <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
-                <TouchableOpacity
-                  style={[
-                    styles.typeButton,
-                    transactionType === 'expense' && styles.typeButtonActive,
-                    { backgroundColor: transactionType === 'expense' ? colors.danger : colors.grayLight }
-                  ]}
-                  onPress={() => setTransactionType('expense')}
-                >
-                  <CustomIcon 
-                    name="trending-down" 
-                    size={20} 
-                    color={transactionType === 'expense' ? colors.white : colors.gray} 
-                  />
-                  <Text style={[
-                    styles.typeButtonText,
-                    { color: transactionType === 'expense' ? colors.white : colors.gray }
-                  ]}>
-                    Debit
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.typeButton,
-                    transactionType === 'income' && styles.typeButtonActive,
-                    { backgroundColor: transactionType === 'income' ? colors.success : colors.grayLight }
-                  ]}
-                  onPress={() => setTransactionType('income')}
-                >
-                  <CustomIcon 
-                    name="trending-up" 
-                    size={20} 
-                    color={transactionType === 'income' ? colors.white : colors.gray} 
-                  />
-                  <Text style={[
-                    styles.typeButtonText,
-                    { color: transactionType === 'income' ? colors.white : colors.gray }
-                  ]}>
-                    Credit
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Amount Input */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Amount (₹)</Text>
-              <TextInput
-                style={[styles.textInput, { fontSize: 24, fontWeight: '600' }]}
-                value={amount}
-                onChangeText={setAmount}
-                placeholder="0.00"
-                placeholderTextColor="#95a5a6"
-                keyboardType="decimal-pad"
-              />
-            </View>
-
-            <View style={{ padding: 16 }}>
-              <Text style={styles.helpText}>
-                💡 After clicking "Add", you'll be able to select the category and account for this transaction.
-              </Text>
-            </View>
-          </ScrollView>
         </View>
       </Modal>
-    </ScrollView>
+    </>
   );
 }
-
-export default DashboardScreen;

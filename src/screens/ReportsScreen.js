@@ -1,393 +1,203 @@
-import React, { useState } from 'react';
-import {
-  ScrollView,
-  Text,
-  View,
-  TouchableOpacity,
-  Dimensions,
-} from 'react-native';
-import { LineChart, PieChart, BarChart } from 'react-native-chart-kit';
-import CustomIcon from '../components/CustomIcon';
+import React, { useMemo, useState } from 'react';
+import { View } from 'react-native';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
 import { useAccounts } from '../context/AccountContext';
-import { formatCurrency } from '../utils/currency';
-import { styles } from '../styles/GlobalStyles';
+import CategorySpendCard from '../modules/reports/components/CategorySpendCard';
+import {
+  AppBadge,
+  AppButton,
+  AppCard,
+  AppChipTabs,
+  AppDonutChart,
+  AppLineChart,
+  AppScrollScreen,
+  AppText,
+  palette,
+  spacing,
+} from '../ui';
 
-const screenWidth = Dimensions.get('window').width;
+const periodTabs = [
+  { label: 'This Month', value: 'month' },
+  { label: 'This Year', value: 'year' },
+  { label: 'All Time', value: 'all' },
+];
 
-function ReportsScreen() {
-  const { transactions } = useTransactions();
-  const { activeAccountId } = useAccounts();
-  // Only consider transactions belonging to the currently active account
-  const activeTransactions = Array.isArray(transactions)
-    ? transactions.filter(t => t.accountId === activeAccountId)
-    : [];
-  const [selectedPeriod, setSelectedPeriod] = useState('month');
-  const [expenseFilter, setExpenseFilter] = useState('month'); // New filter for expense breakdown
-
-  // Get current date info
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
-
-  // Filter active account transactions based on selected period
-  const getFilteredTransactions = () => {
-    return activeTransactions.filter(transaction => {
-      const transactionDate = new Date(transaction.date);
-      if (selectedPeriod === 'month') {
-        return transactionDate.getMonth() === currentMonth && 
-               transactionDate.getFullYear() === currentYear;
-      } else if (selectedPeriod === 'year') {
-        return transactionDate.getFullYear() === currentYear;
-      }
-      return true; // 'all' period
-    });
-  };
-
-  const filteredTransactions = getFilteredTransactions();
-
-  // Calculate analytics data for expense breakdown (with filter)
-  const calculateCategoryData = () => {
-    const categoryTotals = {};
-    
-    // Filter transactions based on expenseFilter
-    let expenseTransactions = activeTransactions.filter(t => t.type === 'expense');
-    
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth();
-    
-    // Filter based on calendar periods instead of relative dates
-    switch (expenseFilter) {
-      case 'week':
-        // Current week (Monday to Sunday)
-        const firstDayOfWeek = new Date(today);
-        const dayOfWeek = today.getDay();
-        const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Adjust if Sunday (0), otherwise Monday is day 1
-        firstDayOfWeek.setDate(today.getDate() - diff);
-        firstDayOfWeek.setHours(0, 0, 0, 0);
-        
-        expenseTransactions = expenseTransactions.filter(t => {
-          const transactionDate = new Date(t.date);
-          return transactionDate >= firstDayOfWeek;
-        });
-        break;
-        
-      case 'month':
-        // Current calendar month
-        expenseTransactions = expenseTransactions.filter(t => {
-          const transactionDate = new Date(t.date);
-          return transactionDate.getMonth() === currentMonth && 
-                 transactionDate.getFullYear() === currentYear;
-        });
-        break;
-        
-      case 'year':
-        // Current calendar year
-        expenseTransactions = expenseTransactions.filter(t => {
-          const transactionDate = new Date(t.date);
-          return transactionDate.getFullYear() === currentYear;
-        });
-        break;
-        
-      default:
-        // All time - no filter
-        break;
-    }
-    
-    expenseTransactions.forEach(transaction => {
-      const categoryInfo = CATEGORIES.EXPENSE.find(cat => cat.id === transaction.category);
-      const categoryName = categoryInfo ? categoryInfo.name : 'Other';
-      categoryTotals[categoryName] = (categoryTotals[categoryName] || 0) + transaction.amount;
-    });
-
-    return Object.entries(categoryTotals)
-      .sort(([,a], [,b]) => b - a)
-      .slice(0, 6); // Top 6 categories
-  };
-
-  const calculateMonthlyTrend = () => {
-    const monthlyData = {};
-    
-    // Last 6 months
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date(currentYear, currentMonth - i, 1);
-      const monthKey = date.toLocaleDateString('en-US', { month: 'short' });
-      monthlyData[monthKey] = { income: 0, expense: 0 };
-    }
-
-    activeTransactions.forEach(transaction => {
-      const transactionDate = new Date(transaction.date);
-      if (transactionDate.getFullYear() === currentYear && 
-          transactionDate.getMonth() >= currentMonth - 5) {
-        const monthKey = transactionDate.toLocaleDateString('en-US', { month: 'short' });
-        if (monthlyData[monthKey]) {
-          monthlyData[monthKey][transaction.type] += transaction.amount;
-        }
-      }
-    });
-
-    return monthlyData;
-  };
-
-  const categoryData = calculateCategoryData();
-  const monthlyData = calculateMonthlyTrend();
-
-  // Calculate summary statistics
-  const totalIncome = filteredTransactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const totalExpense = filteredTransactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const netIncome = totalIncome - totalExpense;
-
-  // Prepare chart data
-  const pieChartData = categoryData.map(([category, amount], index) => ({
-    name: category,
-    population: amount,
-    color: [
-      '#e74c3c', '#3498db', '#f39c12', '#9b59b6', 
-      '#1abc9c', '#e67e22', '#34495e'
-    ][index % 7],
-    legendFontColor: '#2c3e50',
-    legendFontSize: 12,
-  }));
-
-  const lineChartData = {
-    labels: Object.keys(monthlyData),
-    datasets: [
-      {
-        data: Object.values(monthlyData).map(data => data.expense),
-        strokeWidth: 3,
-        color: (opacity = 1) => `rgba(231, 76, 60, ${opacity})`,
-      },
-      {
-        data: Object.values(monthlyData).map(data => data.income),
-        strokeWidth: 3,
-        color: (opacity = 1) => `rgba(39, 174, 96, ${opacity})`,
-      },
-    ],
-    legend: ['Expenses', 'Income'],
-  };
-
-  const chartConfig = {
-    backgroundGradientFrom: '#ffffff',
-    backgroundGradientTo: '#ffffff',
-    color: (opacity = 1) => `rgba(44, 62, 80, ${opacity})`,
-    strokeWidth: 2,
-    barPercentage: 0.7,
-    useShadowColorFromDataset: false,
-    decimalPlaces: 0,
-    formatYLabel: (value) => `₹${Math.round(value)}`,
-  };
-
-  return (
-    <ScrollView style={styles.screen} showsVerticalScrollIndicator={false}>
-      <Text style={styles.screenTitle}>Financial Reports</Text>
-
-      {/* Period Selector */}
-      <View style={styles.periodSelector}>
-        {[
-          { key: 'month', label: 'This Month', icon: 'calendar-today' },
-          { key: 'year', label: 'This Year', icon: 'date-range' },
-          { key: 'all', label: 'All Time', icon: 'history' }
-        ].map((period) => (
-          <TouchableOpacity
-            key={period.key}
-            style={[
-              styles.periodButton,
-              selectedPeriod === period.key && styles.activePeriodButton
-            ]}
-            onPress={() => setSelectedPeriod(period.key)}
-          >
-            <CustomIcon 
-              name={period.icon} 
-              size={16} 
-              color={selectedPeriod === period.key ? '#ffffff' : '#2c3e50'} 
-            />
-            <Text style={[
-              styles.periodButtonText,
-              selectedPeriod === period.key && styles.activePeriodButtonText
-            ]}>
-              {period.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Summary Cards */}
-      <View style={styles.summaryCardsContainer}>
-        <View style={[styles.summaryCard, { backgroundColor: '#e8f5e8' }]}>
-          <CustomIcon name="trending-up" size={28} color="#27ae60" />
-          <Text style={styles.summaryValue}>
-            {formatCurrency(totalIncome)}
-          </Text>
-          <Text style={styles.summaryLabel}>Total Income</Text>
-        </View>
-
-        <View style={[styles.summaryCard, { backgroundColor: '#fdeaea' }]}>
-          <CustomIcon name="trending-down" size={28} color="#e74c3c" />
-          <Text style={styles.summaryValue}>
-            {formatCurrency(totalExpense)}
-          </Text>
-          <Text style={styles.summaryLabel}>Total Expenses</Text>
-        </View>
-
-        <View style={[styles.summaryCard, { 
-          backgroundColor: netIncome >= 0 ? '#e8f5e8' : '#fdeaea' 
-        }]}>
-          <CustomIcon 
-            name={netIncome >= 0 ? 'savings' : 'money-off'} 
-            size={28} 
-            color={netIncome >= 0 ? '#27ae60' : '#e74c3c'} 
-          />
-          <Text style={[styles.summaryValue, {
-            color: netIncome >= 0 ? '#27ae60' : '#e74c3c'
-          }]}>
-            {formatCurrency(Math.abs(netIncome))}
-          </Text>
-          <Text style={styles.summaryLabel}>
-            {netIncome >= 0 ? 'Net Savings' : 'Net Loss'}
-          </Text>
-        </View>
-      </View>
-
-      {/* Monthly Trend Chart */}
-      {Object.keys(monthlyData).length > 0 && (
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleWithIcon}>
-              <CustomIcon name="show-chart" size={28} color="#2c3e50" />
-              <Text style={styles.sectionTitle}>6-Month Trend</Text>
-            </View>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <LineChart
-              data={lineChartData}
-              width={screenWidth - 20}
-              height={220}
-              chartConfig={chartConfig}
-              bezier
-              style={styles.chart}
-              withVerticalLabels={true}
-              withHorizontalLabels={true}
-              withDots={true}
-              withShadow={false}
-              yAxisInterval={1}
-            />
-          </ScrollView>
-        </View>
-      )}
-
-      {/* Expense Categories Pie Chart */}
-      {pieChartData.length > 0 && (
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleWithIcon}>
-              <CustomIcon name="donut-large" size={28} color="#2c3e50" />
-              <Text style={styles.sectionTitle}>Expense Breakdown</Text>
-            </View>
-          </View>
-          <View style={styles.filterRowContainer}>
-            {/* Use horizontal scroll to avoid overflow on small screens */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 6 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                {['week', 'month', 'year', 'all'].map((filter) => (
-                  <TouchableOpacity
-                    key={filter}
-                    style={[
-                      styles.miniFilterButton,
-                      expenseFilter === filter && styles.activeMiniFilterButton,
-                      { marginRight: 8 }
-                    ]}
-                    onPress={() => setExpenseFilter(filter)}
-                  >
-                    <Text style={[
-                      styles.miniFilterText,
-                      expenseFilter === filter && styles.activeMiniFilterText
-                    ]}>
-                      {filter.charAt(0).toUpperCase() + filter.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
-          <PieChart
-            data={pieChartData}
-            width={screenWidth - 40}
-            height={220}
-            chartConfig={chartConfig}
-            accessor="population"
-            backgroundColor="transparent"
-            paddingLeft="15"
-            center={[10, 10]}
-            style={styles.chart}
-          />
-        </View>
-      )}
-
-      {/* Category Details */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleWithIcon}>
-            <CustomIcon name="list" size={28} color="#2c3e50" />
-            <Text style={styles.sectionTitle}>Top Expense Categories</Text>
-          </View>
-        </View>
-        <View style={styles.filterRowContainer}>
-          {['week', 'month', 'year', 'all'].map((filter) => (
-            <TouchableOpacity
-              key={filter}
-              style={[
-                styles.miniFilterButton,
-                expenseFilter === filter && styles.activeMiniFilterButton
-              ]}
-              onPress={() => setExpenseFilter(filter)}
-            >
-              <Text style={[
-                styles.miniFilterText,
-                expenseFilter === filter && styles.activeMiniFilterText
-              ]}>
-                {filter.charAt(0).toUpperCase() + filter.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        {categoryData.length > 0 ? (
-          categoryData.map(([category, amount], index) => {
-            const totalExpenseForFilter = categoryData.reduce((sum, [, amt]) => sum + amt, 0);
-            const percentage = totalExpenseForFilter > 0 ? (amount / totalExpenseForFilter * 100) : 0;
-            return (
-              <View key={category} style={styles.categoryRow}>
-                <View style={styles.categoryInfo}>
-                  <View style={[styles.categoryColorDot, {
-                    backgroundColor: [
-                      '#e74c3c', '#3498db', '#f39c12', '#9b59b6', 
-                      '#1abc9c', '#e67e22'
-                    ][index % 6]
-                  }]} />
-                  <Text style={styles.categoryName}>{category}</Text>
-                </View>
-                <View style={styles.categoryAmountContainer}>
-                  <Text style={styles.categoryAmount}>{formatCurrency(amount)}</Text>
-                  <Text style={styles.categoryPercentage}>{percentage.toFixed(1)}%</Text>
-                </View>
-              </View>
-            );
-          })
-        ) : (
-          <View style={styles.emptyState}>
-            <CustomIcon name="pie-chart" size={48} color="#bdc3c7" />
-            <Text style={styles.emptyStateText}>No expense data available</Text>
-          </View>
-        )}
-      </View>
-    </ScrollView>
-  );
+function getPeriodFilter(period, transactionDate, now) {
+  if (period === 'all') return true;
+  if (period === 'year') return transactionDate.getFullYear() === now.getFullYear();
+  return transactionDate.getMonth() === now.getMonth() && transactionDate.getFullYear() === now.getFullYear();
 }
 
-export default ReportsScreen;
+export default function ReportsScreen() {
+  const { transactions } = useTransactions();
+  const { activeAccountId } = useAccounts();
+  const [selectedPeriod, setSelectedPeriod] = useState('month');
+
+  const scoped = useMemo(() => {
+    const base = Array.isArray(transactions) ? transactions : [];
+    const now = new Date();
+
+    return base.filter((item) => {
+      if (item.accountId !== activeAccountId) return false;
+      const date = new Date(item.date);
+      return getPeriodFilter(selectedPeriod, date, now);
+    });
+  }, [transactions, activeAccountId, selectedPeriod]);
+
+  const totals = useMemo(() => {
+    const income = scoped.filter((x) => x.type === 'income').reduce((sum, x) => sum + Number(x.amount || 0), 0);
+    const expense = scoped
+      .filter((x) => x.type === 'expense' || x.type === 'debit')
+      .reduce((sum, x) => sum + Number(x.amount || 0), 0);
+    return {
+      income,
+      expense,
+      net: income - expense,
+    };
+  }, [scoped]);
+
+  const categoryRows = useMemo(() => {
+    const map = {};
+    scoped
+      .filter((x) => x.type === 'expense' || x.type === 'debit')
+      .forEach((item) => {
+        map[item.category] = (map[item.category] || 0) + Number(item.amount || 0);
+      });
+
+    const totalExpense = Object.values(map).reduce((a, b) => a + b, 0) || 1;
+
+    return Object.keys(map)
+      .map((categoryId) => {
+        const category = CATEGORIES.EXPENSE.find((x) => x.id === categoryId) || {
+          name: 'Other',
+          icon: 'receipt-long',
+        };
+        const amount = map[categoryId];
+        return {
+          id: categoryId,
+          name: category.name,
+          icon: category.icon,
+          amount,
+          progress: (amount / totalExpense) * 100,
+        };
+      })
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+  }, [scoped]);
+
+  const trend = useMemo(() => {
+    const now = new Date();
+    const labels = [];
+    const incomeData = [];
+    const expenseData = [];
+
+    for (let i = 5; i >= 0; i -= 1) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const label = date.toLocaleDateString('en-US', { month: 'short' });
+      labels.push(label);
+
+      const monthItems = transactions.filter((item) => {
+        if (item.accountId !== activeAccountId) return false;
+        const d = new Date(item.date);
+        return d.getFullYear() === date.getFullYear() && d.getMonth() === date.getMonth();
+      });
+
+      incomeData.push(monthItems.filter((x) => x.type === 'income').reduce((s, x) => s + Number(x.amount || 0), 0));
+      expenseData.push(
+        monthItems
+          .filter((x) => x.type === 'expense' || x.type === 'debit')
+          .reduce((s, x) => s + Number(x.amount || 0), 0)
+      );
+    }
+
+    return { labels, incomeData, expenseData };
+  }, [transactions, activeAccountId]);
+
+  const transportExpense = categoryRows[0]?.amount || 0;
+  const totalExpense = totals.expense || 1;
+
+  return (
+    <AppScrollScreen>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <AppText variant="h2">Expense Analysis</AppText>
+        <AppBadge label={new Date().toLocaleDateString('en-US', { month: 'long' }).toUpperCase()} />
+      </View>
+
+      <AppText variant="body" color={palette.textSecondary}>
+        A detailed breakdown of your monthly spending habits.
+      </AppText>
+
+      <AppChipTabs value={selectedPeriod} onChange={setSelectedPeriod} tabs={periodTabs} />
+
+      <AppCard>
+        <View style={{ alignItems: 'center', marginTop: spacing.sm }}>
+          <AppDonutChart total={totals.expense} ratio={transportExpense / totalExpense} />
+          <View style={{ marginTop: -134, alignItems: 'center' }}>
+            <AppText variant="bodyBold" color={palette.textSecondary}>
+              Total Spent
+            </AppText>
+            <AppText variant="h1" color={palette.primary}>
+              ₹{totals.expense.toFixed(2)}
+            </AppText>
+          </View>
+        </View>
+
+        <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl }}>
+          <AppCard style={{ flex: 1, backgroundColor: '#EDF2FD', borderWidth: 0 }}>
+            <AppText variant="body">Transportation</AppText>
+            <AppText variant="h3" style={{ marginTop: spacing.xs }}>
+              {Math.round((transportExpense / totalExpense) * 100)}%
+            </AppText>
+          </AppCard>
+          <AppCard style={{ flex: 1, backgroundColor: '#EDF2FD', borderWidth: 0 }}>
+            <AppText variant="body">Other Categories</AppText>
+            <AppText variant="h3" style={{ marginTop: spacing.xs }}>
+              {100 - Math.round((transportExpense / totalExpense) * 100)}%
+            </AppText>
+          </AppCard>
+        </View>
+      </AppCard>
+
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <AppText variant="h3">Top Expense Categories</AppText>
+        <AppButton title="See All" variant="ghost" />
+      </View>
+
+      {categoryRows.length === 0 ? (
+        <AppCard>
+          <AppText variant="body" color={palette.textSecondary}>
+            No expense data for the selected period.
+          </AppText>
+        </AppCard>
+      ) : (
+        categoryRows.map((row, index) => (
+          <CategorySpendCard
+            key={row.id}
+            icon={row.icon}
+            name={row.name}
+            subtitle={index === 0 ? 'Highest category this period' : 'Tracked expense category'}
+            amount={row.amount}
+            progress={row.progress}
+            tone={index === 1 ? 'danger' : index === 2 ? 'success' : 'primary'}
+          />
+        ))
+      )}
+
+      <AppCard style={{ backgroundColor: palette.primary, borderWidth: 0 }}>
+        <AppText variant="h3" color={palette.surface}>
+          Optimize Your Spending
+        </AppText>
+        <AppText variant="body" color="#DCE7FF" style={{ marginTop: spacing.sm }}>
+          Based on your trends, reducing your top category by 10% can improve savings noticeably.
+        </AppText>
+      </AppCard>
+
+      <AppCard>
+        <AppText variant="h3" style={{ marginBottom: spacing.md }}>
+          6-Month Trend
+        </AppText>
+        <AppLineChart labels={trend.labels} incomeData={trend.incomeData} expenseData={trend.expenseData} />
+      </AppCard>
+    </AppScrollScreen>
+  );
+}
