@@ -13,6 +13,7 @@ import {
   AppView,
   AppText,
   palette,
+  layout,
   spacing,
   sizing,
   radius,
@@ -80,7 +81,7 @@ export default function TransactionsScreen() {
 
   return (
     <>
-      <AppScreenLayout contentStyle={{ gap: spacing.md }}>
+      <AppScreenLayout>
         <AppInput
           value={query}
           onChangeText={setQuery}
@@ -130,7 +131,7 @@ export default function TransactionsScreen() {
         ) : (
           Object.keys(grouped).map((section) => (
             <AppView key={section}>
-              <AppView style={{ flexDirection: 'row', alignItems: 'center', marginVertical: spacing.md }}>
+              <AppView style={{ flexDirection: 'row', alignItems: 'center', marginVertical: spacing.sm }}>
                 <AppText variant="label" color={palette.textSecondary} style={{ letterSpacing: 1 }}>
                   {section}
                 </AppText>
@@ -168,16 +169,18 @@ export default function TransactionsScreen() {
         )}
       </AppScreenLayout>
 
-      <AppView style={{ position: 'absolute', right: spacing.xl, top: 12 }}>
+      <AppView style={{ position: 'absolute', right: layout.screenHorizontal, top: spacing.xl }}>
         <AppButton
           title="+"
           onPress={() => setModalVisible(true)}
           style={{
-            minWidth: sizing.control.input + spacing.xs,
-            minHeight: sizing.control.input + spacing.xs,
-            borderRadius: radius.lg + spacing.xs,
+            minWidth: sizing.control.button,
+            minHeight: sizing.control.button,
+            borderRadius: radius.lg,
+            paddingHorizontal: spacing.none,
+            paddingVertical: spacing.none,
           }}
-          textStyle={{ fontSize: type.h3.fontSize, lineHeight: type.h3.lineHeight }}
+          textStyle={{ fontSize: type.h4.fontSize, lineHeight: type.h4.lineHeight }}
         />
       </AppView>
 

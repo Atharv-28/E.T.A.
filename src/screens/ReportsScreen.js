@@ -15,7 +15,6 @@ import {
   palette,
   spacing,
   borderWidth,
-  layout,
 } from '../ui';
 
 const periodTabs = [
@@ -132,9 +131,9 @@ export default function ReportsScreen() {
       <AppChipTabs value={selectedPeriod} onChange={setSelectedPeriod} tabs={periodTabs} />
 
       <AppCard>
-        <AppView style={{ alignItems: 'center', marginTop: spacing.sm }}>
+        <AppView style={{ alignItems: 'center' }}>
           <AppDonutChart total={totals.expense} ratio={transportExpense / totalExpense} />
-          <AppView style={{ marginTop: -(layout.screenHorizontal * 8 + spacing.sm), alignItems: 'center' }}>
+          <AppView style={{ marginTop: -180, alignItems: 'center' }}>
             <AppText variant="bodyBold" color={palette.textSecondary}>
               Total Spent
             </AppText>
@@ -144,7 +143,7 @@ export default function ReportsScreen() {
           </AppView>
         </AppView>
 
-        <AppView style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl }}>
+        <AppView style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg }}>
           <AppCard style={{ flex: 1, backgroundColor: palette.primaryTint, borderWidth: borderWidth.none }}>
             <AppText variant="body">Transportation</AppText>
             <AppText variant="h3" style={{ marginTop: spacing.xs }}>

@@ -1,17 +1,27 @@
 import React, { useState } from 'react';
 import {
   Modal,
-  View,
-  Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   Alert,
 } from 'react-native';
-import CustomIcon from './CustomIcon';
 import { CATEGORIES } from '../context/TransactionContext';
 import { useAccounts } from '../context/AccountContext';
-import { styles } from '../styles/GlobalStyles';
+import {
+  AppButton,
+  AppCard,
+  AppChipTabs,
+  AppIcon,
+  AppInput,
+  AppText,
+  AppView,
+  borderWidth,
+  layout,
+  palette,
+  radius,
+  spacing,
+  type as typeScale,
+} from '../ui';
 
 function AddTransactionModal({ visible, onClose, onAddTransaction }) {
   const [type, setType] = useState('expense');
@@ -57,136 +67,114 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
     <Modal
       visible={visible}
       animationType="slide"
-      presentationStyle="pageSheet"
+      transparent
       onRequestClose={onClose}
     >
-      <View style={styles.modalContainer}>
-        {/* Header */}
-        <View style={styles.modalHeader}>
-          <TouchableOpacity onPress={onClose}>
-            <CustomIcon name="close" size={24} color="#2c3e50" />
-          </TouchableOpacity>
-          <Text style={styles.modalTitle}>Add Transaction</Text>
-          <TouchableOpacity onPress={handleSubmit}>
-            <Text style={styles.saveButton}>Save</Text>
-          </TouchableOpacity>
-        </View>
+      <AppView style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(8,14,28,0.34)' }}>
+        <AppView
+          style={{
+            maxHeight: '86%',
+            backgroundColor: palette.surface,
+            borderTopLeftRadius: layout.modalSheetRadius,
+            borderTopRightRadius: layout.modalSheetRadius,
+            paddingHorizontal: spacing.xl,
+            paddingTop: spacing.xl,
+            paddingBottom: spacing.xxl,
+          }}
+        >
+          <AppView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <TouchableOpacity onPress={onClose}>
+              <AppIcon name="close" size={22} color={palette.textPrimary} />
+            </TouchableOpacity>
+            <AppText variant="h3">Add Transaction</AppText>
+            <TouchableOpacity onPress={handleSubmit}>
+              <AppText variant="button" color={palette.primary}>Save</AppText>
+            </TouchableOpacity>
+          </AppView>
 
-        <ScrollView style={styles.modalContent}>
-          {/* Transaction Type */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Transaction Type</Text>
-            <View style={styles.typeContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.typeButton,
-                  type === 'income' && styles.activeTypeButton,
-                ]}
-                onPress={() => {
-                  setType('income');
+          <ScrollView style={{ marginTop: spacing.lg }} showsVerticalScrollIndicator={false}>
+            <AppCard>
+              <AppText variant="label" color={palette.textSecondary}>Transaction Type</AppText>
+              <AppChipTabs
+                value={type}
+                onChange={(nextType) => {
+                  setType(nextType);
                   setSelectedCategory('');
                 }}
-              >
-                <CustomIcon 
-                  name="add" 
-                  size={20} 
-                  color={type === 'income' ? '#ffffff' : '#27ae60'} 
-                />
-                <Text style={[
-                  styles.typeButtonText,
-                  type === 'income' && styles.activeTypeButtonText,
-                ]}>
-                  Income
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.typeButton,
-                  type === 'expense' && styles.activeTypeButton,
+                tabs={[
+                  { label: 'Income', value: 'income' },
+                  { label: 'Expense', value: 'expense' },
                 ]}
-                onPress={() => {
-                  setType('expense');
-                  setSelectedCategory('');
-                }}
-              >
-                <CustomIcon 
-                  name="remove" 
-                  size={20} 
-                  color={type === 'expense' ? '#ffffff' : '#e74c3c'} 
-                />
-                <Text style={[
-                  styles.typeButtonText,
-                  type === 'expense' && styles.activeTypeButtonText,
-                ]}>
-                  Expense
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+                style={{ marginTop: spacing.sm }}
+              />
+            </AppCard>
 
-          {/* Amount */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Amount</Text>
-            <View style={styles.inputContainer}>
-              <Text style={styles.currencySymbol}>₹</Text>
-              <TextInput
-                style={styles.amountInput}
+            <AppCard style={{ marginTop: spacing.md }}>
+              <AppInput
+                label="Amount"
                 value={amount}
                 onChangeText={setAmount}
                 placeholder="0.00"
                 keyboardType="numeric"
-                placeholderTextColor="#7f8c8d"
+                leftIcon="currency-rupee"
               />
-            </View>
-          </View>
 
-          {/* Description */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Description</Text>
-            <TextInput
-              style={styles.textInput}
-              value={description}
-              onChangeText={setDescription}
-              placeholder="Enter description"
-              placeholderTextColor="#7f8c8d"
-            />
-          </View>
+              <AppInput
+                label="Description"
+                value={description}
+                onChangeText={setDescription}
+                placeholder="Enter description"
+                style={{ marginTop: spacing.md }}
+                leftIcon="edit"
+              />
+            </AppCard>
 
-          {/* Category */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Category</Text>
-            <View style={styles.categoryGrid}>
-              {currentCategories.map((category) => (
-                <TouchableOpacity
-                  key={category.id}
-                  style={[
-                    styles.categoryItem,
-                    selectedCategory === category.id && styles.activeCategoryItem,
-                  ]}
-                  onPress={() => setSelectedCategory(category.id)}
-                >
-                  <CustomIcon
-                    name={category.icon}
-                    size={24}
-                    color={selectedCategory === category.id ? '#ffffff' : '#2c3e50'}
-                  />
-                  <Text 
-                    style={[
-                      styles.categoryText,
-                      selectedCategory === category.id && styles.activeCategoryText,
-                    ]}
-                    numberOfLines={2}
-                    ellipsizeMode="tail"
-                  >
-                    {category.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </ScrollView>
-      </View>
+            <AppCard style={{ marginTop: spacing.md }}>
+              <AppText variant="label" color={palette.textSecondary}>Category</AppText>
+              <AppView style={{ marginTop: spacing.sm, gap: spacing.sm }}>
+                {currentCategories.map((category) => {
+                  const selected = selectedCategory === category.id;
+                  return (
+                    <TouchableOpacity
+                      key={category.id}
+                      onPress={() => setSelectedCategory(category.id)}
+                      activeOpacity={0.86}
+                      style={{
+                        width: '100%',
+                        borderRadius: radius.lg,
+                        borderWidth: borderWidth.sm,
+                        borderColor: selected ? palette.primary : palette.border,
+                        backgroundColor: selected ? palette.primarySoft : palette.surface,
+                        paddingVertical: spacing.md,
+                        paddingHorizontal: spacing.md,
+                      }}
+                    >
+                      <AppView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <AppView style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 }}>
+                          <AppIcon name={category.icon} size={20} color={selected ? palette.primary : palette.textPrimary} />
+                          <AppText
+                            variant="body"
+                            color={selected ? palette.primaryDark : palette.textPrimary}
+                            style={{ fontSize: typeScale.body.fontSize }}
+                          >
+                            {category.name}
+                          </AppText>
+                        </AppView>
+                        {selected ? <AppIcon name="check-circle" size={18} color={palette.primary} /> : null}
+                      </AppView>
+                    </TouchableOpacity>
+                  );
+                })}
+              </AppView>
+            </AppCard>
+
+            <AppView style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg, marginBottom: spacing.md }}>
+              <AppButton title="Cancel" variant="ghost" onPress={onClose} style={{ flex: 1 }} />
+              <AppButton title="Save" onPress={handleSubmit} style={{ flex: 1 }} />
+            </AppView>
+          </ScrollView>
+        </AppView>
+      </AppView>
     </Modal>
   );
 }
