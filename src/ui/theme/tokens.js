@@ -20,14 +20,14 @@ export const spacing = {
   none: 0,
   xxs: 2,
   xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  xxl: 24,
-  xxxl: 32,
-  xxxxl: 40,
-  xxxxxl: 48,
+  sm: 6,
+  md: 8,
+  lg: 12,
+  xl: 16,
+  xxl: 20,
+  xxxl: 24,
+  xxxxl: 30,
+  xxxxxl: 35,
 };
 
 export const radius = {
@@ -119,16 +119,16 @@ export const layout = {
 };
 
 export const type = {
-  title: { fontSize: 30, lineHeight: 36, fontWeight: '800' },
-  h1: { fontSize: 26, lineHeight: 32, fontWeight: '800' },
-  h2: { fontSize: 22, lineHeight: 28, fontWeight: '700' },
-  h3: { fontSize: 18, lineHeight: 24, fontWeight: '700' },
-  h4: { fontSize: 16, lineHeight: 22, fontWeight: '700' },
-  body: { fontSize: 14, lineHeight: 20, fontWeight: '400' },
-  bodyBold: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
-  button: { fontSize: 15, lineHeight: 20, fontWeight: '700' },
-  label: { fontSize: 12, lineHeight: 16, fontWeight: '600', letterSpacing: 0.2 },
-  caption: { fontSize: 11, lineHeight: 14, fontWeight: '500', letterSpacing: 0.3 },
+  title: { fontSize: 20, lineHeight: 26, fontWeight: '800' },
+  h1: { fontSize: 16, lineHeight: 20, fontWeight: '800' },
+  h2: { fontSize: 18, lineHeight: 24, fontWeight: '700' },
+  h3: { fontSize: 16, lineHeight: 20, fontWeight: '700' },
+  h4: { fontSize: 14, lineHeight: 18, fontWeight: '700' },
+  body: { fontSize: 12, lineHeight: 16, fontWeight: '400' },
+  bodyBold: { fontSize: 14, lineHeight: 18, fontWeight: '700' },
+  button: { fontSize: 12, lineHeight: 16, fontWeight: '700' },
+  label: { fontSize: 10, lineHeight: 14, fontWeight: '600', letterSpacing: 0.2 },
+  caption: { fontSize: 12, lineHeight: 14, fontWeight: '500', letterSpacing: 0.3 },
   overline: { fontSize: 10, lineHeight: 13, fontWeight: '700', letterSpacing: 1 },
 };
 
