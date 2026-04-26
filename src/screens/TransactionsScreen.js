@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, View } from 'react-native';
+import { Alert } from 'react-native';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
 import { useAccounts } from '../context/AccountContext';
 import AddTransactionModal from '../components/AddTransactionModal';
@@ -9,10 +9,15 @@ import {
   AppCard,
   AppChipTabs,
   AppInput,
-  AppScrollScreen,
+  AppScreenLayout,
+  AppView,
   AppText,
   palette,
   spacing,
+  sizing,
+  radius,
+  type,
+  borderWidth,
 } from '../ui';
 
 function findCategory(categoryId, type) {
@@ -75,7 +80,7 @@ export default function TransactionsScreen() {
 
   return (
     <>
-      <AppScrollScreen contentStyle={{ gap: spacing.md }}>
+      <AppScreenLayout contentStyle={{ gap: spacing.md }}>
         <AppInput
           value={query}
           onChangeText={setQuery}
@@ -93,8 +98,8 @@ export default function TransactionsScreen() {
           ]}
         />
 
-        <View style={{ flexDirection: 'row', gap: spacing.md }}>
-          <AppCard style={{ flex: 1, borderLeftWidth: 4, borderLeftColor: palette.success }}>
+        <AppView style={{ flexDirection: 'row', gap: spacing.md }}>
+          <AppCard style={{ flex: 1, borderLeftWidth: borderWidth.lg, borderLeftColor: palette.success }}>
             <AppText variant="label" color={palette.textSecondary}>
               Income
             </AppText>
@@ -103,7 +108,7 @@ export default function TransactionsScreen() {
             </AppText>
           </AppCard>
 
-          <AppCard style={{ flex: 1, borderLeftWidth: 4, borderLeftColor: palette.danger }}>
+          <AppCard style={{ flex: 1, borderLeftWidth: borderWidth.lg, borderLeftColor: palette.danger }}>
             <AppText variant="label" color={palette.textSecondary}>
               Expenses
             </AppText>
@@ -114,7 +119,7 @@ export default function TransactionsScreen() {
                 .toFixed(2)}
             </AppText>
           </AppCard>
-        </View>
+        </AppView>
 
         {Object.keys(grouped).length === 0 ? (
           <AppCard>
@@ -124,13 +129,13 @@ export default function TransactionsScreen() {
           </AppCard>
         ) : (
           Object.keys(grouped).map((section) => (
-            <View key={section}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: spacing.md }}>
+            <AppView key={section}>
+              <AppView style={{ flexDirection: 'row', alignItems: 'center', marginVertical: spacing.md }}>
                 <AppText variant="label" color={palette.textSecondary} style={{ letterSpacing: 1 }}>
                   {section}
                 </AppText>
-                <View style={{ height: 1, backgroundColor: '#E7ECF7', flex: 1, marginLeft: spacing.sm }} />
-              </View>
+                <AppView style={{ height: sizing.rule.thin, backgroundColor: '#E7ECF7', flex: 1, marginLeft: spacing.sm }} />
+              </AppView>
               {grouped[section].map((item) => {
                 const income = item.type === 'income';
                 const category = findCategory(item.category, income ? 'income' : 'expense');
@@ -151,21 +156,30 @@ export default function TransactionsScreen() {
                         title="Delete"
                         variant="ghost"
                         onPress={() => removeItem(item.id)}
-                        style={{ marginTop: spacing.xs, minHeight: 30, paddingHorizontal: spacing.sm }}
-                        textStyle={{ fontSize: 12 }}
+                        style={{ marginTop: spacing.xs, minHeight: sizing.control.smallButton, paddingHorizontal: spacing.sm }}
+                        textStyle={{ fontSize: type.caption.fontSize }}
                       />
                     }
                   />
                 );
               })}
-            </View>
+            </AppView>
           ))
         )}
-      </AppScrollScreen>
+      </AppScreenLayout>
 
-      <View style={{ position: 'absolute', right: spacing.xl, top: 12 }}>
-        <AppButton title="+" onPress={() => setModalVisible(true)} style={{ minWidth: 56, minHeight: 56, borderRadius: 18 }} textStyle={{ fontSize: 26, lineHeight: 28 }} />
-      </View>
+      <AppView style={{ position: 'absolute', right: spacing.xl, top: 12 }}>
+        <AppButton
+          title="+"
+          onPress={() => setModalVisible(true)}
+          style={{
+            minWidth: sizing.control.input + spacing.xs,
+            minHeight: sizing.control.input + spacing.xs,
+            borderRadius: radius.lg + spacing.xs,
+          }}
+          textStyle={{ fontSize: type.h3.fontSize, lineHeight: type.h3.lineHeight }}
+        />
+      </AppView>
 
       <AddTransactionModal
         visible={modalVisible}

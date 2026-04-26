@@ -1,7 +1,8 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import AppText from './AppText';
-import { palette, radius, spacing, shadows } from '../theme/tokens';
+import AppView from './AppView';
+import { palette, radius, spacing, shadows, sizing, borderWidth, opacity } from '../theme/tokens';
 
 export default function AppButton({
   title,
@@ -22,14 +23,14 @@ export default function AppButton({
       activeOpacity={0.86}
       style={[
         {
-          minHeight: 46,
+          minHeight: sizing.control.button,
           borderRadius: radius.lg,
           paddingHorizontal: spacing.xl,
           paddingVertical: spacing.md,
           backgroundColor: isPrimary ? palette.primary : isGhost ? 'transparent' : palette.primarySoft,
-          borderWidth: isGhost ? 1 : 0,
+          borderWidth: isGhost ? borderWidth.sm : borderWidth.none,
           borderColor: isGhost ? palette.border : 'transparent',
-          opacity: disabled ? 0.5 : 1,
+          opacity: disabled ? opacity.disabled : opacity.solid,
           alignItems: 'center',
           justifyContent: 'center',
           flexDirection: 'row',
@@ -39,9 +40,9 @@ export default function AppButton({
         style,
       ]}
     >
-      {icon ? <View>{icon}</View> : null}
+        {icon ? <AppView>{icon}</AppView> : null}
       <AppText
-        variant="bodyBold"
+        variant="button"
         color={isPrimary ? palette.surface : palette.textPrimary}
         style={textStyle}
       >

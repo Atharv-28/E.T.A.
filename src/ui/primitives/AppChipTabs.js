@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
-import { palette, radius, spacing } from '../theme/tokens';
+import { TouchableOpacity } from 'react-native';
+import { palette, radius, spacing, sizing } from '../theme/tokens';
 import AppText from './AppText';
+import AppView from './AppView';
 
 export default function AppChipTabs({ tabs, value, onChange, style }) {
   return (
-    <View
+    <AppView
       style={[
         {
           backgroundColor: '#E9EEFA',
@@ -27,7 +28,7 @@ export default function AppChipTabs({ tabs, value, onChange, style }) {
             activeOpacity={0.85}
             style={{
               flex: 1,
-              minHeight: 42,
+              minHeight: sizing.control.chip,
               borderRadius: radius.pill,
               alignItems: 'center',
               justifyContent: 'center',
@@ -40,6 +41,6 @@ export default function AppChipTabs({ tabs, value, onChange, style }) {
           </TouchableOpacity>
         );
       })}
-    </View>
+    </AppView>
   );
 }

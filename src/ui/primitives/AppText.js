@@ -10,8 +10,10 @@ const variantStyleMap = {
   h4: type.h4,
   body: type.body,
   bodyBold: type.bodyBold,
+  button: type.button,
   label: type.label,
   caption: type.caption,
+  overline: type.overline,
 };
 
 export default function AppText({

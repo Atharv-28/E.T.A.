@@ -1,12 +1,13 @@
 import React from 'react';
-import { ScrollView, View } from 'react-native';
-import { palette, spacing } from '../theme/tokens';
+import { ScrollView } from 'react-native';
+import { palette, layout } from '../theme/tokens';
+import AppView from './AppView';
 
 export function AppScreen({ children, padded = true, style }) {
   return (
-    <View style={[{ flex: 1, backgroundColor: palette.background, paddingHorizontal: padded ? spacing.lg : 0 }, style]}>
+    <AppView style={[{ flex: 1, backgroundColor: palette.background, paddingHorizontal: padded ? layout.screenHorizontal : 0 }, style]}>
       {children}
-    </View>
+    </AppView>
   );
 }
 
@@ -14,7 +15,14 @@ export function AppScrollScreen({ children, contentStyle }) {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: palette.background }}
-      contentContainerStyle={[{ padding: spacing.lg, paddingBottom: 110, gap: spacing.lg }, contentStyle]}
+      contentContainerStyle={[
+        {
+          padding: layout.screenHorizontal,
+          paddingBottom: layout.screenBottomInset,
+          gap: layout.sectionGap,
+        },
+        contentStyle,
+      ]}
       showsVerticalScrollIndicator={false}
     >
       {children}

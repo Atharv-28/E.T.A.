@@ -1,12 +1,12 @@
 import React from 'react';
-import { View } from 'react-native';
-import { palette, radius } from '../theme/tokens';
+import AppView from './AppView';
+import { palette, radius, spacing } from '../theme/tokens';
 
-export default function AppProgressBar({ value = 0, color = palette.primary, height = 8, style }) {
+export default function AppProgressBar({ value = 0, color = palette.primary, height = spacing.sm, style }) {
   const normalized = Math.max(0, Math.min(100, value));
 
   return (
-    <View
+    <AppView
       style={[
         {
           height,
@@ -17,7 +17,7 @@ export default function AppProgressBar({ value = 0, color = palette.primary, hei
         style,
       ]}
     >
-      <View
+      <AppView
         style={{
           width: `${normalized}%`,
           height: '100%',
@@ -25,6 +25,6 @@ export default function AppProgressBar({ value = 0, color = palette.primary, hei
           borderRadius: radius.pill,
         }}
       />
-    </View>
+    </AppView>
   );
 }

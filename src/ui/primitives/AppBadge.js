@@ -1,6 +1,6 @@
 import React from 'react';
-import { View } from 'react-native';
 import AppText from './AppText';
+import AppView from './AppView';
 import { palette, radius, spacing } from '../theme/tokens';
 
 const toneMap = {
@@ -13,12 +13,12 @@ const toneMap = {
 export default function AppBadge({ label, tone = 'info', style }) {
   const toneStyle = toneMap[tone] || toneMap.info;
   return (
-    <View
+    <AppView
       style={[
         {
           paddingHorizontal: spacing.md,
           paddingVertical: spacing.xs,
-          borderRadius: radius.pill,
+          borderRadius: radius.full,
           backgroundColor: toneStyle.bg,
           alignSelf: 'flex-start',
         },
@@ -28,6 +28,6 @@ export default function AppBadge({ label, tone = 'info', style }) {
       <AppText variant="caption" color={toneStyle.fg}>
         {label}
       </AppText>
-    </View>
+    </AppView>
   );
 }

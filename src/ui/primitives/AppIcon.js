@@ -1,11 +1,12 @@
 import React from 'react';
-import { View } from 'react-native';
 import CustomIcon from '../../components/CustomIcon';
+import { sizing, palette } from '../theme/tokens';
+import AppView from './AppView';
 
-export default function AppIcon({ name, size = 20, color = '#0F172A', style }) {
+export default function AppIcon({ name, size = sizing.icon.md, color = palette.textPrimary, style }) {
   return (
-    <View style={style}>
+    <AppView style={style}>
       <CustomIcon name={name} size={size} color={color} />
-    </View>
+    </AppView>
   );
 }

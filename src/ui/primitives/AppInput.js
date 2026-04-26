@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, TextInput } from 'react-native';
-import { palette, radius, spacing } from '../theme/tokens';
+import { TextInput } from 'react-native';
+import { palette, radius, spacing, sizing, borderWidth, type } from '../theme/tokens';
 import AppText from './AppText';
 import AppIcon from './AppIcon';
+import AppView from './AppView';
 
 export default function AppInput({
   label,
@@ -15,17 +16,17 @@ export default function AppInput({
   multiline = false,
 }) {
   return (
-    <View style={style}>
+    <AppView style={style}>
       {label ? (
         <AppText variant="label" color={palette.textSecondary} style={{ marginBottom: spacing.sm }}>
           {label}
         </AppText>
       ) : null}
-      <View
+      <AppView
         style={{
-          minHeight: 52,
+          minHeight: sizing.control.input,
           borderRadius: radius.lg,
-          borderWidth: 1,
+          borderWidth: borderWidth.sm,
           borderColor: palette.border,
           backgroundColor: palette.surface,
           paddingHorizontal: spacing.md,
@@ -34,7 +35,7 @@ export default function AppInput({
           gap: spacing.sm,
         }}
       >
-        {leftIcon ? <AppIcon name={leftIcon} size={22} color={palette.textMuted} /> : null}
+      {leftIcon ? <AppIcon name={leftIcon} size={sizing.icon.lg} color={palette.textMuted} /> : null}
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -45,12 +46,12 @@ export default function AppInput({
           style={{
             flex: 1,
             color: palette.textPrimary,
-            fontSize: 18,
+            fontSize: type.body.fontSize,
             paddingVertical: spacing.md,
             textAlignVertical: multiline ? 'top' : 'center',
           }}
         />
-      </View>
-    </View>
+      </AppView>
+    </AppView>
   );
 }

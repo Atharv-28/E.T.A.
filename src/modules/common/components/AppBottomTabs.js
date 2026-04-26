@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
-import { AppIcon, AppText, palette, spacing, radius, shadows } from '../../../ui';
+import { TouchableOpacity } from 'react-native';
+import { AppIcon, AppText, AppView, palette, spacing, radius, shadows, sizing, borderWidth } from '../../../ui';
 
 const tabItems = [
   { key: 'dashboard', label: 'Overview', icon: 'grid-view' },
@@ -11,17 +11,17 @@ const tabItems = [
 
 export default function AppBottomTabs({ activeTab, setActiveTab }) {
   return (
-    <View
+    <AppView
       style={[
         {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-around',
           paddingHorizontal: spacing.md,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.lg,
+          paddingTop: sizing.nav.barPaddingTop,
+          paddingBottom: sizing.nav.barPaddingBottom,
           backgroundColor: palette.surface,
-          borderTopWidth: 1,
+          borderTopWidth: borderWidth.sm,
           borderTopColor: '#EEF2FB',
           borderTopLeftRadius: radius.xl,
           borderTopRightRadius: radius.xl,
@@ -36,12 +36,12 @@ export default function AppBottomTabs({ activeTab, setActiveTab }) {
             key={item.key}
             activeOpacity={0.85}
             onPress={() => setActiveTab(item.key)}
-            style={{ alignItems: 'center', width: 74, gap: 4 }}
+            style={{ alignItems: 'center', width: sizing.nav.itemWidth, gap: spacing.xs }}
           >
-            <View
+            <AppView
               style={{
-                width: 48,
-                height: 40,
+                width: sizing.nav.capsuleWidth,
+                height: sizing.nav.capsuleHeight,
                 borderRadius: radius.lg,
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -50,16 +50,16 @@ export default function AppBottomTabs({ activeTab, setActiveTab }) {
             >
               <AppIcon
                 name={item.icon}
-                size={21}
+                size={sizing.icon.md}
                 color={active ? palette.primary : '#94A3B8'}
               />
-            </View>
+            </AppView>
             <AppText variant="caption" color={active ? palette.primary : '#94A3B8'}>
               {item.label}
             </AppText>
           </TouchableOpacity>
         );
       })}
-    </View>
+    </AppView>
   );
 }

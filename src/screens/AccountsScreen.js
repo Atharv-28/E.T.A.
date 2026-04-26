@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, Modal, Switch, View } from 'react-native';
+import { Alert, Modal, Switch } from 'react-native';
 import { useAccounts } from '../context/AccountContext';
 import { useTransactions } from '../context/TransactionContext';
 import BackupService from '../services/BackupService';
@@ -9,11 +9,16 @@ import {
   AppButton,
   AppCard,
   AppInput,
-  AppScrollScreen,
+  AppScreenLayout,
+  AppView,
   AppText,
   AppIcon,
   palette,
   spacing,
+  sizing,
+  radius,
+  borderWidth,
+  layout,
 } from '../ui';
 
 export default function AccountsScreen({ onAddAccount }) {
@@ -95,19 +100,19 @@ export default function AccountsScreen({ onAddAccount }) {
 
   return (
     <>
-      <AppScrollScreen>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <AppScreenLayout>
+        <AppView style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <AppText variant="h2">Accounts</AppText>
           <AppButton title="+ Add Account" onPress={onAddAccount} />
-        </View>
+        </AppView>
 
         {activeAccount ? (
-          <AppCard style={{ borderLeftWidth: 4, borderLeftColor: palette.danger }}>
+          <AppCard style={{ borderLeftWidth: borderWidth.lg, borderLeftColor: palette.danger }}>
             <AppText variant="label" color={palette.textSecondary} style={{ letterSpacing: 1 }}>
               PRIMARY ACCOUNT
             </AppText>
-            <View style={{ marginTop: spacing.md, flexDirection: 'row', justifyContent: 'space-between' }}>
-              <View>
+            <AppView style={{ marginTop: spacing.md, flexDirection: 'row', justifyContent: 'space-between' }}>
+              <AppView>
                 <AppText variant="h2">{activeAccount.bankName || activeAccount.name}</AppText>
                 <AppText variant="label" color={palette.textSecondary} style={{ marginTop: spacing.lg }}>
                   Current Balance
@@ -115,30 +120,30 @@ export default function AccountsScreen({ onAddAccount }) {
                 <AppText variant="h1" color={balance < 0 ? palette.danger : palette.success}>
                   {balance < 0 ? '-' : ''}₹{Math.abs(balance).toFixed(2)}
                 </AppText>
-              </View>
-              <View style={{ alignItems: 'flex-end', justifyContent: 'space-between' }}>
-                <View
+              </AppView>
+              <AppView style={{ alignItems: 'flex-end', justifyContent: 'space-between' }}>
+                <AppView
                   style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 16,
+                    width: sizing.avatar.lg,
+                    height: sizing.avatar.lg,
+                    borderRadius: radius.lg,
                     alignItems: 'center',
                     justifyContent: 'center',
                     backgroundColor: '#FCEEEF',
                   }}
                 >
-                  <AppIcon name="account-balance" size={26} color={palette.danger} />
-                </View>
-                <View>
+                  <AppIcon name="account-balance" size={sizing.icon.lg + spacing.xxs} color={palette.danger} />
+                </AppView>
+                <AppView>
                   <AppText variant="label" color={palette.textSecondary}>
                     Linked Status
                   </AppText>
                   <AppText variant="h3" color={palette.success}>
                     Active
                   </AppText>
-                </View>
-              </View>
-            </View>
+                </AppView>
+              </AppView>
+            </AppView>
           </AppCard>
         ) : (
           <AppCard>
@@ -165,44 +170,44 @@ export default function AccountsScreen({ onAddAccount }) {
           </AppCard>
         ) : null}
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm }}>
+        <AppView style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm }}>
           <AppIcon name="wifi-tethering" size={30} color={palette.primary} />
           <AppText variant="h2" style={{ marginLeft: spacing.sm }}>
             Smart Monitoring
           </AppText>
-        </View>
+        </AppView>
 
         <AppCard>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <View style={{ flex: 1, paddingRight: spacing.md }}>
+          <AppView style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <AppView style={{ flex: 1, paddingRight: spacing.md }}>
               <AppText variant="h3">Native SMS Monitoring</AppText>
               <AppText variant="body" color={palette.textSecondary} style={{ marginTop: spacing.xs }}>
                 Automatically detect and categorize transactions from SMS alerts.
               </AppText>
-            </View>
+            </AppView>
             <Switch value={smsEnabled} onValueChange={toggleSms} trackColor={{ true: palette.primary }} />
-          </View>
+          </AppView>
 
-          <AppCard style={{ marginTop: spacing.lg, backgroundColor: '#EDF2FD', borderWidth: 0 }}>
-            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <AppCard style={{ marginTop: spacing.lg, backgroundColor: palette.primaryTint, borderWidth: borderWidth.none }}>
+            <AppView style={{ flexDirection: 'row', gap: spacing.sm }}>
               <AppIcon name="verified-user" size={20} color={palette.primary} />
               <AppText variant="body" color={palette.textSecondary} style={{ flex: 1 }}>
                 Financier uses edge-processing to parse SMS locally. Financial data stays on your device.
               </AppText>
-            </View>
+            </AppView>
           </AppCard>
 
           <AppButton title="Check Service Status" variant="ghost" onPress={checkSmsStatus} style={{ marginTop: spacing.md }} />
         </AppCard>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm }}>
+        <AppView style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm }}>
           <AppIcon name="backup" size={30} color={palette.primary} />
           <AppText variant="h2" style={{ marginLeft: spacing.sm }}>
             Backup & Export
           </AppText>
-        </View>
+        </AppView>
 
-        <View style={{ flexDirection: 'row', gap: spacing.md }}>
+        <AppView style={{ flexDirection: 'row', gap: spacing.md }}>
           <AppCard style={{ flex: 1 }}>
             <AppIcon name="cloud-upload" size={28} color={palette.primary} />
             <AppText variant="h3" style={{ marginTop: spacing.md }}>
@@ -224,18 +229,18 @@ export default function AccountsScreen({ onAddAccount }) {
             </AppText>
             <AppButton title="Import" variant="secondary" onPress={() => setImportVisible(true)} style={{ marginTop: spacing.md }} />
           </AppCard>
-        </View>
+        </AppView>
 
-        <AppButton title="Manage Data Sources" variant="ghost" style={{ borderStyle: 'dashed', borderWidth: 2, marginTop: spacing.sm }} />
-      </AppScrollScreen>
+        <AppButton title="Manage Data Sources" variant="ghost" style={{ borderStyle: 'dashed', borderWidth: borderWidth.md, marginTop: spacing.sm }} />
+      </AppScreenLayout>
 
       <Modal visible={importVisible} transparent animationType="slide" onRequestClose={() => setImportVisible(false)}>
-        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(8,14,28,0.34)' }}>
-          <View
+        <AppView style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(8,14,28,0.34)' }}>
+          <AppView
             style={{
               backgroundColor: palette.surface,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
+              borderTopLeftRadius: layout.modalSheetRadius,
+              borderTopRightRadius: layout.modalSheetRadius,
               padding: spacing.xl,
             }}
           >
@@ -248,12 +253,12 @@ export default function AccountsScreen({ onAddAccount }) {
               multiline
               style={{ marginTop: spacing.md }}
             />
-            <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg }}>
+            <AppView style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg }}>
               <AppButton title="Cancel" variant="ghost" onPress={() => setImportVisible(false)} style={{ flex: 1 }} />
               <AppButton title="Import" onPress={importJson} style={{ flex: 1 }} />
-            </View>
-          </View>
-        </View>
+            </AppView>
+          </AppView>
+        </AppView>
       </Modal>
     </>
   );

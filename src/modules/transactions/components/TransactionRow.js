@@ -1,6 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
-import { AppCard, AppText, AppIcon, palette, spacing } from '../../../ui';
+import { AppCard, AppText, AppIcon, AppView, palette, spacing, sizing, radius } from '../../../ui';
 import { formatCurrency } from '../../../utils/currency';
 
 export default function TransactionRow({
@@ -14,31 +13,31 @@ export default function TransactionRow({
 }) {
   return (
     <AppCard style={{ marginBottom: spacing.md }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <View
+      <AppView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <AppView style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+          <AppView
             style={{
-              width: 54,
-              height: 54,
-              borderRadius: 16,
+              width: sizing.control.input + spacing.xxs,
+              height: sizing.control.input + spacing.xxs,
+              borderRadius: radius.lg,
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: income ? '#DFF6F2' : '#FDECEF',
               marginRight: spacing.md,
             }}
           >
-            <AppIcon name={icon} size={22} color={income ? palette.success : palette.danger} />
-          </View>
-          <View style={{ flex: 1, paddingRight: spacing.sm }}>
+            <AppIcon name={icon} size={sizing.icon.lg} color={income ? palette.success : palette.danger} />
+          </AppView>
+          <AppView style={{ flex: 1, paddingRight: spacing.sm }}>
             <AppText variant="h4" numberOfLines={1}>
               {title}
             </AppText>
             <AppText variant="body" color={palette.textSecondary} numberOfLines={1}>
               {subtitle}
             </AppText>
-          </View>
-        </View>
-        <View style={{ alignItems: 'flex-end', minWidth: 98 }}>
+          </AppView>
+        </AppView>
+        <AppView style={{ alignItems: 'flex-end', minWidth: sizing.card.transactionMetaWidth }}>
           <AppText variant="h4" color={income ? palette.success : palette.danger}>
             {income ? '+' : '-'}{formatCurrency(amount)}
           </AppText>
@@ -46,8 +45,8 @@ export default function TransactionRow({
             {dateLabel}
           </AppText>
           {onRight}
-        </View>
-      </View>
+        </AppView>
+      </AppView>
     </AppCard>
   );
 }

@@ -1,49 +1,48 @@
 import React from 'react';
-import { View } from 'react-native';
 import { useAccounts } from '../../../context/AccountContext';
-import { AppText, AppIcon, AppCard, palette, spacing } from '../../../ui';
+import { AppText, AppIcon, AppCard, AppView, palette, spacing, borderWidth, sizing, radius } from '../../../ui';
 
-export default function AppHeaderBar({ title = 'Financier' }) {
+export default function AppHeaderBar({ title = 'E.T.A.' }) {
   const { activeAccount } = useAccounts();
 
   return (
-    <View
+    <AppView
       style={{
         backgroundColor: palette.surface,
-        borderBottomWidth: 1,
+        borderBottomWidth: borderWidth.sm,
         borderBottomColor: '#EDF1FA',
         paddingHorizontal: spacing.lg,
         paddingBottom: spacing.md,
         paddingTop: spacing.sm,
       }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+      <AppView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <AppView style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
           <AppCard
             padded={false}
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
+              width: sizing.avatar.sm,
+              height: sizing.avatar.sm,
+              borderRadius: radius.full,
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: '#0A1A2F',
-              borderWidth: 0,
+              borderWidth: borderWidth.none,
             }}
           >
-            <AppIcon name={(activeAccount && activeAccount.icon) || 'account-balance'} size={20} color="#7EE6DD" />
+            <AppIcon name={(activeAccount && activeAccount.icon) || 'account-balance'} size={sizing.icon.md} color="#7EE6DD" />
           </AppCard>
-          <View>
+          <AppView>
             <AppText variant="h4">{title}</AppText>
             {activeAccount ? (
               <AppText variant="caption" color={palette.textSecondary}>
                 {activeAccount.name}
               </AppText>
             ) : null}
-          </View>
-        </View>
-        <AppIcon name="notifications-none" size={24} color={palette.textMuted} />
-      </View>
-    </View>
+          </AppView>
+        </AppView>
+        <AppIcon name="notifications-none" size={sizing.icon.lg} color={palette.textMuted} />
+      </AppView>
+    </AppView>
   );
 }

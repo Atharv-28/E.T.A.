@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, TouchableOpacity, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import {
   AppButton,
   AppCard,
   AppChipTabs,
   AppIcon,
   AppInput,
-  AppScrollScreen,
+  AppScreenLayout,
+  AppView,
   AppText,
   palette,
   spacing,
+  sizing,
+  radius,
+  layout,
 } from '../ui';
 
 const banks = [
@@ -47,26 +51,26 @@ export default function LoginScreen({ onAccountSetup, isFirstTime = false, onClo
       style={{ flex: 1, backgroundColor: palette.background }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <AppScrollScreen>
+      <AppScreenLayout>
         {!isFirstTime ? (
           <TouchableOpacity onPress={onClose} style={{ alignSelf: 'flex-end' }}>
             <AppIcon name="close" size={24} color={palette.textSecondary} />
           </TouchableOpacity>
         ) : null}
 
-        <View style={{ alignItems: 'center', marginTop: spacing.md }}>
-          <View
+        <AppView style={{ alignItems: 'center', marginTop: spacing.md }}>
+          <AppView
             style={{
-              width: 84,
-              height: 84,
-              borderRadius: 42,
+              width: sizing.avatar.xxl,
+              height: sizing.avatar.xxl,
+              borderRadius: radius.full,
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: '#E8F0FF',
             }}
           >
-            <AppIcon name="account-balance" size={42} color={palette.primary} />
-          </View>
+            <AppIcon name="account-balance" size={sizing.avatar.xl - spacing.sm} color={palette.primary} />
+          </AppView>
           <AppText variant="h2" style={{ marginTop: spacing.lg }}>
             {isFirstTime ? 'Welcome to Financier' : 'Add Bank Account'}
           </AppText>
@@ -79,7 +83,7 @@ export default function LoginScreen({ onAccountSetup, isFirstTime = false, onClo
               ? 'Set up your first account to start automated transaction tracking.'
               : 'Add another account to organize your spending across banks.'}
           </AppText>
-        </View>
+        </AppView>
 
         <AppCard style={{ marginTop: spacing.md }}>
           <AppInput
@@ -125,28 +129,28 @@ export default function LoginScreen({ onAccountSetup, isFirstTime = false, onClo
         </AppCard>
 
         <AppCard>
-          <View style={{ gap: spacing.md }}>
-            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <AppView style={{ gap: spacing.md }}>
+            <AppView style={{ flexDirection: 'row', gap: spacing.sm }}>
               <AppIcon name="security" size={20} color={palette.success} />
               <AppText variant="body" color={palette.textSecondary} style={{ flex: 1 }}>
                 Account data is stored securely on-device.
               </AppText>
-            </View>
-            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+            </AppView>
+            <AppView style={{ flexDirection: 'row', gap: spacing.sm }}>
               <AppIcon name="sms" size={20} color={palette.success} />
               <AppText variant="body" color={palette.textSecondary} style={{ flex: 1 }}>
                 Transactions can be auto-detected from SMS alerts.
               </AppText>
-            </View>
-            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+            </AppView>
+            <AppView style={{ flexDirection: 'row', gap: spacing.sm }}>
               <AppIcon name="offline-bolt" size={20} color={palette.success} />
               <AppText variant="body" color={palette.textSecondary} style={{ flex: 1 }}>
                 Works offline with local-only processing.
               </AppText>
-            </View>
-          </View>
+            </AppView>
+          </AppView>
         </AppCard>
-      </AppScrollScreen>
+      </AppScreenLayout>
     </KeyboardAvoidingView>
   );
 }

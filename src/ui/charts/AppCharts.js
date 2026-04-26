@@ -1,7 +1,7 @@
 import React from 'react';
 import { Dimensions } from 'react-native';
 import { LineChart, PieChart } from 'react-native-chart-kit';
-import { palette } from '../theme/tokens';
+import { palette, spacing, radius, layout, sizing } from '../theme/tokens';
 
 const width = Dimensions.get('window').width;
 
@@ -11,12 +11,12 @@ export function AppLineChart({ labels, incomeData, expenseData }) {
     datasets: [
       {
         data: incomeData,
-        strokeWidth: 2,
+        strokeWidth: sizing.chart.strokeMd,
         color: (opacity = 1) => `rgba(13, 148, 136, ${opacity})`,
       },
       {
         data: expenseData,
-        strokeWidth: 2,
+        strokeWidth: sizing.chart.strokeMd,
         color: (opacity = 1) => `rgba(194, 14, 55, ${opacity})`,
       },
     ],
@@ -26,8 +26,8 @@ export function AppLineChart({ labels, incomeData, expenseData }) {
   return (
     <LineChart
       data={data}
-      width={width - 72}
-      height={220}
+      width={width - layout.screenHorizontal * 2 - spacing.xxl}
+      height={sizing.chart.heightMd}
       yAxisLabel=""
       yAxisSuffix=""
       withDots={false}
@@ -43,11 +43,11 @@ export function AppLineChart({ labels, incomeData, expenseData }) {
         propsForBackgroundLines: {
           strokeDasharray: '',
           stroke: '#EEF2FB',
-          strokeWidth: 1,
+          strokeWidth: sizing.chart.strokeSm,
         },
       }}
       bezier
-      style={{ borderRadius: 16 }}
+      style={{ borderRadius: radius.lg }}
     />
   );
 }
@@ -60,22 +60,22 @@ export function AppDonutChart({ total, ratio = 0.7 }) {
       amount: safeRatio * 100,
       color: palette.primary,
       legendFontColor: palette.textPrimary,
-      legendFontSize: 0,
+      legendFontSize: sizing.chart.legendNone,
     },
     {
       name: 'Other',
       amount: (1 - safeRatio) * 100,
       color: '#7EE6DD',
       legendFontColor: palette.textPrimary,
-      legendFontSize: 0,
+      legendFontSize: sizing.chart.legendNone,
     },
   ];
 
   return (
     <PieChart
       data={data}
-      width={width - 72}
-      height={220}
+      width={width - layout.screenHorizontal * 2 - spacing.xxl}
+      height={sizing.chart.heightMd}
       chartConfig={{
         color: () => palette.textPrimary,
       }}
@@ -87,7 +87,7 @@ export function AppDonutChart({ total, ratio = 0.7 }) {
       absolute
       avoidFalseZero
       donut
-      innerRadius={72}
+      innerRadius={layout.screenHorizontal * 4 + spacing.sm}
     />
   );
 }

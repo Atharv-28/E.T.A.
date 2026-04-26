@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { View } from 'react-native';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
 import { useAccounts } from '../context/AccountContext';
 import CategorySpendCard from '../modules/reports/components/CategorySpendCard';
@@ -10,10 +9,13 @@ import {
   AppChipTabs,
   AppDonutChart,
   AppLineChart,
-  AppScrollScreen,
+  AppScreenLayout,
+  AppView,
   AppText,
   palette,
   spacing,
+  borderWidth,
+  layout,
 } from '../ui';
 
 const periodTabs = [
@@ -117,11 +119,11 @@ export default function ReportsScreen() {
   const totalExpense = totals.expense || 1;
 
   return (
-    <AppScrollScreen>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+    <AppScreenLayout>
+      <AppView style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <AppText variant="h2">Expense Analysis</AppText>
         <AppBadge label={new Date().toLocaleDateString('en-US', { month: 'long' }).toUpperCase()} />
-      </View>
+      </AppView>
 
       <AppText variant="body" color={palette.textSecondary}>
         A detailed breakdown of your monthly spending habits.
@@ -130,38 +132,38 @@ export default function ReportsScreen() {
       <AppChipTabs value={selectedPeriod} onChange={setSelectedPeriod} tabs={periodTabs} />
 
       <AppCard>
-        <View style={{ alignItems: 'center', marginTop: spacing.sm }}>
+        <AppView style={{ alignItems: 'center', marginTop: spacing.sm }}>
           <AppDonutChart total={totals.expense} ratio={transportExpense / totalExpense} />
-          <View style={{ marginTop: -134, alignItems: 'center' }}>
+          <AppView style={{ marginTop: -(layout.screenHorizontal * 8 + spacing.sm), alignItems: 'center' }}>
             <AppText variant="bodyBold" color={palette.textSecondary}>
               Total Spent
             </AppText>
             <AppText variant="h1" color={palette.primary}>
               ₹{totals.expense.toFixed(2)}
             </AppText>
-          </View>
-        </View>
+          </AppView>
+        </AppView>
 
-        <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl }}>
-          <AppCard style={{ flex: 1, backgroundColor: '#EDF2FD', borderWidth: 0 }}>
+        <AppView style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl }}>
+          <AppCard style={{ flex: 1, backgroundColor: palette.primaryTint, borderWidth: borderWidth.none }}>
             <AppText variant="body">Transportation</AppText>
             <AppText variant="h3" style={{ marginTop: spacing.xs }}>
               {Math.round((transportExpense / totalExpense) * 100)}%
             </AppText>
           </AppCard>
-          <AppCard style={{ flex: 1, backgroundColor: '#EDF2FD', borderWidth: 0 }}>
+          <AppCard style={{ flex: 1, backgroundColor: palette.primaryTint, borderWidth: borderWidth.none }}>
             <AppText variant="body">Other Categories</AppText>
             <AppText variant="h3" style={{ marginTop: spacing.xs }}>
               {100 - Math.round((transportExpense / totalExpense) * 100)}%
             </AppText>
           </AppCard>
-        </View>
+        </AppView>
       </AppCard>
 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <AppView style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <AppText variant="h3">Top Expense Categories</AppText>
         <AppButton title="See All" variant="ghost" />
-      </View>
+      </AppView>
 
       {categoryRows.length === 0 ? (
         <AppCard>
@@ -183,7 +185,7 @@ export default function ReportsScreen() {
         ))
       )}
 
-      <AppCard style={{ backgroundColor: palette.primary, borderWidth: 0 }}>
+      <AppCard style={{ backgroundColor: palette.primary, borderWidth: borderWidth.none }}>
         <AppText variant="h3" color={palette.surface}>
           Optimize Your Spending
         </AppText>
@@ -198,6 +200,6 @@ export default function ReportsScreen() {
         </AppText>
         <AppLineChart labels={trend.labels} incomeData={trend.incomeData} expenseData={trend.expenseData} />
       </AppCard>
-    </AppScrollScreen>
+    </AppScreenLayout>
   );
 }
