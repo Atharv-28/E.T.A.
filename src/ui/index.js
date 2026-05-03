@@ -7,6 +7,7 @@ export { default as AppView } from './primitives/AppView';
 export { default as AppChipTabs } from './primitives/AppChipTabs';
 export { default as AppBadge } from './primitives/AppBadge';
 export { default as AppProgressBar } from './primitives/AppProgressBar';
+export { default as AppSnackbar } from './primitives/AppSnackbar';
 export { default as AppScreenLayout } from './primitives/AppScreenLayout';
 export { AppScreen, AppScrollScreen } from './primitives/AppScreen';
 export { AppLineChart, AppDonutChart } from './charts/AppCharts';

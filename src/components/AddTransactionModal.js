@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
   Modal,
+  Platform,
   TouchableOpacity,
   ScrollView,
-  Alert,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { CATEGORIES } from '../context/TransactionContext';
 import { useAccounts } from '../context/AccountContext';
 import {
@@ -13,6 +14,7 @@ import {
   AppChipTabs,
   AppIcon,
   AppInput,
+  AppSnackbar,
   AppText,
   AppView,
   borderWidth,
@@ -27,34 +29,89 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
   const [type, setType] = useState('expense');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
+  const [dateOverride, setDateOverride] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [snackbar, setSnackbar] = useState({ visible: false, message: '', variant: 'error', icon: 'warning' });
   const { activeAccount } = useAccounts();
+
+  const formatDateInput = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  const pickerDate = (() => {
+    if (!dateOverride.trim()) return new Date();
+    const parsed = new Date(`${dateOverride.trim()}T12:00:00`);
+    return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+  })();
+
+  const onPickDate = (_event, pickedDate) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    if (!pickedDate) return;
+    setDateOverride(formatDateInput(pickedDate));
+  };
 
   const resetForm = () => {
     setType('expense');
     setAmount('');
     setDescription('');
+    setDateOverride('');
+    setShowDatePicker(false);
     setSelectedCategory('');
   };
 
+  const showSnackbar = (message, variant = 'error', icon = 'warning') => {
+    setSnackbar({ visible: true, message, variant, icon });
+  };
+
   const handleSubmit = () => {
-    if (!amount || !description || !selectedCategory) {
-      Alert.alert('Error', 'Please fill in all fields');
+    if (!amount.trim()) {
+      showSnackbar('Please enter an amount.', 'error', 'warning');
+      return;
+    }
+
+    if (!selectedCategory) {
+      showSnackbar('Please select a category.', 'error', 'warning');
       return;
     }
 
     const numericAmount = parseFloat(amount);
-    if (isNaN(numericAmount) || numericAmount <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount');
+    if (Number.isNaN(numericAmount) || numericAmount <= 0) {
+      showSnackbar('Please enter a valid amount.', 'error', 'warning');
       return;
     }
+
+    let resolvedDate = new Date().toISOString();
+    if (dateOverride.trim()) {
+      const trimmed = dateOverride.trim();
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(trimmed)) {
+        showSnackbar('Use YYYY-MM-DD format for date override.', 'warning', 'warning');
+        return;
+      }
+
+      const parsedDate = new Date(`${trimmed}T12:00:00`);
+      if (Number.isNaN(parsedDate.getTime())) {
+        showSnackbar('Please enter a valid calendar date.', 'warning', 'warning');
+        return;
+      }
+      resolvedDate = parsedDate.toISOString();
+    }
+
+    const resolvedDescription = description.trim() || 'Manual entry';
 
     onAddTransaction({
       type,
       amount: numericAmount,
-      description,
+      description: resolvedDescription,
       category: selectedCategory,
       accountId: activeAccount?.id,
+      date: resolvedDate,
     });
 
     resetForm();
@@ -73,7 +130,7 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
       <AppView style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(8,14,28,0.34)' }}>
         <AppView
           style={{
-            maxHeight: '86%',
+            maxHeight: '92%',
             backgroundColor: palette.surface,
             borderTopLeftRadius: layout.modalSheetRadius,
             borderTopRightRadius: layout.modalSheetRadius,
@@ -82,6 +139,15 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
             paddingBottom: spacing.xxl,
           }}
         >
+          <AppSnackbar
+            visible={snackbar.visible}
+            message={snackbar.message}
+            variant={snackbar.variant}
+            icon={snackbar.icon}
+            onDismiss={() => setSnackbar((prev) => ({ ...prev, visible: false }))}
+            style={{ position: 'absolute', top: spacing.lg, left: spacing.xl, right: spacing.xl, bottom: 'auto' }}
+          />
+
           <AppView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <TouchableOpacity onPress={onClose}>
               <AppIcon name="close" size={22} color={palette.textPrimary} />
@@ -123,10 +189,40 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
                 label="Description"
                 value={description}
                 onChangeText={setDescription}
-                placeholder="Enter description"
+                placeholder="Manual entry (optional)"
                 style={{ marginTop: spacing.md }}
                 leftIcon="edit"
               />
+
+              <AppInput
+                label="Date Override (Optional)"
+                value={dateOverride}
+                onChangeText={setDateOverride}
+                placeholder="YYYY-MM-DD"
+                style={{ marginTop: spacing.md }}
+                leftIcon="event"
+              />
+
+              <AppButton
+                title="Pick Date"
+                variant="ghost"
+                onPress={() => setShowDatePicker(true)}
+                style={{ alignSelf: 'flex-start', marginTop: spacing.sm }}
+              />
+
+              {showDatePicker ? (
+                <DateTimePicker
+                  value={pickerDate}
+                  mode="date"
+                  display="default"
+                  onChange={onPickDate}
+                  maximumDate={new Date()}
+                />
+              ) : null}
+
+              <AppText variant="caption" color={palette.textSecondary} style={{ marginTop: spacing.xs }}>
+                Use this for adding older debit/expense entries.
+              </AppText>
             </AppCard>
 
             <AppCard style={{ marginTop: spacing.md }}>

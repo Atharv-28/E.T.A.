@@ -22,15 +22,30 @@ function getCategoryList(transactionType) {
 }
 
 export default function NewTransactionDetectedModal({ visible, transaction, onConfirm, onCancel }) {
-  const { accounts } = useAccounts();
+  const { accounts, activeAccountId } = useAccounts();
   const [selectedCategory, setSelectedCategory] = useState('other_expense');
   const [selectedAccountId, setSelectedAccountId] = useState(null);
   const gridItemWidth = '31.5%';
+  const subtleTileShadow = {
+    elevation: 1,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
+  };
+  const subtleIconShadow = {
+    elevation: 1,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 1.5,
+  };
 
   useEffect(() => {
+    const defaultAccountId = transaction?.accountId || activeAccountId || accounts[0]?.id || null;
     setSelectedCategory(transaction?.category || (transaction?.type === 'income' ? 'other_income' : 'other_expense'));
-    setSelectedAccountId(transaction?.accountId || null);
-  }, [transaction]);
+    setSelectedAccountId(defaultAccountId);
+  }, [transaction, activeAccountId, accounts]);
 
   const categories = useMemo(() => getCategoryList(transaction?.type), [transaction?.type]);
 
@@ -90,7 +105,7 @@ export default function NewTransactionDetectedModal({ visible, transaction, onCo
                 borderWidth: borderWidth.none,
               }}
             >
-              <AppText variant="label" color={palette.surface}>SMS DETECTED</AppText>
+              <AppText variant="label" color={palette.surface}>TRANSACTION DETECTED</AppText>
               <AppView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.sm }}>
                 <AppView style={{ flex: 1, paddingRight: spacing.md }}>
                   <AppText variant="h4" color={palette.surface} numberOfLines={2}>
@@ -104,6 +119,7 @@ export default function NewTransactionDetectedModal({ visible, transaction, onCo
                   {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount || 0)}
                 </AppText>
               </AppView>
+
             </AppCard>
 
             {requiresAccountChoice ? (
@@ -125,23 +141,35 @@ export default function NewTransactionDetectedModal({ visible, transaction, onCo
                           style={{
                             width: gridItemWidth,
                             borderRadius: radius.lg,
-                            borderWidth: borderWidth.sm,
+                            borderWidth: selected ? borderWidth.sm : borderWidth.none,
                             borderColor: selected ? palette.primary : palette.border,
                             backgroundColor: selected ? palette.primarySoft : palette.surface,
                             paddingVertical: spacing.sm,
                             paddingHorizontal: spacing.sm,
                             marginBottom: spacing.sm,
+                            ...subtleTileShadow,
                           }}
                         >
                           <AppView style={{ alignItems: 'center', justifyContent: 'center' }}>
-                            <AppIcon name="account-balance" size={16} color={selected ? palette.primary : palette.textSecondary} />
+                            <AppView
+                              style={{
+                                width: 28,
+                                height: 28,
+                                borderRadius: radius.full,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: palette.surface,
+                                ...subtleIconShadow,
+                              }}
+                            >
+                              <AppIcon name="account-balance" size={16} color={selected ? palette.primary : palette.textSecondary} />
+                            </AppView>
                             <AppText variant="caption" color={selected ? palette.primaryDark : palette.textPrimary} numberOfLines={1} style={{ marginTop: spacing.xs }}>
                               {account.name}
                             </AppText>
                             <AppText variant="caption" color={selected ? palette.primaryDark : palette.textSecondary} numberOfLines={1}>
                               ••{account.accountNumber?.slice(-4) || 'N/A'}
                             </AppText>
-                            {selected ? <AppIcon name="check-circle" size={16} color={palette.primary} style={{ marginTop: spacing.xs }} /> : null}
                           </AppView>
                         </TouchableOpacity>
                       );
@@ -166,20 +194,32 @@ export default function NewTransactionDetectedModal({ visible, transaction, onCo
                       style={{
                         width: gridItemWidth,
                         borderRadius: radius.lg,
-                        borderWidth: borderWidth.sm,
+                        borderWidth: selected ? borderWidth.sm : borderWidth.none,
                         borderColor: selected ? palette.primary : palette.border,
                         backgroundColor: selected ? palette.primarySoft : palette.surface,
                         paddingVertical: spacing.sm,
                         paddingHorizontal: spacing.sm,
                         marginBottom: spacing.sm,
+                        ...subtleTileShadow,
                       }}
                     >
                       <AppView style={{ alignItems: 'center', justifyContent: 'center' }}>
-                        <AppIcon name={category.icon} size={16} color={selected ? palette.primary : palette.textSecondary} />
+                        <AppView
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: radius.full,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: palette.surface,
+                            ...subtleIconShadow,
+                          }}
+                        >
+                          <AppIcon name={category.icon} size={16} color={selected ? palette.primary : palette.textSecondary} />
+                        </AppView>
                         <AppText variant="caption" color={selected ? palette.primaryDark : palette.textSecondary} numberOfLines={2} style={{ textAlign: 'center', marginTop: spacing.xs }}>
                           {category.name}
                         </AppText>
-                        {selected ? <AppIcon name="check-circle" size={16} color={palette.primary} style={{ marginTop: spacing.xs }} /> : null}
                       </AppView>
                     </TouchableOpacity>
                   );
