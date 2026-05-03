@@ -28,18 +28,20 @@ import LoginScreen from './src/screens/LoginScreen';
 // Services
 import NativeSMSService from './src/services/NativeSMSService';
 import { checkSMSPermissions } from './src/utils/permissions';
+import { palette } from './src/ui';
 
 // Styles
 import { styles } from './src/styles/GlobalStyles';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
+  const statusBarStyle = isDarkMode ? 'light-content' : 'dark-content';
 
   return (
     <AccountProvider>
       <TransactionProvider>
         <SafeAreaProvider>
-          <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+          <StatusBar barStyle={statusBarStyle} backgroundColor={palette.surface} translucent={false} />
           <AppContent />
         </SafeAreaProvider>
       </TransactionProvider>

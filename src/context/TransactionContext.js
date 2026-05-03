@@ -70,7 +70,7 @@ export function TransactionProvider({ children }) {
     const newTransaction = {
       ...transaction,
       id: Date.now().toString(),
-      date: new Date().toISOString(),
+      date: transaction?.date || new Date().toISOString(),
     };
     setTransactions(prev => [newTransaction, ...prev]);
   };
