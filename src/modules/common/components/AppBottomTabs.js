@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import { AppIcon, AppText, AppView, palette, spacing, radius, shadows, sizing, borderWidth } from '../../../ui';
+import { AppIcon, AppText, AppView, palette, shadows, sizing } from '../../../ui';
+import { styles } from './AppBottomTabs.styles';
 
 const tabItems = [
   { key: 'dashboard', label: 'Overview', icon: 'grid-view' },
@@ -13,19 +14,7 @@ export default function AppBottomTabs({ activeTab, setActiveTab }) {
   return (
     <AppView
       style={[
-        {
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-around',
-          paddingHorizontal: spacing.md,
-          paddingTop: sizing.nav.barPaddingTop,
-          paddingBottom: sizing.nav.barPaddingBottom,
-          backgroundColor: palette.surface,
-          borderTopWidth: borderWidth.sm,
-          borderTopColor: '#EEF2FB',
-          borderTopLeftRadius: radius.xl,
-          borderTopRightRadius: radius.xl,
-        },
+        styles.bar,
         shadows.card,
       ]}
     >
@@ -36,17 +25,13 @@ export default function AppBottomTabs({ activeTab, setActiveTab }) {
             key={item.key}
             activeOpacity={0.85}
             onPress={() => setActiveTab(item.key)}
-            style={{ alignItems: 'center', width: sizing.nav.itemWidth, gap: spacing.xs }}
+            style={styles.tabItem}
           >
             <AppView
-              style={{
-                width: sizing.nav.capsuleWidth,
-                height: sizing.nav.capsuleHeight,
-                borderRadius: radius.lg,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: active ? '#EEF4FF' : 'transparent',
-              }}
+              style={[
+                styles.capsule,
+                active ? styles.capsuleActive : styles.capsuleInactive,
+              ]}
             >
               <AppIcon
                 name={item.icon}

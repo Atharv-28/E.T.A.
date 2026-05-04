@@ -14,13 +14,9 @@ import {
   AppView,
   AppText,
   palette,
-  spacing,
-  radius,
   sizing,
-  layout,
-  opacity,
-  borderWidth,
 } from '../ui';
+import { styles } from './DashboardScreen.styles';
 
 function getCategoryIcon(categoryId, type) {
   const categories = type === 'income' ? CATEGORIES.INCOME : CATEGORIES.EXPENSE;
@@ -97,84 +93,62 @@ export default function DashboardScreen({ onManualTransaction }) {
     <>
       <AppScreenLayout>
         <AppCard
-          style={{
-            backgroundColor: palette.primary,
-            borderWidth: borderWidth.none,
-            borderRadius: radius.xxl + spacing.sm,
-            padding: spacing.xxl,
-          }}
+          style={styles.heroCard}
         >
-          <AppText variant="label" color="#BFD6FF" style={{ letterSpacing: 2 }}>
+          <AppText variant="label" color="#BFD6FF" style={styles.heroLabel}>
             THIS MONTH BALANCE
           </AppText>
-          <AppText variant="h2" color={palette.surface} style={{ marginTop: spacing.sm }}>
+          <AppText variant="h2" color={palette.surface} style={styles.heroBalance}>
             {balance < 0 ? '-' : ''}₹{Math.abs(balance).toFixed(2)}
           </AppText>
 
-          <AppView style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl }}>
+          <AppView style={styles.heroRow}>
             <AppView
-              style={{
-                flex: 1,
-                borderRadius: radius.xl,
-                backgroundColor: 'rgba(255,255,255,0.14)',
-                padding: spacing.lg,
-              }}
+              style={styles.heroBox}
             >
               <AppText variant="h4" color="#91F1E7">
                 INCOME
               </AppText>
-              <AppText variant="h4" color={palette.surface} style={{ marginTop: spacing.xs }}>
+              <AppText variant="h4" color={palette.surface} style={styles.heroBoxAmount}>
                 +₹{monthlyIncome.toFixed(2)}
               </AppText>
             </AppView>
             <AppView
-              style={{
-                flex: 1,
-                borderRadius: radius.xl,
-                backgroundColor: 'rgba(255,255,255,0.14)',
-                padding: spacing.lg,
-              }}
+              style={styles.heroBox}
             >
               <AppText variant="h4" color="#FFCAD7">
                 EXPENSES
               </AppText>
-              <AppText variant="h4" color={palette.surface} style={{ marginTop: spacing.xs }}>
+              <AppText variant="h4" color={palette.surface} style={styles.heroBoxAmount}>
                 -₹{monthlyExpense.toFixed(2)}
               </AppText>
             </AppView>
           </AppView>
         </AppCard>
 
-        <AppView style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <AppView style={styles.sectionHeader}>
           <AppText variant="h3">Monthly Summary</AppText>
           <AppButton title="Details" variant="ghost" />
         </AppView>
 
         <AppCard>
-          <AppView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <AppView style={{ flex: 1 }}>
+          <AppView style={styles.savingsRow}>
+            <AppView style={styles.savingsText}>
               <AppText variant="h3">Savings Rate</AppText>
-              <AppText variant="h3" color={palette.primary} style={{ marginTop: spacing.sm }}>
+              <AppText variant="h3" color={palette.primary} style={styles.savingsValue}>
                 {savingsRate.toFixed(1)}%
               </AppText>
             </AppView>
             <AppView
-              style={{
-                  width: sizing.avatar.xl,
-                  height: sizing.avatar.xl,
-                  borderRadius: radius.full,
-                backgroundColor: '#DCE6FB',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              style={styles.savingsIcon}
             >
                 <AppIcon name="bar-chart" size={sizing.icon.xl} color={palette.primary} />
             </AppView>
           </AppView>
-          <AppProgressBar value={savingsRate} color={palette.primary} style={{ marginTop: spacing.lg }} />
+          <AppProgressBar value={savingsRate} color={palette.primary} style={styles.progress} />
         </AppCard>
 
-        <AppView style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <AppView style={styles.sectionHeader}>
           <AppText variant="h3">Recent Transactions</AppText>
           <AppButton title="View all" variant="secondary" />
         </AppView>
@@ -206,42 +180,17 @@ export default function DashboardScreen({ onManualTransaction }) {
       <TouchableOpacity
         activeOpacity={0.86}
         onPress={() => setAddVisible(true)}
-        style={{
-          position: 'absolute',
-          right: spacing.xl,
-          bottom: layout.screenBottomInset - spacing.sm,
-          width: sizing.control.fab,
-          height: sizing.control.fab,
-          borderRadius: radius.full,
-          backgroundColor: palette.primary,
-          alignItems: 'center',
-          justifyContent: 'center',
-          elevation: 9,
-          shadowColor: '#0F172A',
-          shadowOffset: { width: spacing.none, height: sizing.card.modalFabOffset },
-          shadowOpacity: opacity.lg,
-          shadowRadius: 14,
-        }}
+        style={styles.fab}
       >
         <AppIcon name="add" size={sizing.icon.xxl} color={palette.surface} />
       </TouchableOpacity>
 
       <Modal visible={addVisible} transparent animationType="slide" onRequestClose={() => setAddVisible(false)}>
         <AppView
-          style={{
-            flex: 1,
-            justifyContent: 'flex-end',
-            backgroundColor: 'rgba(9,14,28,0.35)',
-          }}
+          style={styles.modalOverlay}
         >
           <AppView
-            style={{
-              backgroundColor: palette.surface,
-              borderTopLeftRadius: layout.modalSheetRadius,
-              borderTopRightRadius: layout.modalSheetRadius,
-              padding: spacing.xl,
-              gap: spacing.lg,
-            }}
+            style={styles.modalSheet}
           >
             <AppText variant="h3">Add Transaction</AppText>
             <AppChipTabs
@@ -267,9 +216,9 @@ export default function DashboardScreen({ onManualTransaction }) {
               placeholder="What is this for?"
               leftIcon="edit"
             />
-            <AppView style={{ flexDirection: 'row', gap: spacing.md }}>
-              <AppButton title="Cancel" variant="ghost" onPress={() => setAddVisible(false)} style={{ flex: 1 }} />
-              <AppButton title="Continue" onPress={submitManual} style={{ flex: 1 }} />
+            <AppView style={styles.modalFooter}>
+              <AppButton title="Cancel" variant="ghost" onPress={() => setAddVisible(false)} style={styles.modalButton} />
+              <AppButton title="Continue" onPress={submitManual} style={styles.modalButton} />
             </AppView>
           </AppView>
         </AppView>

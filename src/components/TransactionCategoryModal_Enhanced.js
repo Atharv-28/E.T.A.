@@ -19,6 +19,7 @@ import {
 import { CATEGORIES } from '../context/TransactionContext';
 import { formatCurrency } from '../utils/currency';
 import { styles, colors } from '../styles/GlobalStyles';
+import { styles as localStyles } from './TransactionCategoryModal_Enhanced.styles';
 
 const TransactionCategoryModal = ({ 
   visible, 
@@ -65,31 +66,28 @@ const TransactionCategoryModal = ({
           onPress={() => setSelectedCategory(category.id)}
           bounceScale={0.95}
         >
-          <View style={[
-            {
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: isSelected ? colors.primary : colors.primaryLight + '30',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginRight: 12,
-            }
-          ]}>
+          <View
+            style={[
+              localStyles.categoryOptionIcon,
+              isSelected
+                ? localStyles.categoryOptionIconSelected
+                : localStyles.categoryOptionIconDefault,
+            ]}
+          >
             <CustomIcon 
               name={category.icon} 
               size={20} 
               color={isSelected ? colors.white : colors.primary} 
             />
           </View>
-          <Text style={[
-            {
-              fontSize: 16,
-              fontWeight: '600',
-              color: isSelected ? colors.primary : colors.black,
-              flex: 1,
-            }
-          ]}>
+          <Text
+            style={[
+              localStyles.categoryOptionText,
+              isSelected
+                ? localStyles.categoryOptionTextSelected
+                : localStyles.categoryOptionTextDefault,
+            ]}
+          >
             {category.name}
           </Text>
           {isSelected && (
@@ -118,7 +116,7 @@ const TransactionCategoryModal = ({
             <GradientButton
               colors={[colors.primary, colors.primaryDark]}
               onPress={handleConfirm}
-              style={{ paddingHorizontal: 16, paddingVertical: 8 }}
+              style={localStyles.headerActionButton}
             >
               <Text style={styles.gradientButtonText}>Add</Text>
             </GradientButton>
@@ -133,16 +131,16 @@ const TransactionCategoryModal = ({
                 ? [colors.incomeGradientStart, colors.incomeGradientEnd]
                 : [colors.expenseGradientStart, colors.expenseGradientEnd]
               }
-              style={[styles.section, { borderWidth: 0 }]}
+              style={[styles.section, localStyles.sectionBorderless]}
             >
-              <Text style={[styles.sectionTitle, { color: colors.white }]}>
+              <Text style={[styles.sectionTitle, localStyles.sectionTitleInverse]}>
                 📱 From SMS
               </Text>
               <View style={styles.transactionCard}>
                 <View style={styles.transactionLeft}>
                   <View style={[
-                    styles.categoryIcon, 
-                    { backgroundColor: colors.white + '30' }
+                    styles.categoryIcon,
+                    localStyles.transactionIconAccent
                   ]}>
                     <CustomIcon 
                       name={transaction.type === 'income' ? 'trending-up' : 'trending-down'} 
@@ -151,25 +149,18 @@ const TransactionCategoryModal = ({
                     />
                   </View>
                   <View style={styles.transactionDetails}>
-                    <Text style={[styles.transactionDescription, { color: colors.white, fontWeight: '600' }]}>
+                    <Text style={[styles.transactionDescription, localStyles.transactionDescriptionEmphasis]}>
                       {transaction.description}
                     </Text>
-                    <Text style={[styles.transactionCategory, { color: colors.white, opacity: 0.8 }]}>
+                    <Text style={[styles.transactionCategory, localStyles.transactionCategoryEmphasis]}>
                       {transaction.bank} • {new Date(transaction.date).toLocaleDateString()}
                     </Text>
-                    <Text style={[styles.transactionDate, { color: colors.white, opacity: 0.7 }]}>
+                    <Text style={[styles.transactionDate, localStyles.transactionDateEmphasis]}>
                       Account: {transaction.accountNumber}
                     </Text>
                   </View>
                 </View>
-                <Text style={[
-                  styles.transactionAmount,
-                  { 
-                    color: colors.white,
-                    fontSize: 20,
-                    fontWeight: '800' 
-                  }
-                ]}>
+                <Text style={[styles.transactionAmount, localStyles.transactionAmountEmphasis]}>
                   {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                 </Text>
               </View>
@@ -187,7 +178,7 @@ const TransactionCategoryModal = ({
                 <Text style={styles.exampleText}>
                   Received: {transaction.smsData?.receivedAt?.toLocaleString() || 'Just now'}
                 </Text>
-                <Text style={[styles.exampleText, { fontStyle: 'italic', marginTop: 8, color: colors.gray }]}>
+                <Text style={[styles.exampleText, localStyles.exampleMuted]}>
                   "{transaction.smsData?.rawSMS?.substring(0, 100)}..."
                 </Text>
               </View>
@@ -212,11 +203,11 @@ const TransactionCategoryModal = ({
               <GradientButton
                 colors={[colors.success, colors.successDark]}
                 onPress={handleConfirm}
-                style={{ marginBottom: 12 }}
+                style={localStyles.actionPrimary}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <View style={localStyles.actionRow}>
                   <CustomIcon name="add" size={20} color={colors.white} />
-                  <Text style={[styles.gradientButtonText, { marginLeft: 8 }]}>
+                  <Text style={[styles.gradientButtonText, localStyles.actionLabel]}>
                     Add Transaction
                   </Text>
                 </View>
@@ -224,17 +215,13 @@ const TransactionCategoryModal = ({
               
               <AnimatedButton
                 style={[
-                  styles.addButton, 
-                  { 
-                    backgroundColor: colors.grayLight,
-                    borderWidth: 1,
-                    borderColor: colors.gray,
-                  }
+                  styles.addButton,
+                  localStyles.addButtonMuted
                 ]}
                 onPress={onCancel}
               >
                 <CustomIcon name="close" size={20} color={colors.gray} />
-                <Text style={[styles.addButtonText, { color: colors.gray }]}>
+                <Text style={[styles.addButtonText, localStyles.addButtonMutedText]}>
                   Cancel
                 </Text>
               </AnimatedButton>

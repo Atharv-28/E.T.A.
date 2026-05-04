@@ -16,10 +16,8 @@ import {
   palette,
   spacing,
   sizing,
-  radius,
-  borderWidth,
-  layout,
 } from '../ui';
+import { styles } from './AccountsScreen.styles';
 
 export default function AccountsScreen({ onAddAccount }) {
   const { accounts, activeAccount, activeAccountId, switchAccount } = useAccounts();
@@ -101,36 +99,29 @@ export default function AccountsScreen({ onAddAccount }) {
   return (
     <>
       <AppScreenLayout>
-        <AppView style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <AppView style={styles.headerRow}>
           <AppText variant="h2">Accounts</AppText>
           <AppButton title="+ Add Account" onPress={onAddAccount} />
         </AppView>
 
         {activeAccount ? (
-          <AppCard style={{ borderLeftWidth: borderWidth.lg, borderLeftColor: palette.danger }}>
-            <AppText variant="label" color={palette.textSecondary} style={{ letterSpacing: 1 }}>
+          <AppCard style={styles.primaryCard}>
+            <AppText variant="label" color={palette.textSecondary} style={styles.primaryLabel}>
               PRIMARY ACCOUNT
             </AppText>
-            <AppView style={{ marginTop: spacing.md, flexDirection: 'row', justifyContent: 'space-between' }}>
+            <AppView style={styles.primaryRow}>
               <AppView>
                 <AppText variant="h2">{activeAccount.bankName || activeAccount.name}</AppText>
-                <AppText variant="label" color={palette.textSecondary} style={{ marginTop: spacing.lg }}>
+                <AppText variant="label" color={palette.textSecondary} style={styles.balanceLabel}>
                   Current Balance
                 </AppText>
                 <AppText variant="h1" color={balance < 0 ? palette.danger : palette.success}>
                   {balance < 0 ? '-' : ''}₹{Math.abs(balance).toFixed(2)}
                 </AppText>
               </AppView>
-              <AppView style={{ alignItems: 'flex-end', justifyContent: 'space-between' }}>
+              <AppView style={styles.primaryMeta}>
                 <AppView
-                  style={{
-                    width: sizing.avatar.lg,
-                    height: sizing.avatar.lg,
-                    borderRadius: radius.lg,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#FCEEEF',
-                  }}
+                  style={styles.primaryIconTile}
                 >
                   <AppIcon name="account-balance" size={sizing.icon.lg + spacing.xxs} color={palette.danger} />
                 </AppView>
@@ -155,7 +146,7 @@ export default function AccountsScreen({ onAddAccount }) {
 
         {accounts.length > 1 ? (
           <AppCard>
-            <AppText variant="h3" style={{ marginBottom: spacing.md }}>
+            <AppText variant="h3" style={styles.switchTitle}>
               Switch Account
             </AppText>
             {accounts.map((account) => (
@@ -164,86 +155,79 @@ export default function AccountsScreen({ onAddAccount }) {
                 title={account.name}
                 variant={account.id === activeAccountId ? 'primary' : 'secondary'}
                 onPress={() => switchAccount(account.id)}
-                style={{ marginBottom: spacing.sm }}
+                style={styles.switchButton}
               />
             ))}
           </AppCard>
         ) : null}
 
-        <AppView style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm }}>
+        <AppView style={styles.sectionHeader}>
           <AppIcon name="wifi-tethering" size={30} color={palette.primary} />
-          <AppText variant="h2" style={{ marginLeft: spacing.sm }}>
+          <AppText variant="h2" style={styles.sectionHeaderTitle}>
             Smart Monitoring
           </AppText>
         </AppView>
 
         <AppCard>
-          <AppView style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <AppView style={{ flex: 1, paddingRight: spacing.md }}>
+          <AppView style={styles.smsRow}>
+            <AppView style={styles.smsText}>
               <AppText variant="h3">Native SMS Monitoring</AppText>
-              <AppText variant="body" color={palette.textSecondary} style={{ marginTop: spacing.xs }}>
+              <AppText variant="body" color={palette.textSecondary} style={styles.smsDescription}>
                 Automatically detect and categorize transactions from SMS alerts.
               </AppText>
             </AppView>
             <Switch value={smsEnabled} onValueChange={toggleSms} trackColor={{ true: palette.primary }} />
           </AppView>
 
-          <AppCard style={{ marginTop: spacing.lg, backgroundColor: palette.primaryTint, borderWidth: borderWidth.none }}>
-            <AppView style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <AppCard style={styles.smsTipCard}>
+            <AppView style={styles.smsTipRow}>
               <AppIcon name="verified-user" size={20} color={palette.primary} />
-              <AppText variant="body" color={palette.textSecondary} style={{ flex: 1 }}>
+              <AppText variant="body" color={palette.textSecondary} style={styles.smsTipText}>
                 Financier uses edge-processing to parse SMS locally. Financial data stays on your device.
               </AppText>
             </AppView>
           </AppCard>
 
-          <AppButton title="Check Service Status" variant="ghost" onPress={checkSmsStatus} style={{ marginTop: spacing.md }} />
+          <AppButton title="Check Service Status" variant="ghost" onPress={checkSmsStatus} style={styles.smsCheckButton} />
         </AppCard>
 
-        <AppView style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm }}>
+        <AppView style={styles.sectionHeader}>
           <AppIcon name="backup" size={30} color={palette.primary} />
-          <AppText variant="h2" style={{ marginLeft: spacing.sm }}>
+          <AppText variant="h2" style={styles.sectionHeaderTitle}>
             Backup & Export
           </AppText>
         </AppView>
 
-        <AppView style={{ flexDirection: 'row', gap: spacing.md }}>
-          <AppCard style={{ flex: 1 }}>
+        <AppView style={styles.backupRow}>
+          <AppCard style={styles.backupCard}>
             <AppIcon name="cloud-upload" size={28} color={palette.primary} />
-            <AppText variant="h3" style={{ marginTop: spacing.md }}>
+            <AppText variant="h3" style={styles.backupTitle}>
               Cloud Backup
             </AppText>
-            <AppText variant="body" color={palette.textSecondary} style={{ marginTop: spacing.xs }}>
+            <AppText variant="body" color={palette.textSecondary} style={styles.backupBody}>
               Last synced: recently
             </AppText>
-            <AppButton title="Export JSON" onPress={exportJson} style={{ marginTop: spacing.md }} />
+            <AppButton title="Export JSON" onPress={exportJson} style={styles.backupButton} />
           </AppCard>
 
-          <AppCard style={{ flex: 1 }}>
+          <AppCard style={styles.backupCard}>
             <AppIcon name="download" size={28} color={palette.success} />
-            <AppText variant="h3" style={{ marginTop: spacing.md }}>
+            <AppText variant="h3" style={styles.backupTitle}>
               Import Backup
             </AppText>
-            <AppText variant="body" color={palette.textSecondary} style={{ marginTop: spacing.xs }}>
+            <AppText variant="body" color={palette.textSecondary} style={styles.backupBody}>
               Paste JSON backup data
             </AppText>
-            <AppButton title="Import" variant="secondary" onPress={() => setImportVisible(true)} style={{ marginTop: spacing.md }} />
+            <AppButton title="Import" variant="secondary" onPress={() => setImportVisible(true)} style={styles.backupButton} />
           </AppCard>
         </AppView>
 
-        <AppButton title="Manage Data Sources" variant="ghost" style={{ borderStyle: 'dashed', borderWidth: borderWidth.md, marginTop: spacing.sm }} />
+        <AppButton title="Manage Data Sources" variant="ghost" style={styles.manageButton} />
       </AppScreenLayout>
 
       <Modal visible={importVisible} transparent animationType="slide" onRequestClose={() => setImportVisible(false)}>
-        <AppView style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(8,14,28,0.34)' }}>
-          <AppView
-            style={{
-              backgroundColor: palette.surface,
-              borderTopLeftRadius: layout.modalSheetRadius,
-              borderTopRightRadius: layout.modalSheetRadius,
-              padding: spacing.xl,
-            }}
-          >
+        <AppView style={styles.modalOverlay}>
+          <AppView style={styles.modalSheet}>
             <AppText variant="h3">Import Backup JSON</AppText>
             <AppInput
               label="Backup Content"
@@ -251,11 +235,11 @@ export default function AccountsScreen({ onAddAccount }) {
               onChangeText={setImportText}
               placeholder="Paste JSON content here"
               multiline
-              style={{ marginTop: spacing.md }}
+              style={styles.importInput}
             />
-            <AppView style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg }}>
-              <AppButton title="Cancel" variant="ghost" onPress={() => setImportVisible(false)} style={{ flex: 1 }} />
-              <AppButton title="Import" onPress={importJson} style={{ flex: 1 }} />
+            <AppView style={styles.modalFooter}>
+              <AppButton title="Cancel" variant="ghost" onPress={() => setImportVisible(false)} style={styles.modalFooterButton} />
+              <AppButton title="Import" onPress={importJson} style={styles.modalFooterButton} />
             </AppView>
           </AppView>
         </AppView>

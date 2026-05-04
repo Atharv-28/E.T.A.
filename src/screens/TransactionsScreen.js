@@ -13,13 +13,8 @@ import {
   AppView,
   AppText,
   palette,
-  layout,
-  spacing,
-  sizing,
-  radius,
-  type,
-  borderWidth,
 } from '../ui';
+import { styles } from './TransactionsScreen.styles';
 
 function findCategory(categoryId, type) {
   const list = type === 'income' ? CATEGORIES.INCOME : CATEGORIES.EXPENSE;
@@ -99,21 +94,21 @@ export default function TransactionsScreen() {
           ]}
         />
 
-        <AppView style={{ flexDirection: 'row', gap: spacing.md }}>
-          <AppCard style={{ flex: 1, borderLeftWidth: borderWidth.lg, borderLeftColor: palette.success }}>
+        <AppView style={styles.summaryRow}>
+          <AppCard style={styles.summaryCardIncome}>
             <AppText variant="label" color={palette.textSecondary}>
               Income
             </AppText>
-            <AppText variant="h3" color={palette.success} style={{ marginTop: spacing.xs }}>
+            <AppText variant="h3" color={palette.success} style={styles.summaryValue}>
               ₹{filtered.filter((x) => x.type === 'income').reduce((s, x) => s + Number(x.amount || 0), 0).toFixed(2)}
             </AppText>
           </AppCard>
 
-          <AppCard style={{ flex: 1, borderLeftWidth: borderWidth.lg, borderLeftColor: palette.danger }}>
+          <AppCard style={styles.summaryCardExpense}>
             <AppText variant="label" color={palette.textSecondary}>
               Expenses
             </AppText>
-            <AppText variant="h3" color={palette.danger} style={{ marginTop: spacing.xs }}>
+            <AppText variant="h3" color={palette.danger} style={styles.summaryValue}>
               ₹{filtered
                 .filter((x) => x.type === 'expense' || x.type === 'debit')
                 .reduce((s, x) => s + Number(x.amount || 0), 0)
@@ -131,11 +126,11 @@ export default function TransactionsScreen() {
         ) : (
           Object.keys(grouped).map((section) => (
             <AppView key={section}>
-              <AppView style={{ flexDirection: 'row', alignItems: 'center', marginVertical: spacing.sm }}>
-                <AppText variant="label" color={palette.textSecondary} style={{ letterSpacing: 1 }}>
+              <AppView style={styles.sectionHeader}>
+                <AppText variant="label" color={palette.textSecondary} style={styles.sectionLabel}>
                   {section}
                 </AppText>
-                <AppView style={{ height: sizing.rule.thin, backgroundColor: '#E7ECF7', flex: 1, marginLeft: spacing.sm }} />
+                <AppView style={styles.sectionRule} />
               </AppView>
               {grouped[section].map((item) => {
                 const income = item.type === 'income';
@@ -157,8 +152,8 @@ export default function TransactionsScreen() {
                         title="Delete"
                         variant="ghost"
                         onPress={() => removeItem(item.id)}
-                        style={{ marginTop: spacing.xs, minHeight: sizing.control.smallButton, paddingHorizontal: spacing.sm }}
-                        textStyle={{ fontSize: type.caption.fontSize }}
+                        style={styles.deleteButton}
+                        textStyle={styles.deleteButtonText}
                       />
                     }
                   />
@@ -169,18 +164,12 @@ export default function TransactionsScreen() {
         )}
       </AppScreenLayout>
 
-      <AppView style={{ position: 'absolute', right: layout.screenHorizontal, top: spacing.xl }}>
+      <AppView style={styles.fabWrap}>
         <AppButton
           title="+"
           onPress={() => setModalVisible(true)}
-          style={{
-            minWidth: sizing.control.button,
-            minHeight: sizing.control.button,
-            borderRadius: radius.lg,
-            paddingHorizontal: spacing.none,
-            paddingVertical: spacing.none,
-          }}
-          textStyle={{ fontSize: type.h4.fontSize, lineHeight: type.h4.lineHeight }}
+          style={styles.fabButton}
+          textStyle={styles.fabButtonText}
         />
       </AppView>
 

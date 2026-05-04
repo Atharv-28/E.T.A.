@@ -11,6 +11,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
 import { colors } from '../styles/GlobalStyles';
+import {
+  styles,
+  getShimmerContainerSizeStyle,
+  getShimmerHighlightSizeStyle,
+} from './AnimatedComponents.styles';
 
 // Animated Bounce Button
 export const AnimatedButton = ({ children, onPress, style, bounceScale = 0.95 }) => {
@@ -165,7 +170,7 @@ export const GradientCard = ({
       colors={gradientColors}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={[{ borderRadius: 16 }, style]}
+      style={[styles.gradientCard, style]}
       {...props}
     >
       {children}
@@ -187,14 +192,7 @@ export const GradientButton = ({
         colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
-        style={{ 
-          borderRadius: 12, 
-          paddingHorizontal: 20, 
-          paddingVertical: 14,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+        style={styles.gradientButton}
         {...props}
       >
         {children}
@@ -224,23 +222,15 @@ export const ShimmerView = ({ width, height, style }) => {
   return (
     <View 
       style={[
-        {
-          width,
-          height,
-          backgroundColor: colors.grayLight + '30',
-          borderRadius: 8,
-          overflow: 'hidden',
-        },
+        styles.shimmerContainer,
+        getShimmerContainerSizeStyle(width, height),
         style
       ]}
     >
       <Animated.View
         style={[
-          {
-            width: width * 0.5,
-            height,
-            backgroundColor: colors.white + '60',
-          },
+          styles.shimmerHighlight,
+          getShimmerHighlightSizeStyle(width, height),
           animatedStyle,
         ]}
       />
@@ -269,18 +259,7 @@ export const FloatingActionButton = ({ onPress, icon, style }) => {
       <Animated.View style={[animatedStyle]}>
         <GradientCard
           colors={[colors.primary, colors.primaryDark]}
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: 28,
-            justifyContent: 'center',
-            alignItems: 'center',
-            elevation: 8,
-            shadowColor: colors.primary,
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 8,
-          }}
+          style={styles.fabCard}
         >
           {icon}
         </GradientCard>

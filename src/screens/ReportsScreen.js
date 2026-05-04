@@ -13,9 +13,8 @@ import {
   AppView,
   AppText,
   palette,
-  spacing,
-  borderWidth,
 } from '../ui';
+import { styles } from './ReportsScreen.styles';
 
 const periodTabs = [
   { label: 'This Month', value: 'month' },
@@ -119,7 +118,7 @@ export default function ReportsScreen() {
 
   return (
     <AppScreenLayout>
-      <AppView style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <AppView style={styles.headerRow}>
         <AppText variant="h2">Expense Analysis</AppText>
         <AppBadge label={new Date().toLocaleDateString('en-US', { month: 'long' }).toUpperCase()} />
       </AppView>
@@ -131,9 +130,9 @@ export default function ReportsScreen() {
       <AppChipTabs value={selectedPeriod} onChange={setSelectedPeriod} tabs={periodTabs} />
 
       <AppCard>
-        <AppView style={{ alignItems: 'center' }}>
+        <AppView style={styles.donutWrap}>
           <AppDonutChart total={totals.expense} ratio={transportExpense / totalExpense} />
-          <AppView style={{ marginTop: -180, alignItems: 'center' }}>
+          <AppView style={styles.donutOverlay}>
             <AppText variant="bodyBold" color={palette.textSecondary}>
               Total Spent
             </AppText>
@@ -143,23 +142,23 @@ export default function ReportsScreen() {
           </AppView>
         </AppView>
 
-        <AppView style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg }}>
-          <AppCard style={{ flex: 1, backgroundColor: palette.primaryTint, borderWidth: borderWidth.none }}>
+        <AppView style={styles.statRow}>
+          <AppCard style={styles.statCard}>
             <AppText variant="body">Transportation</AppText>
-            <AppText variant="h3" style={{ marginTop: spacing.xs }}>
+            <AppText variant="h3" style={styles.statValue}>
               {Math.round((transportExpense / totalExpense) * 100)}%
             </AppText>
           </AppCard>
-          <AppCard style={{ flex: 1, backgroundColor: palette.primaryTint, borderWidth: borderWidth.none }}>
+          <AppCard style={styles.statCard}>
             <AppText variant="body">Other Categories</AppText>
-            <AppText variant="h3" style={{ marginTop: spacing.xs }}>
+            <AppText variant="h3" style={styles.statValue}>
               {100 - Math.round((transportExpense / totalExpense) * 100)}%
             </AppText>
           </AppCard>
         </AppView>
       </AppCard>
 
-      <AppView style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <AppView style={styles.sectionHeader}>
         <AppText variant="h3">Top Expense Categories</AppText>
         <AppButton title="See All" variant="ghost" />
       </AppView>
@@ -184,17 +183,17 @@ export default function ReportsScreen() {
         ))
       )}
 
-      <AppCard style={{ backgroundColor: palette.primary, borderWidth: borderWidth.none }}>
+      <AppCard style={styles.optimizeCard}>
         <AppText variant="h3" color={palette.surface}>
           Optimize Your Spending
         </AppText>
-        <AppText variant="body" color="#DCE7FF" style={{ marginTop: spacing.sm }}>
+        <AppText variant="body" color="#DCE7FF" style={styles.optimizeText}>
           Based on your trends, reducing your top category by 10% can improve savings noticeably.
         </AppText>
       </AppCard>
 
       <AppCard>
-        <AppText variant="h3" style={{ marginBottom: spacing.md }}>
+        <AppText variant="h3" style={styles.trendTitle}>
           6-Month Trend
         </AppText>
         <AppLineChart labels={trend.labels} incomeData={trend.incomeData} expenseData={trend.expenseData} />

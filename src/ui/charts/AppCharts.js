@@ -1,7 +1,8 @@
 import React from 'react';
 import { Dimensions } from 'react-native';
 import { LineChart, PieChart } from 'react-native-chart-kit';
-import { palette, spacing, radius, layout, sizing } from '../theme/tokens';
+import { palette, spacing, layout, sizing } from '../theme/tokens';
+import { styles } from './AppCharts.styles';
 
 const width = Dimensions.get('window').width;
 
@@ -47,7 +48,7 @@ export function AppLineChart({ labels, incomeData, expenseData }) {
         },
       }}
       bezier
-      style={{ borderRadius: radius.lg }}
+      style={styles.lineChart}
     />
   );
 }

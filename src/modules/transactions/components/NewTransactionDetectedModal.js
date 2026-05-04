@@ -9,13 +9,9 @@ import {
   AppIcon,
   AppText,
   AppView,
-  borderWidth,
-  layout,
   palette,
-  radius,
-  spacing,
-  type,
 } from '../../../ui';
+import { styles, getDetectedCardStyle } from './NewTransactionDetectedModal.styles';
 
 function getCategoryList(transactionType) {
   return transactionType === 'income' ? CATEGORIES.INCOME : CATEGORIES.EXPENSE;
@@ -25,21 +21,6 @@ export default function NewTransactionDetectedModal({ visible, transaction, onCo
   const { accounts, activeAccountId } = useAccounts();
   const [selectedCategory, setSelectedCategory] = useState('other_expense');
   const [selectedAccountId, setSelectedAccountId] = useState(null);
-  const gridItemWidth = '31.5%';
-  const subtleTileShadow = {
-    elevation: 1,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
-  };
-  const subtleIconShadow = {
-    elevation: 1,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 1.5,
-  };
 
   useEffect(() => {
     const defaultAccountId = transaction?.accountId || activeAccountId || accounts[0]?.id || null;
@@ -76,19 +57,9 @@ export default function NewTransactionDetectedModal({ visible, transaction, onCo
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onCancel}>
-      <AppView style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(8,14,28,0.34)' }}>
-        <AppView
-          style={{
-            maxHeight: '90%',
-            backgroundColor: palette.surface,
-            borderTopLeftRadius: layout.modalSheetRadius,
-            borderTopRightRadius: layout.modalSheetRadius,
-            paddingHorizontal: spacing.xl,
-            paddingTop: spacing.xl,
-            paddingBottom: spacing.xxl,
-          }}
-        >
-          <AppView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+      <AppView style={styles.overlay}>
+        <AppView style={styles.sheet}>
+          <AppView style={styles.headerRow}>
             <TouchableOpacity onPress={onCancel}>
               <AppIcon name="close" size={22} color={palette.textPrimary} />
             </TouchableOpacity>
@@ -98,20 +69,17 @@ export default function NewTransactionDetectedModal({ visible, transaction, onCo
             </TouchableOpacity>
           </AppView>
 
-          <ScrollView style={{ marginTop: spacing.lg }} showsVerticalScrollIndicator={false}>
+          <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
             <AppCard
-              style={{
-                backgroundColor: transaction.type === 'income' ? palette.success : palette.danger,
-                borderWidth: borderWidth.none,
-              }}
+              style={[styles.detectedCard, getDetectedCardStyle(transaction.type === 'income')]}
             >
               <AppText variant="label" color={palette.surface}>TRANSACTION DETECTED</AppText>
-              <AppView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.sm }}>
-                <AppView style={{ flex: 1, paddingRight: spacing.md }}>
+              <AppView style={styles.detectedRow}>
+                <AppView style={styles.detectedLeft}>
                   <AppText variant="h4" color={palette.surface} numberOfLines={2}>
                     {transaction.description || 'Bank Transaction'}
                   </AppText>
-                  <AppText variant="caption" color={palette.surface} style={{ opacity: 0.9, marginTop: spacing.xs }}>
+                  <AppText variant="caption" color={palette.surface} style={styles.detectedMeta}>
                     {transaction.bank || 'Unknown Bank'} • {txDate.toLocaleDateString()}
                   </AppText>
                 </AppView>
@@ -123,9 +91,9 @@ export default function NewTransactionDetectedModal({ visible, transaction, onCo
             </AppCard>
 
             {requiresAccountChoice ? (
-              <AppCard style={{ marginTop: spacing.md }}>
+              <AppCard style={styles.sectionCard}>
                 <AppText variant="label" color={palette.textPrimary}>Select Account</AppText>
-                <AppView style={{ marginTop: spacing.sm, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                <AppView style={styles.gridWrap}>
                   {accounts.length === 0 ? (
                     <AppText variant="body" color={palette.textSecondary}>
                       No accounts found. Add an account first to save this transaction.
@@ -138,33 +106,19 @@ export default function NewTransactionDetectedModal({ visible, transaction, onCo
                           key={account.id}
                           onPress={() => setSelectedAccountId(account.id)}
                           activeOpacity={0.86}
-                          style={{
-                            width: gridItemWidth,
-                            borderRadius: radius.lg,
-                            borderWidth: selected ? borderWidth.sm : borderWidth.none,
-                            borderColor: selected ? palette.primary : palette.border,
-                            backgroundColor: selected ? palette.primarySoft : palette.surface,
-                            paddingVertical: spacing.sm,
-                            paddingHorizontal: spacing.sm,
-                            marginBottom: spacing.sm,
-                            ...subtleTileShadow,
-                          }}
+                          style={[
+                            styles.gridTile,
+                            selected ? styles.gridTileSelected : styles.gridTileDefault,
+                            styles.tileShadow,
+                          ]}
                         >
-                          <AppView style={{ alignItems: 'center', justifyContent: 'center' }}>
+                          <AppView style={styles.tileContent}>
                             <AppView
-                              style={{
-                                width: 28,
-                                height: 28,
-                                borderRadius: radius.full,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                backgroundColor: palette.surface,
-                                ...subtleIconShadow,
-                              }}
+                              style={[styles.tileIconWrap, styles.iconShadow]}
                             >
                               <AppIcon name="account-balance" size={16} color={selected ? palette.primary : palette.textSecondary} />
                             </AppView>
-                            <AppText variant="caption" color={selected ? palette.primaryDark : palette.textPrimary} numberOfLines={1} style={{ marginTop: spacing.xs }}>
+                            <AppText variant="caption" color={selected ? palette.primaryDark : palette.textPrimary} numberOfLines={1} style={styles.tileLabel}>
                               {account.name}
                             </AppText>
                             <AppText variant="caption" color={selected ? palette.primaryDark : palette.textSecondary} numberOfLines={1}>
@@ -179,11 +133,11 @@ export default function NewTransactionDetectedModal({ visible, transaction, onCo
               </AppCard>
             ) : null}
 
-            <AppCard style={{ marginTop: spacing.md }}>
+            <AppCard style={styles.sectionCard}>
               <AppText variant="label" color={palette.textPrimary}>
                 Select Category ({transaction.type === 'income' ? 'Income' : 'Expense'})
               </AppText>
-              <AppView style={{ marginTop: spacing.sm, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+              <AppView style={styles.gridWrap}>
                 {categories.map((category) => {
                   const selected = selectedCategory === category.id;
                   return (
@@ -191,33 +145,19 @@ export default function NewTransactionDetectedModal({ visible, transaction, onCo
                       key={category.id}
                       onPress={() => setSelectedCategory(category.id)}
                       activeOpacity={0.86}
-                      style={{
-                        width: gridItemWidth,
-                        borderRadius: radius.lg,
-                        borderWidth: selected ? borderWidth.sm : borderWidth.none,
-                        borderColor: selected ? palette.primary : palette.border,
-                        backgroundColor: selected ? palette.primarySoft : palette.surface,
-                        paddingVertical: spacing.sm,
-                        paddingHorizontal: spacing.sm,
-                        marginBottom: spacing.sm,
-                        ...subtleTileShadow,
-                      }}
+                      style={[
+                        styles.gridTile,
+                        selected ? styles.gridTileSelected : styles.gridTileDefault,
+                        styles.tileShadow,
+                      ]}
                     >
-                      <AppView style={{ alignItems: 'center', justifyContent: 'center' }}>
+                      <AppView style={styles.tileContent}>
                         <AppView
-                          style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: radius.full,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            backgroundColor: palette.surface,
-                            ...subtleIconShadow,
-                          }}
+                          style={[styles.tileIconWrap, styles.iconShadow]}
                         >
                           <AppIcon name={category.icon} size={16} color={selected ? palette.primary : palette.textSecondary} />
                         </AppView>
-                        <AppText variant="caption" color={selected ? palette.primaryDark : palette.textSecondary} numberOfLines={2} style={{ textAlign: 'center', marginTop: spacing.xs }}>
+                        <AppText variant="caption" color={selected ? palette.primaryDark : palette.textSecondary} numberOfLines={2} style={styles.tileLabelCentered}>
                           {category.name}
                         </AppText>
                       </AppView>
@@ -227,16 +167,16 @@ export default function NewTransactionDetectedModal({ visible, transaction, onCo
               </AppView>
             </AppCard>
 
-            <AppCard style={{ marginTop: spacing.md }}>
+            <AppCard style={styles.sectionCard}>
               <AppText variant="label" color={palette.textSecondary}>SMS Content</AppText>
-              <AppText variant="body" color={palette.textSecondary} style={{ marginTop: spacing.sm, lineHeight: type.body.lineHeight }}>
+              <AppText variant="body" color={palette.textSecondary} style={styles.smsContent}>
                 {transaction.smsData?.rawSMS || transaction.rawSMS || 'No SMS content available.'}
               </AppText>
             </AppCard>
 
-            <AppView style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg, marginBottom: spacing.md }}>
-              <AppButton title="Ignore" variant="ghost" onPress={onCancel} style={{ flex: 1 }} />
-              <AppButton title="Add Transaction" onPress={handleConfirm} style={{ flex: 1 }} />
+            <AppView style={styles.footerRow}>
+              <AppButton title="Ignore" variant="ghost" onPress={onCancel} style={styles.footerButton} />
+              <AppButton title="Add Transaction" onPress={handleConfirm} style={styles.footerButton} />
             </AppView>
           </ScrollView>
         </AppView>

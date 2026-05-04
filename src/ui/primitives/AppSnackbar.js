@@ -3,7 +3,8 @@ import { Animated } from 'react-native';
 import AppIcon from './AppIcon';
 import AppText from './AppText';
 import AppView from './AppView';
-import { palette, radius, shadows, spacing, sizing } from '../theme/tokens';
+import { palette, sizing } from '../theme/tokens';
+import { styles, getSnackbarToneStyle } from './AppSnackbar.styles';
 
 const variantConfig = {
   success: { background: palette.success, icon: 'check-circle' },
@@ -61,23 +62,14 @@ export default function AppSnackbar({
   return (
     <Animated.View
       style={[
-        {
-          backgroundColor: tone.background,
-          borderRadius: radius.lg,
-          paddingVertical: spacing.md,
-          paddingHorizontal: spacing.lg,
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: spacing.sm,
-          opacity,
-          ...shadows.floating,
-          zIndex: 9999,
-        },
+        styles.container,
+        getSnackbarToneStyle(tone.background),
+        { opacity },
         style,
       ]}
     >
       <AppIcon name={icon || tone.icon} size={sizing.icon.md} color={palette.surface} />
-      <AppText variant="bodyBold" color={palette.surface} style={{ flex: 1 }}>
+      <AppText variant="bodyBold" color={palette.surface} style={styles.message}>
         {message}
       </AppText>
     </Animated.View>
