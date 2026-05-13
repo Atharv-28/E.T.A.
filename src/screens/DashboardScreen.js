@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Modal, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
 import { useAccounts } from '../context/AccountContext';
 import TransactionRow from '../modules/transactions/components/TransactionRow';
+import AddTransactionModal from '../components/AddTransactionModal';
 import {
   AppButton,
   AppCard,
@@ -39,9 +40,6 @@ export default function DashboardScreen({ onManualTransaction }) {
   const { activeAccount } = useAccounts();
 
   const [addVisible, setAddVisible] = useState(false);
-  const [type, setType] = useState('expense');
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('Manual Entry');
 
   const accountTransactions = useMemo(() => {
     if (!activeAccount) return [];
@@ -63,29 +61,21 @@ export default function DashboardScreen({ onManualTransaction }) {
   const savingsRate = monthlyIncome > 0 ? Math.max(0, Math.min(100, ((balance / monthlyIncome) * 100))) : 0;
   const recent = accountTransactions.slice(0, 6);
 
-  const submitManual = () => {
-    const numericAmount = Number(amount);
-    if (!numericAmount || numericAmount <= 0) return;
-
+  const handleAddTransaction = (transaction) => {
     const payload = {
-      amount: numericAmount,
-      type,
-      description,
-      date: new Date().toISOString(),
-      accountId: null,
+      ...transaction,
+      accountId: activeAccount?.id || null,
       accountNumber: null,
       bank: 'Manual Entry',
-      rawSMS: `Manual ${type} entry`,
+      rawSMS: `Manual ${transaction.type} entry`,
       smsData: {
         sender: 'Manual',
-        date: new Date().toISOString(),
+        date: transaction.date,
         rawSMS: 'Manual entry',
       },
     };
 
     setAddVisible(false);
-    setAmount('');
-    setDescription('Manual Entry');
     if (onManualTransaction) onManualTransaction(payload);
   };
 
@@ -185,44 +175,11 @@ export default function DashboardScreen({ onManualTransaction }) {
         <AppIcon name="add" size={sizing.icon.xxl} color={palette.surface} />
       </TouchableOpacity>
 
-      <Modal visible={addVisible} transparent animationType="slide" onRequestClose={() => setAddVisible(false)}>
-        <AppView
-          style={styles.modalOverlay}
-        >
-          <AppView
-            style={styles.modalSheet}
-          >
-            <AppText variant="h3">Add Transaction</AppText>
-            <AppChipTabs
-              value={type}
-              onChange={setType}
-              tabs={[
-                { label: 'Expense', value: 'expense' },
-                { label: 'Income', value: 'income' },
-              ]}
-            />
-            <AppInput
-              label="Amount"
-              value={amount}
-              onChangeText={setAmount}
-              placeholder="0.00"
-              keyboardType="numeric"
-              leftIcon="currency-rupee"
-            />
-            <AppInput
-              label="Description"
-              value={description}
-              onChangeText={setDescription}
-              placeholder="What is this for?"
-              leftIcon="edit"
-            />
-            <AppView style={styles.modalFooter}>
-              <AppButton title="Cancel" variant="ghost" onPress={() => setAddVisible(false)} style={styles.modalButton} />
-              <AppButton title="Continue" onPress={submitManual} style={styles.modalButton} />
-            </AppView>
-          </AppView>
-        </AppView>
-      </Modal>
+      <AddTransactionModal
+        visible={addVisible}
+        onClose={() => setAddVisible(false)}
+        onAddTransaction={handleAddTransaction}
+      />
     </>
   );
 }

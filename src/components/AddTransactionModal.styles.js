@@ -50,9 +50,15 @@ export const styles = StyleSheet.create({
   categoryList: {
     marginTop: spacing.sm,
     gap: spacing.sm,
+    borderWidth: borderWidth.sm,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    padding: spacing.sm,
+    borderRadius: radius.lg,
   },
   categoryOption: {
-    width: '100%',
+    width: '25%',
     borderRadius: radius.lg,
     borderWidth: borderWidth.sm,
     paddingVertical: spacing.md,
