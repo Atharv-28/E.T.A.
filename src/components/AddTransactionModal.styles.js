@@ -50,7 +50,6 @@ export const styles = StyleSheet.create({
   categoryList: {
     marginTop: spacing.sm,
     gap: spacing.sm,
-    borderWidth: borderWidth.sm,
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
@@ -63,6 +62,8 @@ export const styles = StyleSheet.create({
     borderWidth: borderWidth.sm,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   categoryOptionSelected: {
     borderColor: palette.primary,

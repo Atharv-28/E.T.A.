@@ -71,11 +71,6 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
       return;
     }
 
-    if (!selectedCategory) {
-      showSnackbar('Please select a category.', 'error', 'warning');
-      return;
-    }
-
     const numericAmount = parseFloat(amount);
     if (Number.isNaN(numericAmount) || numericAmount <= 0) {
       showSnackbar('Please enter a valid amount.', 'error', 'warning');
@@ -212,7 +207,7 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
                 Use this for adding older debit/expense entries.
               </AppText>
             </AppCard>
-
+{/* 
             <AppCard style={styles.cardSpacing}>
               <AppText variant="label" color={palette.textSecondary}>Category</AppText>
               <AppView style={styles.categoryList}>
@@ -245,7 +240,7 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
                   );
                 })}
               </AppView>
-            </AppCard>
+            </AppCard> */}
 
             <AppView style={styles.footerRow}>
               <AppButton title="Cancel" variant="ghost" onPress={onClose} style={styles.footerButton} />
