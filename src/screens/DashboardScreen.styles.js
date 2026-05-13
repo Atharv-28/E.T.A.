@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { borderWidth, layout, opacity, palette, radius, sizing, spacing } from '../ui';
+import { borderWidth, opacity, palette, radius, sizing, spacing } from '../ui';
 
 export const styles = StyleSheet.create({
   heroCard: {
@@ -33,32 +33,41 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  savingsRow: {
+  summaryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  categoryBarTrack: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    height: spacing.sm,
+    borderRadius: radius.pill,
+    backgroundColor: '#E5EBF8',
+    overflow: 'hidden',
   },
-  savingsText: {
-    flex: 1,
+  categoryBarSegment: {
+    height: '100%',
   },
-  savingsValue: {
-    marginTop: spacing.sm,
-  },
-  savingsIcon: {
-    width: sizing.avatar.xl,
-    height: sizing.avatar.xl,
-    borderRadius: radius.full,
-    backgroundColor: '#DCE6FB',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  progress: {
+  categoryLegend: {
     marginTop: spacing.lg,
+    gap: spacing.sm,
+  },
+  categoryLegendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  categoryLegendDot: {
+    width: spacing.sm,
+    height: spacing.sm,
+    borderRadius: radius.full,
   },
   fab: {
     position: 'absolute',
     right: spacing.xl,
-    bottom: layout.screenBottomInset - spacing.sm,
+    bottom: sizing.nav.barPaddingBottom + spacing.sm,
     width: sizing.control.fab,
     height: sizing.control.fab,
     borderRadius: radius.full,
@@ -70,24 +79,5 @@ export const styles = StyleSheet.create({
     shadowOffset: { width: spacing.none, height: sizing.card.modalFabOffset },
     shadowOpacity: opacity.lg,
     shadowRadius: 14,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(9,14,28,0.35)',
-  },
-  modalSheet: {
-    backgroundColor: palette.surface,
-    borderTopLeftRadius: layout.modalSheetRadius,
-    borderTopRightRadius: layout.modalSheetRadius,
-    padding: spacing.xl,
-    gap: spacing.lg,
-  },
-  modalFooter: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  modalButton: {
-    flex: 1,
   },
 });

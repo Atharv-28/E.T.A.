@@ -7,16 +7,16 @@ import AddTransactionModal from '../components/AddTransactionModal';
 import {
   AppButton,
   AppCard,
-  AppChipTabs,
   AppIcon,
-  AppInput,
   AppProgressBar,
   AppScreenLayout,
   AppView,
   AppText,
   palette,
   sizing,
+  spacing,
 } from '../ui';
+import { formatCurrency } from '../utils/currency';
 import { styles } from './DashboardScreen.styles';
 
 function getCategoryIcon(categoryId, type) {
@@ -50,15 +50,60 @@ export default function DashboardScreen({ onManualTransaction }) {
   const year = new Date().getFullYear();
 
   const monthlyIncome = accountTransactions
-    .filter((t) => new Date(t.date).getMonth() === month && new Date(t.date).getFullYear() === year && t.type === 'income')
+    .filter((t) => {
+      const date = new Date(t.date);
+      return date.getMonth() === month && date.getFullYear() === year && t.type === 'income';
+    })
     .reduce((sum, t) => sum + Number(t.amount || 0), 0);
 
-  const monthlyExpense = accountTransactions
-    .filter((t) => new Date(t.date).getMonth() === month && new Date(t.date).getFullYear() === year && (t.type === 'expense' || t.type === 'debit'))
-    .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  const monthlyExpenseItems = useMemo(() => (
+    accountTransactions.filter((t) => {
+      const date = new Date(t.date);
+      return date.getMonth() === month
+        && date.getFullYear() === year
+        && (t.type === 'expense' || t.type === 'debit');
+    })
+  ), [accountTransactions, month, year]);
 
-  const balance = monthlyIncome - monthlyExpense;
-  const savingsRate = monthlyIncome > 0 ? Math.max(0, Math.min(100, ((balance / monthlyIncome) * 100))) : 0;
+  const monthlyExpense = monthlyExpenseItems.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+  const categoryColors = [
+    '#0D6EFD',
+    '#0D9488',
+    '#F59E0B',
+    '#C20E37',
+    '#64748B',
+  ];
+
+  const monthlyExpenseSummary = useMemo(() => {
+    const totals = {};
+    monthlyExpenseItems.forEach((item) => {
+      const key = item.category || 'other_expense';
+      totals[key] = (totals[key] || 0) + Number(item.amount || 0);
+    });
+
+    const total = Object.values(totals).reduce((sum, value) => sum + value, 0);
+    const rows = Object.keys(totals)
+      .map((categoryId, index) => {
+        const category = CATEGORIES.EXPENSE.find((c) => c.id === categoryId) || {
+          name: 'Other',
+          icon: 'receipt-long',
+        };
+        const amount = totals[categoryId];
+        return {
+          id: categoryId,
+          name: category.name,
+          icon: category.icon,
+          amount,
+          percent: total ? (amount / total) * 100 : 0,
+          color: categoryColors[index % categoryColors.length],
+        };
+      })
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+
+    return { total, rows };
+  }, [monthlyExpenseItems]);
   const recent = accountTransactions.slice(0, 6);
 
   const handleAddTransaction = (transaction) => {
@@ -82,20 +127,12 @@ export default function DashboardScreen({ onManualTransaction }) {
   return (
     <>
       <AppScreenLayout>
-        <AppCard
-          style={styles.heroCard}
-        >
+        <AppCard style={styles.heroCard}>
           <AppText variant="label" color="#BFD6FF" style={styles.heroLabel}>
-            THIS MONTH BALANCE
+            THIS MONTH
           </AppText>
-          <AppText variant="h2" color={palette.surface} style={styles.heroBalance}>
-            {balance < 0 ? '-' : ''}₹{Math.abs(balance).toFixed(2)}
-          </AppText>
-
           <AppView style={styles.heroRow}>
-            <AppView
-              style={styles.heroBox}
-            >
+            <AppView style={styles.heroBox}>
               <AppText variant="h4" color="#91F1E7">
                 INCOME
               </AppText>
@@ -103,9 +140,7 @@ export default function DashboardScreen({ onManualTransaction }) {
                 +₹{monthlyIncome.toFixed(2)}
               </AppText>
             </AppView>
-            <AppView
-              style={styles.heroBox}
-            >
+            <AppView style={styles.heroBox}>
               <AppText variant="h4" color="#FFCAD7">
                 EXPENSES
               </AppText>
@@ -122,20 +157,45 @@ export default function DashboardScreen({ onManualTransaction }) {
         </AppView>
 
         <AppCard>
-          <AppView style={styles.savingsRow}>
-            <AppView style={styles.savingsText}>
-              <AppText variant="h3">Savings Rate</AppText>
-              <AppText variant="h3" color={palette.primary} style={styles.savingsValue}>
-                {savingsRate.toFixed(1)}%
-              </AppText>
-            </AppView>
-            <AppView
-              style={styles.savingsIcon}
-            >
-                <AppIcon name="bar-chart" size={sizing.icon.xl} color={palette.primary} />
-            </AppView>
+          <AppView style={styles.summaryHeader}>
+            <AppText variant="h3">This Month Categories</AppText>
+            <AppText variant="body" color={palette.textSecondary}>
+              {formatCurrency(monthlyExpenseSummary.total || 0)} total
+            </AppText>
           </AppView>
-          <AppProgressBar value={savingsRate} color={palette.primary} style={styles.progress} />
+
+          {monthlyExpenseSummary.rows.length === 0 ? (
+            <AppText variant="body" color={palette.textSecondary}>
+              No expense data for this month.
+            </AppText>
+          ) : (
+            <AppView>
+              <AppView style={styles.categoryBarTrack}>
+                {monthlyExpenseSummary.rows.map((row) => (
+                  <AppView
+                    key={row.id}
+                    style={[
+                      styles.categoryBarSegment,
+                      { backgroundColor: row.color, flexGrow: row.percent || 0, flexBasis: 0 },
+                    ]}
+                  />
+                ))}
+              </AppView>
+              <AppView style={styles.categoryLegend}>
+                {monthlyExpenseSummary.rows.map((row) => (
+                  <AppView key={row.id} style={styles.categoryLegendRow}>
+                    <AppView style={[styles.categoryLegendDot, { backgroundColor: row.color }]} />
+                    <AppText variant="bodyBold" style={{ flex: 1 }}>
+                      {row.name}
+                    </AppText>
+                    <AppText variant="body" color={palette.textSecondary}>
+                      {formatCurrency(row.amount)}
+                    </AppText>
+                  </AppView>
+                ))}
+              </AppView>
+            </AppView>
+          )}
         </AppCard>
 
         <AppView style={styles.sectionHeader}>
