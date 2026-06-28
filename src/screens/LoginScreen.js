@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   AppButton,
   AppCard,
@@ -46,11 +47,12 @@ export default function LoginScreen({ onAccountSetup, isFirstTime = false, onClo
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <AppScreenLayout>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <AppScreenLayout>
         {!isFirstTime ? (
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <AppIcon name="close" size={24} color={palette.textSecondary} />
@@ -64,7 +66,7 @@ export default function LoginScreen({ onAccountSetup, isFirstTime = false, onClo
             <AppIcon name="account-balance" size={sizing.avatar.xl - spacing.sm} color={palette.primary} />
           </AppView>
           <AppText variant="h2" style={styles.heroTitle}>
-            {isFirstTime ? 'Welcome to Financier' : 'Add Bank Account'}
+            {isFirstTime ? 'Welcome to E.T.A.' : 'Add Bank Account'}
           </AppText>
           <AppText
             variant="body"
@@ -134,15 +136,10 @@ export default function LoginScreen({ onAccountSetup, isFirstTime = false, onClo
                 Transactions can be auto-detected from SMS alerts.
               </AppText>
             </AppView>
-            <AppView style={styles.infoRow}>
-              <AppIcon name="offline-bolt" size={20} color={palette.success} />
-              <AppText variant="body" color={palette.textSecondary} style={styles.infoText}>
-                Works offline with local-only processing.
-              </AppText>
-            </AppView>
           </AppView>
         </AppCard>
-      </AppScreenLayout>
-    </KeyboardAvoidingView>
+        </AppScreenLayout>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

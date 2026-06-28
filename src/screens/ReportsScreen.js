@@ -33,16 +33,19 @@ export default function ReportsScreen() {
   const { activeAccountId } = useAccounts();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
 
-  const scoped = useMemo(() => {
+  const accountTransactions = useMemo(() => {
     const base = Array.isArray(transactions) ? transactions : [];
+    return base.filter((item) => item.accountId === activeAccountId);
+  }, [transactions, activeAccountId]);
+
+  const scoped = useMemo(() => {
     const now = new Date();
 
-    return base.filter((item) => {
-      if (item.accountId !== activeAccountId) return false;
+    return accountTransactions.filter((item) => {
       const date = new Date(item.date);
       return getPeriodFilter(selectedPeriod, date, now);
     });
-  }, [transactions, activeAccountId, selectedPeriod]);
+  }, [accountTransactions, selectedPeriod]);
 
   const totals = useMemo(() => {
     const income = scoped.filter((x) => x.type === 'income').reduce((sum, x) => sum + Number(x.amount || 0), 0);
@@ -91,13 +94,23 @@ export default function ReportsScreen() {
     const incomeData = [];
     const expenseData = [];
 
-    for (let i = 5; i >= 0; i -= 1) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    if (accountTransactions.length === 0) {
+      return { labels, incomeData, expenseData, chartWidth: 0 };
+    }
+
+    const ordered = accountTransactions
+      .slice()
+      .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+    const earliest = new Date(ordered[0].date || now);
+    const start = new Date(earliest.getFullYear(), earliest.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    for (let cursor = new Date(start); cursor <= end; cursor.setMonth(cursor.getMonth() + 1)) {
+      const date = new Date(cursor);
       const label = date.toLocaleDateString('en-US', { month: 'short' });
       labels.push(label);
 
-      const monthItems = transactions.filter((item) => {
-        if (item.accountId !== activeAccountId) return false;
+      const monthItems = accountTransactions.filter((item) => {
         const d = new Date(item.date);
         return d.getFullYear() === date.getFullYear() && d.getMonth() === date.getMonth();
       });
@@ -111,9 +124,8 @@ export default function ReportsScreen() {
     }
 
     return { labels, incomeData, expenseData };
-  }, [transactions, activeAccountId]);
+  }, [accountTransactions]);
 
-  const transportExpense = categoryRows[0]?.amount || 0;
   const totalExpense = totals.expense || 1;
   const pieSegments = categoryRows.map((row, index) => ({
     id: row.id,
@@ -193,18 +205,9 @@ export default function ReportsScreen() {
         ))
       )}
 
-      <AppCard style={styles.optimizeCard}>
-        <AppText variant="h3" color={palette.surface}>
-          Optimize Your Spending
-        </AppText>
-        <AppText variant="body" color="#DCE7FF" style={styles.optimizeText}>
-          Based on your trends, reducing your top category by 10% can improve savings noticeably.
-        </AppText>
-      </AppCard>
-
       <AppCard>
         <AppText variant="h3" style={styles.trendTitle}>
-          6-Month Trend
+          Spending Trend
         </AppText>
         <AppLineChart labels={trend.labels} incomeData={trend.incomeData} expenseData={trend.expenseData} />
       </AppCard>
