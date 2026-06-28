@@ -18,18 +18,21 @@ export const styles = StyleSheet.create({
     top: '50%',
     left: 0,
     right: 0,
-    transform: [{ translateY: -34 }],
-    alignItems: 'center',
+    transform: [{ translateY: -14 }],
+    alignItems: 'flex-end',
     pointerEvents: 'none',
   },
   categoryLegend: {
     marginTop: spacing.lg,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
     gap: spacing.sm,
   },
   legendItem: {
-    backgroundColor: palette.primaryTint,
-    borderWidth: borderWidth.none,
+    width: '48%',
     paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
   },
   legendRow: {
     flexDirection: 'row',
@@ -43,9 +46,12 @@ export const styles = StyleSheet.create({
   },
   legendTextWrap: {
     flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   legendValue: {
-    marginTop: spacing.xs,
+    // marginTop: spacing.xs,
   },
   sectionHeader: {
     flexDirection: 'row',

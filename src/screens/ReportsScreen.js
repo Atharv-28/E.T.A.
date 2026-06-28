@@ -115,6 +115,12 @@ export default function ReportsScreen() {
 
   const transportExpense = categoryRows[0]?.amount || 0;
   const totalExpense = totals.expense || 1;
+  const pieSegments = categoryRows.map((row, index) => ({
+    id: row.id,
+    name: row.name,
+    amount: row.amount,
+    color: [palette.primary, '#7EE6DD', '#F59E0B', '#8B5CF6', '#10B981'][index] || palette.textMuted,
+  }));
 
   return (
     <AppScreenLayout>
@@ -131,7 +137,7 @@ export default function ReportsScreen() {
 
       <AppCard>
         <AppView style={styles.donutWrap}>
-          <AppDonutChart total={totals.expense} ratio={transportExpense / totalExpense} />
+          <AppDonutChart total={totals.expense} segments={pieSegments} />
           <AppView style={styles.donutOverlay}>
             <AppText variant="bodyBold" color={palette.textSecondary}>
               Total Spent
@@ -142,19 +148,23 @@ export default function ReportsScreen() {
           </AppView>
         </AppView>
 
-        <AppView style={styles.statRow}>
-          <AppCard style={styles.statCard}>
-            <AppText variant="body">Transportation</AppText>
-            <AppText variant="h3" style={styles.statValue}>
-              {Math.round((transportExpense / totalExpense) * 100)}%
-            </AppText>
-          </AppCard>
-          <AppCard style={styles.statCard}>
-            <AppText variant="body">Other Categories</AppText>
-            <AppText variant="h3" style={styles.statValue}>
-              {100 - Math.round((transportExpense / totalExpense) * 100)}%
-            </AppText>
-          </AppCard>
+        <AppView style={styles.categoryLegend}>
+          {pieSegments.map((segment) => (
+            <AppView key={segment.id} style={styles.legendItem}>
+              <AppView style={styles.legendRow}>
+                <AppView style={[styles.legendDot, { backgroundColor: segment.color }]} />
+                <AppView style={styles.legendTextWrap}>
+                  <AppText variant="body">{segment.name}</AppText>
+                  <AppText variant="caption" color={palette.textSecondary}>
+                    ₹{segment.amount.toFixed(2)}
+                  </AppText>
+                  <AppText variant="caption" style={styles.legendValue}>
+                    {Math.round((segment.amount / totalExpense) * 100)}%
+                  </AppText>
+                </AppView>
+              </AppView>
+            </AppView>
+          ))}
         </AppView>
       </AppCard>
 

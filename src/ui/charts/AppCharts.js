@@ -53,24 +53,34 @@ export function AppLineChart({ labels, incomeData, expenseData }) {
   );
 }
 
-export function AppDonutChart({ total, ratio = 0.7 }) {
-  const safeRatio = Math.max(0, Math.min(1, ratio));
-  const data = [
-    {
-      name: 'Main',
-      amount: safeRatio * 100,
-      color: palette.primary,
-      legendFontColor: palette.textPrimary,
-      legendFontSize: sizing.chart.legendNone,
-    },
-    {
-      name: 'Other',
-      amount: (1 - safeRatio) * 100,
-      color: '#7EE6DD',
-      legendFontColor: palette.textPrimary,
-      legendFontSize: sizing.chart.legendNone,
-    },
-  ];
+export function AppDonutChart({ total, ratio = 0.7, segments }) {
+  const data = Array.isArray(segments) && segments.length > 0
+    ? segments.map((segment) => ({
+        name: segment.name,
+        amount: segment.amount,
+        color: segment.color,
+        legendFontColor: palette.textPrimary,
+        legendFontSize: sizing.chart.legendNone,
+      }))
+    : (() => {
+        const safeRatio = Math.max(0, Math.min(1, ratio));
+        return [
+          {
+            name: 'Main',
+            amount: safeRatio * 100,
+            color: palette.primary,
+            legendFontColor: palette.textPrimary,
+            legendFontSize: sizing.chart.legendNone,
+          },
+          {
+            name: 'Other',
+            amount: (1 - safeRatio) * 100,
+            color: '#7EE6DD',
+            legendFontColor: palette.textPrimary,
+            legendFontSize: sizing.chart.legendNone,
+          },
+        ];
+      })();
 
   return (
     <PieChart
