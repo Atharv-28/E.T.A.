@@ -27,7 +27,6 @@ export default function AppHeaderBar({ title = 'E.T.A.' }) {
             ) : null}
           </AppView>
         </AppView>
-        <AppIcon name="notifications-none" size={sizing.icon.lg} color={palette.textMuted} />
       </AppView>
     </AppView>
   );

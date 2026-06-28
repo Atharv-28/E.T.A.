@@ -9,22 +9,42 @@ export const styles = StyleSheet.create({
   },
   donutWrap: {
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 320,
+    position: 'relative',
   },
   donutOverlay: {
-    marginTop: -180,
+    position: 'absolute',
+    top: '50%',
+    left: 0,
+    right: 0,
+    transform: [{ translateY: -34 }],
     alignItems: 'center',
+    pointerEvents: 'none',
   },
-  statRow: {
-    flexDirection: 'row',
-    gap: spacing.md,
+  categoryLegend: {
     marginTop: spacing.lg,
+    gap: spacing.sm,
   },
-  statCard: {
-    flex: 1,
+  legendItem: {
     backgroundColor: palette.primaryTint,
     borderWidth: borderWidth.none,
+    paddingVertical: spacing.sm,
   },
-  statValue: {
+  legendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  legendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 999,
+  },
+  legendTextWrap: {
+    flex: 1,
+  },
+  legendValue: {
     marginTop: spacing.xs,
   },
   sectionHeader: {

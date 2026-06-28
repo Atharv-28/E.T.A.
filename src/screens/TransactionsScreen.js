@@ -46,12 +46,15 @@ export default function TransactionsScreen() {
   }, [activeAccount, getTransactionsByAccount]);
 
   const filtered = useMemo(() => {
-    return accountTransactions.filter((item) => {
-      const matchFilter = filter === 'all' ? true : item.type === filter;
-      const sourceText = `${item.description || ''} ${item.bank || ''} ${item.category || ''}`.toLowerCase();
-      const matchQuery = !query.trim() || sourceText.includes(query.toLowerCase());
-      return matchFilter && matchQuery;
-    });
+    return accountTransactions
+      .slice()
+      .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+      .filter((item) => {
+        const matchFilter = filter === 'all' ? true : item.type === filter;
+        const sourceText = `${item.description || ''} ${item.bank || ''} ${item.category || ''}`.toLowerCase();
+        const matchQuery = !query.trim() || sourceText.includes(query.toLowerCase());
+        return matchFilter && matchQuery;
+      });
   }, [accountTransactions, filter, query]);
 
   const grouped = useMemo(() => {
