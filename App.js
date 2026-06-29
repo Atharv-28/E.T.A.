@@ -31,7 +31,8 @@ import { checkSMSPermissions } from './src/utils/permissions';
 import { palette } from './src/ui';
 
 // Styles
-import { styles } from './src/styles/GlobalStyles';
+import { styles as globalStyles } from './src/styles/GlobalStyles';
+import { styles as appStyles, getContainerInsetStyle, getToastContainerStyle } from './App.styles';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -371,6 +372,8 @@ function AppContent() {
       case 'dashboard':
         return (
           <DashboardScreen 
+            onViewAll={() => setActiveTab('transactions')}
+            onDetails={() => setActiveTab('reports')}
             onManualTransaction={(transaction) => {
               setPendingTransaction(transaction);
               setCategoryModalVisible(true);
@@ -390,10 +393,12 @@ function AppContent() {
           />
         );
       case 'reports':
-        return <ReportsScreen />;
+        return <ReportsScreen onSeeAll={() => setActiveTab('transactions')} />;
       default:
         return (
           <DashboardScreen 
+            onViewAll={() => setActiveTab('transactions')}
+            onDetails={() => setActiveTab('reports')}
             onManualTransaction={(transaction) => {
               setPendingTransaction(transaction);
               setCategoryModalVisible(true);
@@ -415,17 +420,17 @@ function AppContent() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: safeAreaInsets.top }]}> 
+    <View style={[globalStyles.container, getContainerInsetStyle(safeAreaInsets.top)]}>
       {matchedToast && (
-        <View style={{ position: 'absolute', top: safeAreaInsets.top + 8, left: 16, right: 16, zIndex: 9999 }}>
-          <View style={{ backgroundColor: '#222', padding: 12, borderRadius: 8, elevation: 6 }}>
-            <Text style={{ color: '#fff', fontWeight: '700' }}>{matchedToast.title}</Text>
-            <Text style={{ color: '#fff', opacity: 0.9 }}>{matchedToast.message}</Text>
+        <View style={getToastContainerStyle(safeAreaInsets.top)}>
+          <View style={appStyles.toastBox}>
+            <Text style={appStyles.toastTitle}>{matchedToast.title}</Text>
+            <Text style={appStyles.toastMessage}>{matchedToast.message}</Text>
           </View>
         </View>
       )}
       <Header />
-      <View style={styles.content}>
+      <View style={globalStyles.content}>
         {renderScreen()}
       </View>
       <BottomNavigation activeTab={activeTab} setActiveTab={setActiveTab} />

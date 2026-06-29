@@ -1,26 +1,23 @@
 import React, { useMemo, useState } from 'react';
-import { Modal, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
 import { useAccounts } from '../context/AccountContext';
 import TransactionRow from '../modules/transactions/components/TransactionRow';
+import AddTransactionModal from '../components/AddTransactionModal';
 import {
   AppButton,
   AppCard,
-  AppChipTabs,
   AppIcon,
-  AppInput,
   AppProgressBar,
   AppScreenLayout,
   AppView,
   AppText,
   palette,
-  spacing,
-  radius,
   sizing,
-  layout,
-  opacity,
-  borderWidth,
+  spacing,
 } from '../ui';
+import { formatCurrency } from '../utils/currency';
+import { styles } from './DashboardScreen.styles';
 
 function getCategoryIcon(categoryId, type) {
   const categories = type === 'income' ? CATEGORIES.INCOME : CATEGORIES.EXPENSE;
@@ -38,14 +35,11 @@ function formatDateLabel(dateString) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
 }
 
-export default function DashboardScreen({ onManualTransaction }) {
+export default function DashboardScreen({ onManualTransaction, onViewAll, onDetails }) {
   const { getTransactionsByAccount } = useTransactions();
   const { activeAccount } = useAccounts();
 
   const [addVisible, setAddVisible] = useState(false);
-  const [type, setType] = useState('expense');
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('Manual Entry');
 
   const accountTransactions = useMemo(() => {
     if (!activeAccount) return [];
@@ -56,127 +50,157 @@ export default function DashboardScreen({ onManualTransaction }) {
   const year = new Date().getFullYear();
 
   const monthlyIncome = accountTransactions
-    .filter((t) => new Date(t.date).getMonth() === month && new Date(t.date).getFullYear() === year && t.type === 'income')
+    .filter((t) => {
+      const date = new Date(t.date);
+      return date.getMonth() === month && date.getFullYear() === year && t.type === 'income';
+    })
     .reduce((sum, t) => sum + Number(t.amount || 0), 0);
 
-  const monthlyExpense = accountTransactions
-    .filter((t) => new Date(t.date).getMonth() === month && new Date(t.date).getFullYear() === year && (t.type === 'expense' || t.type === 'debit'))
-    .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  const monthlyExpenseItems = useMemo(() => (
+    accountTransactions.filter((t) => {
+      const date = new Date(t.date);
+      return date.getMonth() === month
+        && date.getFullYear() === year
+        && (t.type === 'expense' || t.type === 'debit');
+    })
+  ), [accountTransactions, month, year]);
 
-  const balance = monthlyIncome - monthlyExpense;
-  const savingsRate = monthlyIncome > 0 ? Math.max(0, Math.min(100, ((balance / monthlyIncome) * 100))) : 0;
+  const monthlyExpense = monthlyExpenseItems.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+  const categoryColors = [
+    '#0D6EFD',
+    '#0D9488',
+    '#F59E0B',
+    '#C20E37',
+    '#64748B',
+  ];
+
+  const monthlyExpenseSummary = useMemo(() => {
+    const totals = {};
+    monthlyExpenseItems.forEach((item) => {
+      const key = item.category || 'other_expense';
+      totals[key] = (totals[key] || 0) + Number(item.amount || 0);
+    });
+
+    const total = Object.values(totals).reduce((sum, value) => sum + value, 0);
+    const rows = Object.keys(totals)
+      .map((categoryId, index) => {
+        const category = CATEGORIES.EXPENSE.find((c) => c.id === categoryId) || {
+          name: 'Other',
+          icon: 'receipt-long',
+        };
+        const amount = totals[categoryId];
+        return {
+          id: categoryId,
+          name: category.name,
+          icon: category.icon,
+          amount,
+          percent: total ? (amount / total) * 100 : 0,
+          color: categoryColors[index % categoryColors.length],
+        };
+      })
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+
+    return { total, rows };
+  }, [monthlyExpenseItems]);
   const recent = accountTransactions.slice(0, 6);
 
-  const submitManual = () => {
-    const numericAmount = Number(amount);
-    if (!numericAmount || numericAmount <= 0) return;
-
+  const handleAddTransaction = (transaction) => {
     const payload = {
-      amount: numericAmount,
-      type,
-      description,
-      date: new Date().toISOString(),
-      accountId: null,
+      ...transaction,
+      accountId: activeAccount?.id || null,
       accountNumber: null,
       bank: 'Manual Entry',
-      rawSMS: `Manual ${type} entry`,
+      rawSMS: `Manual ${transaction.type} entry`,
       smsData: {
         sender: 'Manual',
-        date: new Date().toISOString(),
+        date: transaction.date,
         rawSMS: 'Manual entry',
       },
     };
 
     setAddVisible(false);
-    setAmount('');
-    setDescription('Manual Entry');
     if (onManualTransaction) onManualTransaction(payload);
   };
 
   return (
     <>
       <AppScreenLayout>
-        <AppCard
-          style={{
-            backgroundColor: palette.primary,
-            borderWidth: borderWidth.none,
-            borderRadius: radius.xxl + spacing.sm,
-            padding: spacing.xxl,
-          }}
-        >
-          <AppText variant="label" color="#BFD6FF" style={{ letterSpacing: 2 }}>
-            THIS MONTH BALANCE
+        <AppCard style={styles.heroCard}>
+          <AppText variant="label" color="#BFD6FF" style={styles.heroLabel}>
+            THIS MONTH
           </AppText>
-          <AppText variant="h2" color={palette.surface} style={{ marginTop: spacing.sm }}>
-            {balance < 0 ? '-' : ''}₹{Math.abs(balance).toFixed(2)}
-          </AppText>
-
-          <AppView style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl }}>
-            <AppView
-              style={{
-                flex: 1,
-                borderRadius: radius.xl,
-                backgroundColor: 'rgba(255,255,255,0.14)',
-                padding: spacing.lg,
-              }}
-            >
+          <AppView style={styles.heroRow}>
+            <AppView style={styles.heroBox}>
               <AppText variant="h4" color="#91F1E7">
                 INCOME
               </AppText>
-              <AppText variant="h4" color={palette.surface} style={{ marginTop: spacing.xs }}>
+              <AppText variant="h4" color={palette.surface} style={styles.heroBoxAmount}>
                 +₹{monthlyIncome.toFixed(2)}
               </AppText>
             </AppView>
-            <AppView
-              style={{
-                flex: 1,
-                borderRadius: radius.xl,
-                backgroundColor: 'rgba(255,255,255,0.14)',
-                padding: spacing.lg,
-              }}
-            >
+            <AppView style={styles.heroBox}>
               <AppText variant="h4" color="#FFCAD7">
                 EXPENSES
               </AppText>
-              <AppText variant="h4" color={palette.surface} style={{ marginTop: spacing.xs }}>
+              <AppText variant="h4" color={palette.surface} style={styles.heroBoxAmount}>
                 -₹{monthlyExpense.toFixed(2)}
               </AppText>
             </AppView>
           </AppView>
         </AppCard>
 
-        <AppView style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <AppView style={styles.sectionHeader}>
           <AppText variant="h3">Monthly Summary</AppText>
-          <AppButton title="Details" variant="ghost" />
+          <AppButton title="Details" variant="ghost" onPress={onDetails} />
         </AppView>
 
         <AppCard>
-          <AppView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <AppView style={{ flex: 1 }}>
-              <AppText variant="h3">Savings Rate</AppText>
-              <AppText variant="h3" color={palette.primary} style={{ marginTop: spacing.sm }}>
-                {savingsRate.toFixed(1)}%
-              </AppText>
-            </AppView>
-            <AppView
-              style={{
-                  width: sizing.avatar.xl,
-                  height: sizing.avatar.xl,
-                  borderRadius: radius.full,
-                backgroundColor: '#DCE6FB',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-                <AppIcon name="bar-chart" size={sizing.icon.xl} color={palette.primary} />
-            </AppView>
+          <AppView style={styles.summaryHeader}>
+            <AppText variant="h3">This Month Categories</AppText>
+            <AppText variant="body" color={palette.textSecondary}>
+              {formatCurrency(monthlyExpenseSummary.total || 0)} total
+            </AppText>
           </AppView>
-          <AppProgressBar value={savingsRate} color={palette.primary} style={{ marginTop: spacing.lg }} />
+
+          {monthlyExpenseSummary.rows.length === 0 ? (
+            <AppText variant="body" color={palette.textSecondary}>
+              No expense data for this month.
+            </AppText>
+          ) : (
+            <AppView>
+              <AppView style={styles.categoryBarTrack}>
+                {monthlyExpenseSummary.rows.map((row) => (
+                  <AppView
+                    key={row.id}
+                    style={[
+                      styles.categoryBarSegment,
+                      { backgroundColor: row.color, flexGrow: row.percent || 0, flexBasis: 0 },
+                    ]}
+                  />
+                ))}
+              </AppView>
+              <AppView style={styles.categoryLegend}>
+                {monthlyExpenseSummary.rows.map((row) => (
+                  <AppView key={row.id} style={styles.categoryLegendRow}>
+                    <AppView style={[styles.categoryLegendDot, { backgroundColor: row.color }]} />
+                    <AppText variant="bodyBold" style={{ flex: 1 }}>
+                      {row.name}
+                    </AppText>
+                    <AppText variant="body" color={palette.textSecondary}>
+                      {formatCurrency(row.amount)}
+                    </AppText>
+                  </AppView>
+                ))}
+              </AppView>
+            </AppView>
+          )}
         </AppCard>
 
-        <AppView style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <AppView style={styles.sectionHeader}>
           <AppText variant="h3">Recent Transactions</AppText>
-          <AppButton title="View all" variant="secondary" />
+          <AppButton title="View all" variant="secondary" onPress={onViewAll} />
         </AppView>
 
         {recent.length === 0 ? (
@@ -206,74 +230,16 @@ export default function DashboardScreen({ onManualTransaction }) {
       <TouchableOpacity
         activeOpacity={0.86}
         onPress={() => setAddVisible(true)}
-        style={{
-          position: 'absolute',
-          right: spacing.xl,
-          bottom: layout.screenBottomInset - spacing.sm,
-          width: sizing.control.fab,
-          height: sizing.control.fab,
-          borderRadius: radius.full,
-          backgroundColor: palette.primary,
-          alignItems: 'center',
-          justifyContent: 'center',
-          elevation: 9,
-          shadowColor: '#0F172A',
-          shadowOffset: { width: spacing.none, height: sizing.card.modalFabOffset },
-          shadowOpacity: opacity.lg,
-          shadowRadius: 14,
-        }}
+        style={styles.fab}
       >
         <AppIcon name="add" size={sizing.icon.xxl} color={palette.surface} />
       </TouchableOpacity>
 
-      <Modal visible={addVisible} transparent animationType="slide" onRequestClose={() => setAddVisible(false)}>
-        <AppView
-          style={{
-            flex: 1,
-            justifyContent: 'flex-end',
-            backgroundColor: 'rgba(9,14,28,0.35)',
-          }}
-        >
-          <AppView
-            style={{
-              backgroundColor: palette.surface,
-              borderTopLeftRadius: layout.modalSheetRadius,
-              borderTopRightRadius: layout.modalSheetRadius,
-              padding: spacing.xl,
-              gap: spacing.lg,
-            }}
-          >
-            <AppText variant="h3">Add Transaction</AppText>
-            <AppChipTabs
-              value={type}
-              onChange={setType}
-              tabs={[
-                { label: 'Expense', value: 'expense' },
-                { label: 'Income', value: 'income' },
-              ]}
-            />
-            <AppInput
-              label="Amount"
-              value={amount}
-              onChangeText={setAmount}
-              placeholder="0.00"
-              keyboardType="numeric"
-              leftIcon="currency-rupee"
-            />
-            <AppInput
-              label="Description"
-              value={description}
-              onChangeText={setDescription}
-              placeholder="What is this for?"
-              leftIcon="edit"
-            />
-            <AppView style={{ flexDirection: 'row', gap: spacing.md }}>
-              <AppButton title="Cancel" variant="ghost" onPress={() => setAddVisible(false)} style={{ flex: 1 }} />
-              <AppButton title="Continue" onPress={submitManual} style={{ flex: 1 }} />
-            </AppView>
-          </AppView>
-        </AppView>
-      </Modal>
+      <AddTransactionModal
+        visible={addVisible}
+        onClose={() => setAddVisible(false)}
+        onAddTransaction={handleAddTransaction}
+      />
     </>
   );
 }

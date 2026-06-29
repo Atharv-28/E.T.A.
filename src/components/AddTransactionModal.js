@@ -8,6 +8,7 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { CATEGORIES } from '../context/TransactionContext';
 import { useAccounts } from '../context/AccountContext';
+import { styles } from './AddTransactionModal.styles';
 import {
   AppButton,
   AppCard,
@@ -17,12 +18,7 @@ import {
   AppSnackbar,
   AppText,
   AppView,
-  borderWidth,
-  layout,
   palette,
-  radius,
-  spacing,
-  type as typeScale,
 } from '../ui';
 
 function AddTransactionModal({ visible, onClose, onAddTransaction }) {
@@ -75,11 +71,6 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
       return;
     }
 
-    if (!selectedCategory) {
-      showSnackbar('Please select a category.', 'error', 'warning');
-      return;
-    }
-
     const numericAmount = parseFloat(amount);
     if (Number.isNaN(numericAmount) || numericAmount <= 0) {
       showSnackbar('Please enter a valid amount.', 'error', 'warning');
@@ -127,17 +118,9 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
       transparent
       onRequestClose={onClose}
     >
-      <AppView style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(8,14,28,0.34)' }}>
+      <AppView style={styles.overlay}>
         <AppView
-          style={{
-            maxHeight: '92%',
-            backgroundColor: palette.surface,
-            borderTopLeftRadius: layout.modalSheetRadius,
-            borderTopRightRadius: layout.modalSheetRadius,
-            paddingHorizontal: spacing.xl,
-            paddingTop: spacing.xl,
-            paddingBottom: spacing.xxl,
-          }}
+          style={styles.sheet}
         >
           <AppSnackbar
             visible={snackbar.visible}
@@ -145,10 +128,10 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
             variant={snackbar.variant}
             icon={snackbar.icon}
             onDismiss={() => setSnackbar((prev) => ({ ...prev, visible: false }))}
-            style={{ position: 'absolute', top: spacing.lg, left: spacing.xl, right: spacing.xl, bottom: 'auto' }}
+            style={styles.snackbar}
           />
 
-          <AppView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <AppView style={styles.headerRow}>
             <TouchableOpacity onPress={onClose}>
               <AppIcon name="close" size={22} color={palette.textPrimary} />
             </TouchableOpacity>
@@ -158,7 +141,7 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
             </TouchableOpacity>
           </AppView>
 
-          <ScrollView style={{ marginTop: spacing.lg }} showsVerticalScrollIndicator={false}>
+          <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
             <AppCard>
               <AppText variant="label" color={palette.textSecondary}>Transaction Type</AppText>
               <AppChipTabs
@@ -171,11 +154,11 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
                   { label: 'Income', value: 'income' },
                   { label: 'Expense', value: 'expense' },
                 ]}
-                style={{ marginTop: spacing.sm }}
+                style={styles.chipTabs}
               />
             </AppCard>
 
-            <AppCard style={{ marginTop: spacing.md }}>
+            <AppCard style={styles.cardSpacing}>
               <AppInput
                 label="Amount"
                 value={amount}
@@ -190,7 +173,7 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
                 value={description}
                 onChangeText={setDescription}
                 placeholder="Manual entry (optional)"
-                style={{ marginTop: spacing.md }}
+                style={styles.inputSpacing}
                 leftIcon="edit"
               />
 
@@ -199,7 +182,7 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
                 value={dateOverride}
                 onChangeText={setDateOverride}
                 placeholder="YYYY-MM-DD"
-                style={{ marginTop: spacing.md }}
+                style={styles.inputSpacing}
                 leftIcon="event"
               />
 
@@ -207,7 +190,7 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
                 title="Pick Date"
                 variant="ghost"
                 onPress={() => setShowDatePicker(true)}
-                style={{ alignSelf: 'flex-start', marginTop: spacing.sm }}
+                style={styles.pickDate}
               />
 
               {showDatePicker ? (
@@ -220,14 +203,14 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
                 />
               ) : null}
 
-              <AppText variant="caption" color={palette.textSecondary} style={{ marginTop: spacing.xs }}>
+              <AppText variant="caption" color={palette.textSecondary} style={styles.caption}>
                 Use this for adding older debit/expense entries.
               </AppText>
             </AppCard>
-
-            <AppCard style={{ marginTop: spacing.md }}>
+{/* 
+            <AppCard style={styles.cardSpacing}>
               <AppText variant="label" color={palette.textSecondary}>Category</AppText>
-              <AppView style={{ marginTop: spacing.sm, gap: spacing.sm }}>
+              <AppView style={styles.categoryList}>
                 {currentCategories.map((category) => {
                   const selected = selectedCategory === category.id;
                   return (
@@ -235,23 +218,18 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
                       key={category.id}
                       onPress={() => setSelectedCategory(category.id)}
                       activeOpacity={0.86}
-                      style={{
-                        width: '100%',
-                        borderRadius: radius.lg,
-                        borderWidth: borderWidth.sm,
-                        borderColor: selected ? palette.primary : palette.border,
-                        backgroundColor: selected ? palette.primarySoft : palette.surface,
-                        paddingVertical: spacing.md,
-                        paddingHorizontal: spacing.md,
-                      }}
+                      style={[
+                        styles.categoryOption,
+                        selected ? styles.categoryOptionSelected : styles.categoryOptionDefault,
+                      ]}
                     >
-                      <AppView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <AppView style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 }}>
+                      <AppView style={styles.categoryRow}>
+                        <AppView style={styles.categoryRowContent}>
                           <AppIcon name={category.icon} size={20} color={selected ? palette.primary : palette.textPrimary} />
                           <AppText
                             variant="body"
                             color={selected ? palette.primaryDark : palette.textPrimary}
-                            style={{ fontSize: typeScale.body.fontSize }}
+                            style={styles.categoryLabel}
                           >
                             {category.name}
                           </AppText>
@@ -262,11 +240,11 @@ function AddTransactionModal({ visible, onClose, onAddTransaction }) {
                   );
                 })}
               </AppView>
-            </AppCard>
+            </AppCard> */}
 
-            <AppView style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg, marginBottom: spacing.md }}>
-              <AppButton title="Cancel" variant="ghost" onPress={onClose} style={{ flex: 1 }} />
-              <AppButton title="Save" onPress={handleSubmit} style={{ flex: 1 }} />
+            <AppView style={styles.footerRow}>
+              <AppButton title="Cancel" variant="ghost" onPress={onClose} style={styles.footerButton} />
+              <AppButton title="Save" onPress={handleSubmit} style={styles.footerButton} />
             </AppView>
           </ScrollView>
         </AppView>

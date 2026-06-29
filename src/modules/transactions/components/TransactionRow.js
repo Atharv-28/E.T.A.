@@ -1,6 +1,7 @@
 import React from 'react';
-import { AppCard, AppText, AppIcon, AppView, palette, spacing, sizing, radius } from '../../../ui';
+import { AppCard, AppText, AppIcon, AppView, palette, sizing } from '../../../ui';
 import { formatCurrency } from '../../../utils/currency';
+import { styles, getIconTileToneStyle } from './TransactionRow.styles';
 
 export default function TransactionRow({
   title,
@@ -12,23 +13,13 @@ export default function TransactionRow({
   onRight,
 }) {
   return (
-    <AppCard style={{ marginBottom: spacing.md }}>
-      <AppView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <AppView style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <AppView
-            style={{
-              width: sizing.control.input + spacing.xxs,
-              height: sizing.control.input + spacing.xxs,
-              borderRadius: radius.lg,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: income ? '#DFF6F2' : '#FDECEF',
-              marginRight: spacing.md,
-            }}
-          >
+    <AppCard style={styles.card}>
+      <AppView style={styles.row}>
+        <AppView style={styles.rowLeft}>
+          <AppView style={[styles.iconTile, getIconTileToneStyle(income)]}>
             <AppIcon name={icon} size={sizing.icon.lg} color={income ? palette.success : palette.danger} />
           </AppView>
-          <AppView style={{ flex: 1, paddingRight: spacing.sm }}>
+          <AppView style={styles.textCol}>
             <AppText variant="h4" numberOfLines={1}>
               {title}
             </AppText>
@@ -37,7 +28,7 @@ export default function TransactionRow({
             </AppText>
           </AppView>
         </AppView>
-        <AppView style={{ alignItems: 'flex-end', minWidth: sizing.card.transactionMetaWidth }}>
+        <AppView style={styles.metaCol}>
           <AppText variant="h4" color={income ? palette.success : palette.danger}>
             {income ? '+' : '-'}{formatCurrency(amount)}
           </AppText>

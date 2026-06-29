@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { styles, getFallbackIconStyle } from './CustomIcon.styles';
 
 // Fallback icon mappings for when vector icons don't work
 const ICON_FALLBACKS = {
@@ -71,7 +72,7 @@ function CustomIcon({ name, size = 24, color = '#000', style, fallbackOnly = fal
   // If fallbackOnly is true, always use emoji fallback
   if (fallbackOnly) {
     return (
-      <Text style={[{ fontSize: size - 4, color }, style]}>
+      <Text style={[styles.fallbackIcon, getFallbackIconStyle(size, color), style]}>
         {ICON_FALLBACKS[name] || '❓'}
       </Text>
     );
@@ -83,7 +84,7 @@ function CustomIcon({ name, size = 24, color = '#000', style, fallbackOnly = fal
   } catch (error) {
     console.warn(`Icon "${name}" not found, using fallback`);
     return (
-      <Text style={[{ fontSize: size - 4, color }, style]}>
+      <Text style={[styles.fallbackIcon, getFallbackIconStyle(size, color), style]}>
         {ICON_FALLBACKS[name] || '❓'}
       </Text>
     );

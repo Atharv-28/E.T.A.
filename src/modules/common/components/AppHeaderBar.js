@@ -1,34 +1,20 @@
 import React from 'react';
 import { useAccounts } from '../../../context/AccountContext';
-import { AppText, AppIcon, AppCard, AppView, palette, spacing, borderWidth, sizing, radius } from '../../../ui';
+import { AppText, AppIcon, AppCard, AppView, palette, sizing } from '../../../ui';
+import { styles } from './AppHeaderBar.styles';
 
 export default function AppHeaderBar({ title = 'E.T.A.' }) {
   const { activeAccount } = useAccounts();
 
   return (
     <AppView
-      style={{
-        backgroundColor: palette.surface,
-        borderBottomWidth: borderWidth.sm,
-        borderBottomColor: '#EDF1FA',
-        paddingHorizontal: spacing.lg,
-        paddingBottom: spacing.md,
-        paddingTop: spacing.sm,
-      }}
+      style={styles.container}
     >
-      <AppView style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <AppView style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+      <AppView style={styles.row}>
+        <AppView style={styles.leftRow}>
           <AppCard
             padded={false}
-            style={{
-              width: sizing.avatar.sm,
-              height: sizing.avatar.sm,
-              borderRadius: radius.full,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#0A1A2F',
-              borderWidth: borderWidth.none,
-            }}
+            style={styles.iconCard}
           >
             <AppIcon name={(activeAccount && activeAccount.icon) || 'account-balance'} size={sizing.icon.md} color="#7EE6DD" />
           </AppCard>
@@ -41,7 +27,6 @@ export default function AppHeaderBar({ title = 'E.T.A.' }) {
             ) : null}
           </AppView>
         </AppView>
-        <AppIcon name="notifications-none" size={sizing.icon.lg} color={palette.textMuted} />
       </AppView>
     </AppView>
   );

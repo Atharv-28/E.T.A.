@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   AppButton,
   AppCard,
@@ -10,11 +11,10 @@ import {
   AppView,
   AppText,
   palette,
-  spacing,
   sizing,
-  radius,
-  layout,
+  spacing,
 } from '../ui';
+import { styles } from './LoginScreen.styles';
 
 const banks = [
   { id: 'icici', name: 'ICICI Bank' },
@@ -47,37 +47,31 @@ export default function LoginScreen({ onAccountSetup, isFirstTime = false, onClo
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: palette.background }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <AppScreenLayout>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <AppScreenLayout>
         {!isFirstTime ? (
-          <TouchableOpacity onPress={onClose} style={{ alignSelf: 'flex-end' }}>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <AppIcon name="close" size={24} color={palette.textSecondary} />
           </TouchableOpacity>
         ) : null}
 
-        <AppView style={{ alignItems: 'center', marginTop: spacing.md }}>
+        <AppView style={styles.hero}>
           <AppView
-            style={{
-              width: sizing.avatar.xxl,
-              height: sizing.avatar.xxl,
-              borderRadius: radius.full,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#E8F0FF',
-            }}
+            style={styles.heroIcon}
           >
             <AppIcon name="account-balance" size={sizing.avatar.xl - spacing.sm} color={palette.primary} />
           </AppView>
-          <AppText variant="h2" style={{ marginTop: spacing.lg }}>
-            {isFirstTime ? 'Welcome to Financier' : 'Add Bank Account'}
+          <AppText variant="h2" style={styles.heroTitle}>
+            {isFirstTime ? 'Welcome to E.T.A.' : 'Add Bank Account'}
           </AppText>
           <AppText
             variant="body"
             color={palette.textSecondary}
-            style={{ textAlign: 'center', marginTop: spacing.sm }}
+            style={styles.heroSubtitle}
           >
             {isFirstTime
               ? 'Set up your first account to start automated transaction tracking.'
@@ -85,7 +79,7 @@ export default function LoginScreen({ onAccountSetup, isFirstTime = false, onClo
           </AppText>
         </AppView>
 
-        <AppCard style={{ marginTop: spacing.md }}>
+        <AppCard style={styles.formCard}>
           <AppInput
             label="Account Name"
             value={accountName}
@@ -94,14 +88,14 @@ export default function LoginScreen({ onAccountSetup, isFirstTime = false, onClo
             leftIcon="edit"
           />
 
-          <AppText variant="label" color={palette.textSecondary} style={{ marginTop: spacing.lg }}>
+          <AppText variant="label" color={palette.textSecondary} style={styles.labelSpacing}>
             Select Your Bank
           </AppText>
           <AppChipTabs
             value={selectedBank}
             onChange={setSelectedBank}
             tabs={banks.map((bank) => ({ value: bank.id, label: bank.name }))}
-            style={{ marginTop: spacing.sm }}
+            style={styles.tabsSpacing}
           />
 
           <AppInput
@@ -113,10 +107,10 @@ export default function LoginScreen({ onAccountSetup, isFirstTime = false, onClo
             keyboardType="numeric"
             placeholder="1234"
             leftIcon="lock"
-            style={{ marginTop: spacing.lg }}
+            style={styles.inputSpacing}
           />
 
-          <AppText variant="caption" color={palette.textSecondary} style={{ marginTop: spacing.sm }}>
+          <AppText variant="caption" color={palette.textSecondary} style={styles.caption}>
             We only use the last four digits to match SMS notifications.
           </AppText>
 
@@ -124,33 +118,28 @@ export default function LoginScreen({ onAccountSetup, isFirstTime = false, onClo
             title={isFirstTime ? 'Get Started' : 'Add Account'}
             onPress={submit}
             disabled={!selectedBank || accountNumber.length !== 4 || !accountName.trim()}
-            style={{ marginTop: spacing.xl }}
+            style={styles.submitButton}
           />
         </AppCard>
 
         <AppCard>
-          <AppView style={{ gap: spacing.md }}>
-            <AppView style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <AppView style={styles.infoStack}>
+            <AppView style={styles.infoRow}>
               <AppIcon name="security" size={20} color={palette.success} />
-              <AppText variant="body" color={palette.textSecondary} style={{ flex: 1 }}>
+              <AppText variant="body" color={palette.textSecondary} style={styles.infoText}>
                 Account data is stored securely on-device.
               </AppText>
             </AppView>
-            <AppView style={{ flexDirection: 'row', gap: spacing.sm }}>
+            <AppView style={styles.infoRow}>
               <AppIcon name="sms" size={20} color={palette.success} />
-              <AppText variant="body" color={palette.textSecondary} style={{ flex: 1 }}>
+              <AppText variant="body" color={palette.textSecondary} style={styles.infoText}>
                 Transactions can be auto-detected from SMS alerts.
-              </AppText>
-            </AppView>
-            <AppView style={{ flexDirection: 'row', gap: spacing.sm }}>
-              <AppIcon name="offline-bolt" size={20} color={palette.success} />
-              <AppText variant="body" color={palette.textSecondary} style={{ flex: 1 }}>
-                Works offline with local-only processing.
               </AppText>
             </AppView>
           </AppView>
         </AppCard>
-      </AppScreenLayout>
-    </KeyboardAvoidingView>
+        </AppScreenLayout>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
