@@ -19,7 +19,7 @@ import { styles } from './ReportsScreen.styles';
 
 const periodTabs = [
   { label: 'Month', value: 'month' },
-  { label: 'This Year', value: 'year' },
+  { label: 'Year', value: 'year' },
   { label: 'All Time', value: 'all' },
 ];
 
@@ -47,7 +47,9 @@ export default function ReportsScreen() {
   const { activeAccountId } = useAccounts();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedMonthKey, setSelectedMonthKey] = useState(getMonthKey(new Date()));
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [monthPickerVisible, setMonthPickerVisible] = useState(false);
+  const [yearPickerVisible, setYearPickerVisible] = useState(false);
 
   const accountTransactions = useMemo(() => {
     const base = Array.isArray(transactions) ? transactions : [];
@@ -72,6 +74,19 @@ export default function ReportsScreen() {
       .sort((a, b) => b.date - a.date);
   }, [accountTransactions]);
 
+  const availableYears = useMemo(() => {
+    const yearSet = new Set();
+
+    accountTransactions.forEach((item) => {
+      if (!item?.date) return;
+      const date = new Date(item.date);
+      if (Number.isNaN(date.getTime())) return;
+      yearSet.add(date.getFullYear());
+    });
+
+    return Array.from(yearSet).sort((a, b) => b - a);
+  }, [accountTransactions]);
+
   const selectedMonth = useMemo(() => {
     if (!selectedMonthKey) return null;
     return getMonthFromKey(selectedMonthKey);
@@ -87,6 +102,15 @@ export default function ReportsScreen() {
     }
   }, [availableMonths, selectedMonthKey, selectedPeriod]);
 
+  useEffect(() => {
+    if (selectedPeriod !== 'year') return;
+    if (availableYears.length === 0) return;
+
+    if (!availableYears.includes(selectedYear)) {
+      setSelectedYear(availableYears[0]);
+    }
+  }, [availableYears, selectedPeriod, selectedYear]);
+
   const scoped = useMemo(() => {
     const now = new Date();
 
@@ -95,9 +119,12 @@ export default function ReportsScreen() {
       if (selectedPeriod === 'month') {
         return selectedMonth ? getMonthKey(date) === getMonthKey(selectedMonth) : false;
       }
+      if (selectedPeriod === 'year') {
+        return date.getFullYear() === selectedYear;
+      }
       return getPeriodFilter(selectedPeriod, date, now);
     });
-  }, [accountTransactions, selectedMonth, selectedPeriod]);
+  }, [accountTransactions, selectedMonth, selectedPeriod, selectedYear]);
 
   const totals = useMemo(() => {
     const income = scoped.filter((x) => x.type === 'income').reduce((sum, x) => sum + Number(x.amount || 0), 0);
@@ -186,24 +213,35 @@ export default function ReportsScreen() {
     color: [palette.primary, '#7EE6DD', '#F59E0B', '#8B5CF6', '#10B981'][index] || palette.textMuted,
   }));
 
-  const selectedMonthLabel = selectedMonth ? formatMonthLabel(selectedMonth) : 'NO MONTHS';
+  const selectorLabel = selectedPeriod === 'year'
+    ? String(selectedYear)
+    : selectedPeriod === 'month'
+      ? (selectedMonth ? formatMonthLabel(selectedMonth) : 'NO MONTHS')
+      : null;
+
+  const openPeriodPicker = () => {
+    if (selectedPeriod === 'month') setMonthPickerVisible(true);
+    if (selectedPeriod === 'year') setYearPickerVisible(true);
+  };
 
   return (
     <AppScreenLayout>
       <AppView style={styles.headerRow}>
         <AppText variant="h2">Expense Analysis</AppText>
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => setMonthPickerVisible(true)}
-          style={styles.monthSelectorTrigger}
-        >
-          <AppBadge label={selectedMonthLabel} tone="neutral" />
-          <AppView style={styles.monthSelectorIconWrap}>
-            <AppText variant="caption" color={palette.textSecondary}>
-              ▼
-            </AppText>
-          </AppView>
-        </TouchableOpacity>
+        {selectorLabel ? (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={openPeriodPicker}
+            style={styles.monthSelectorTrigger}
+          >
+            <AppBadge label={selectorLabel} tone="neutral" />
+            <AppView style={styles.monthSelectorIconWrap}>
+              <AppText variant="caption" color={palette.textSecondary}>
+                ▼
+              </AppText>
+            </AppView>
+          </TouchableOpacity>
+        ) : null}
       </AppView>
 
       <AppText variant="body" color={palette.textSecondary}>
@@ -243,6 +281,48 @@ export default function ReportsScreen() {
                         color={isSelected ? palette.primary : palette.textPrimary}
                       >
                         {formatMonthLabel(month.date)}
+                      </AppText>
+                      {isSelected ? <AppText variant="caption" color={palette.primary}>Selected</AppText> : null}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal visible={yearPickerVisible} transparent animationType="fade" onRequestClose={() => setYearPickerVisible(false)}>
+        <Pressable style={styles.monthPickerBackdrop} onPress={() => setYearPickerVisible(false)}>
+          <Pressable style={styles.monthPickerPanel} onPress={() => {}}>
+            <AppText variant="h4" style={styles.monthPickerTitle}>
+              Select Year
+            </AppText>
+
+            {availableYears.length === 0 ? (
+              <AppText variant="body" color={palette.textSecondary}>
+                No year data available yet.
+              </AppText>
+            ) : (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {availableYears.map((year) => {
+                  const isSelected = year === selectedYear;
+                  return (
+                    <TouchableOpacity
+                      key={year}
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        setSelectedYear(year);
+                        setYearPickerVisible(false);
+                        setSelectedPeriod('year');
+                      }}
+                      style={[styles.monthOption, isSelected ? styles.monthOptionSelected : null]}
+                    >
+                      <AppText
+                        variant="bodyBold"
+                        color={isSelected ? palette.primary : palette.textPrimary}
+                      >
+                        {year}
                       </AppText>
                       {isSelected ? <AppText variant="caption" color={palette.primary}>Selected</AppText> : null}
                     </TouchableOpacity>
