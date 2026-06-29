@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Modal, Pressable, ScrollView, TouchableOpacity } from 'react-native';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
 import { useAccounts } from '../context/AccountContext';
 import CategorySpendCard from '../modules/reports/components/CategorySpendCard';
@@ -17,7 +18,7 @@ import {
 import { styles } from './ReportsScreen.styles';
 
 const periodTabs = [
-  { label: 'This Month', value: 'month' },
+  { label: 'Month', value: 'month' },
   { label: 'This Year', value: 'year' },
   { label: 'All Time', value: 'all' },
 ];
@@ -28,24 +29,75 @@ function getPeriodFilter(period, transactionDate, now) {
   return transactionDate.getMonth() === now.getMonth() && transactionDate.getFullYear() === now.getFullYear();
 }
 
+function getMonthKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function getMonthFromKey(key) {
+  const [year, month] = key.split('-').map(Number);
+  return new Date(year, month - 1, 1);
+}
+
+function formatMonthLabel(date) {
+  return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
+}
+
 export default function ReportsScreen() {
   const { transactions } = useTransactions();
   const { activeAccountId } = useAccounts();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const [selectedMonthKey, setSelectedMonthKey] = useState(getMonthKey(new Date()));
+  const [monthPickerVisible, setMonthPickerVisible] = useState(false);
 
   const accountTransactions = useMemo(() => {
     const base = Array.isArray(transactions) ? transactions : [];
     return base.filter((item) => item.accountId === activeAccountId);
   }, [transactions, activeAccountId]);
 
+  const availableMonths = useMemo(() => {
+    const monthMap = new Map();
+
+    accountTransactions.forEach((item) => {
+      if (!item?.date) return;
+      const date = new Date(item.date);
+      if (Number.isNaN(date.getTime())) return;
+      const key = getMonthKey(date);
+      if (!monthMap.has(key)) {
+        monthMap.set(key, new Date(date.getFullYear(), date.getMonth(), 1));
+      }
+    });
+
+    return Array.from(monthMap.entries())
+      .map(([key, date]) => ({ key, date }))
+      .sort((a, b) => b.date - a.date);
+  }, [accountTransactions]);
+
+  const selectedMonth = useMemo(() => {
+    if (!selectedMonthKey) return null;
+    return getMonthFromKey(selectedMonthKey);
+  }, [selectedMonthKey]);
+
+  useEffect(() => {
+    if (selectedPeriod !== 'month') return;
+    if (availableMonths.length === 0) return;
+
+    const hasSelectedMonth = availableMonths.some((month) => month.key === selectedMonthKey);
+    if (!hasSelectedMonth) {
+      setSelectedMonthKey(availableMonths[0].key);
+    }
+  }, [availableMonths, selectedMonthKey, selectedPeriod]);
+
   const scoped = useMemo(() => {
     const now = new Date();
 
     return accountTransactions.filter((item) => {
       const date = new Date(item.date);
+      if (selectedPeriod === 'month') {
+        return selectedMonth ? getMonthKey(date) === getMonthKey(selectedMonth) : false;
+      }
       return getPeriodFilter(selectedPeriod, date, now);
     });
-  }, [accountTransactions, selectedPeriod]);
+  }, [accountTransactions, selectedMonth, selectedPeriod]);
 
   const totals = useMemo(() => {
     const income = scoped.filter((x) => x.type === 'income').reduce((sum, x) => sum + Number(x.amount || 0), 0);
@@ -134,11 +186,24 @@ export default function ReportsScreen() {
     color: [palette.primary, '#7EE6DD', '#F59E0B', '#8B5CF6', '#10B981'][index] || palette.textMuted,
   }));
 
+  const selectedMonthLabel = selectedMonth ? formatMonthLabel(selectedMonth) : 'NO MONTHS';
+
   return (
     <AppScreenLayout>
       <AppView style={styles.headerRow}>
         <AppText variant="h2">Expense Analysis</AppText>
-        <AppBadge label={new Date().toLocaleDateString('en-US', { month: 'long' }).toUpperCase()} />
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => setMonthPickerVisible(true)}
+          style={styles.monthSelectorTrigger}
+        >
+          <AppBadge label={selectedMonthLabel} tone="neutral" />
+          <AppView style={styles.monthSelectorIconWrap}>
+            <AppText variant="caption" color={palette.textSecondary}>
+              ▼
+            </AppText>
+          </AppView>
+        </TouchableOpacity>
       </AppView>
 
       <AppText variant="body" color={palette.textSecondary}>
@@ -146,6 +211,48 @@ export default function ReportsScreen() {
       </AppText>
 
       <AppChipTabs value={selectedPeriod} onChange={setSelectedPeriod} tabs={periodTabs} />
+
+      <Modal visible={monthPickerVisible} transparent animationType="fade" onRequestClose={() => setMonthPickerVisible(false)}>
+        <Pressable style={styles.monthPickerBackdrop} onPress={() => setMonthPickerVisible(false)}>
+          <Pressable style={styles.monthPickerPanel} onPress={() => {}}>
+            <AppText variant="h4" style={styles.monthPickerTitle}>
+              Select Month
+            </AppText>
+
+            {availableMonths.length === 0 ? (
+              <AppText variant="body" color={palette.textSecondary}>
+                No month data available yet.
+              </AppText>
+            ) : (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {availableMonths.map((month) => {
+                  const isSelected = month.key === selectedMonthKey;
+                  return (
+                    <TouchableOpacity
+                      key={month.key}
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        setSelectedMonthKey(month.key);
+                        setMonthPickerVisible(false);
+                        setSelectedPeriod('month');
+                      }}
+                      style={[styles.monthOption, isSelected ? styles.monthOptionSelected : null]}
+                    >
+                      <AppText
+                        variant="bodyBold"
+                        color={isSelected ? palette.primary : palette.textPrimary}
+                      >
+                        {formatMonthLabel(month.date)}
+                      </AppText>
+                      {isSelected ? <AppText variant="caption" color={palette.primary}>Selected</AppText> : null}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       <AppCard>
         <AppView style={styles.donutWrap}>

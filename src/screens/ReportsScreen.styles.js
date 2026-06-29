@@ -1,11 +1,55 @@
 import { StyleSheet } from 'react-native';
-import { borderWidth, palette, spacing } from '../ui';
+import { borderWidth, palette, radius, spacing, sizing } from '../ui';
 
 export const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  monthSelectorTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  monthSelectorIconWrap: {
+    marginTop: 2,
+  },
+  monthPickerBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.28)',
+    justifyContent: 'flex-start',
+    paddingHorizontal: spacing.lg,
+    paddingTop: 96,
+  },
+  monthPickerPanel: {
+    backgroundColor: palette.surface,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    maxHeight: 360,
+    ...{
+      shadowColor: '#0F172A',
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.12,
+      shadowRadius: 18,
+      elevation: 8,
+    },
+  },
+  monthPickerTitle: {
+    marginBottom: spacing.md,
+  },
+  monthOption: {
+    minHeight: sizing.control.button,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  monthOptionSelected: {
+    backgroundColor: palette.primarySoft,
   },
   donutWrap: {
     alignItems: 'center',
