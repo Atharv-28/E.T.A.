@@ -5,7 +5,7 @@ import { styles } from './AppBottomTabs.styles';
 
 const tabItems = [
   { key: 'dashboard', label: 'Overview', icon: 'grid-view' },
-  { key: 'transactions', label: 'Activity', icon: 'receipt-long' },
+  { key: 'transactions', label: 'History', icon: 'receipt-long' },
   { key: 'reports', label: 'Reports', icon: 'bar-chart' },
   { key: 'accounts', label: 'Vault', icon: 'account-balance' },
 ];

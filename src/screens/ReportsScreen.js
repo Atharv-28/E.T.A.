@@ -42,7 +42,7 @@ function formatMonthLabel(date) {
   return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
 }
 
-export default function ReportsScreen() {
+export default function ReportsScreen({ onSeeAll }) {
   const { transactions } = useTransactions();
   const { activeAccountId } = useAccounts();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
@@ -369,7 +369,7 @@ export default function ReportsScreen() {
 
       <AppView style={styles.sectionHeader}>
         <AppText variant="h3">Top Expense Categories</AppText>
-        <AppButton title="See All" variant="ghost" />
+        <AppButton title="See All" variant="ghost" onPress={onSeeAll} />
       </AppView>
 
       {categoryRows.length === 0 ? (

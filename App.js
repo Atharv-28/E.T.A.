@@ -372,6 +372,8 @@ function AppContent() {
       case 'dashboard':
         return (
           <DashboardScreen 
+            onViewAll={() => setActiveTab('transactions')}
+            onDetails={() => setActiveTab('reports')}
             onManualTransaction={(transaction) => {
               setPendingTransaction(transaction);
               setCategoryModalVisible(true);
@@ -391,10 +393,12 @@ function AppContent() {
           />
         );
       case 'reports':
-        return <ReportsScreen />;
+        return <ReportsScreen onSeeAll={() => setActiveTab('transactions')} />;
       default:
         return (
           <DashboardScreen 
+            onViewAll={() => setActiveTab('transactions')}
+            onDetails={() => setActiveTab('reports')}
             onManualTransaction={(transaction) => {
               setPendingTransaction(transaction);
               setCategoryModalVisible(true);

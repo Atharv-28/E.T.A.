@@ -35,7 +35,7 @@ function formatDateLabel(dateString) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
 }
 
-export default function DashboardScreen({ onManualTransaction }) {
+export default function DashboardScreen({ onManualTransaction, onViewAll, onDetails }) {
   const { getTransactionsByAccount } = useTransactions();
   const { activeAccount } = useAccounts();
 
@@ -153,7 +153,7 @@ export default function DashboardScreen({ onManualTransaction }) {
 
         <AppView style={styles.sectionHeader}>
           <AppText variant="h3">Monthly Summary</AppText>
-          <AppButton title="Details" variant="ghost" />
+          <AppButton title="Details" variant="ghost" onPress={onDetails} />
         </AppView>
 
         <AppCard>
@@ -200,7 +200,7 @@ export default function DashboardScreen({ onManualTransaction }) {
 
         <AppView style={styles.sectionHeader}>
           <AppText variant="h3">Recent Transactions</AppText>
-          <AppButton title="View all" variant="secondary" />
+          <AppButton title="View all" variant="secondary" onPress={onViewAll} />
         </AppView>
 
         {recent.length === 0 ? (
