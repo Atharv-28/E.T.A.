@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { loadAccounts, saveAccounts, loadSettings, saveSettings } from '../utils/storage';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import FirestoreService from '../services/FirestoreService';
 
 // Create the Account context
 const AccountContext = createContext();
@@ -12,7 +12,7 @@ export const ACCOUNT_TYPES = {
     color: '#3498db',
   },
   BUSINESS: {
-    id: 'business', 
+    id: 'business',
     name: 'Business',
     icon: 'business',
     color: '#e67e22',
@@ -38,103 +38,104 @@ export const ACCOUNT_TYPES = {
 };
 
 // Account Provider Component
-export function AccountProvider({ children }) {
+// uid: The Firebase user ID — all Firestore reads/writes are scoped to this user.
+export function AccountProvider({ children, uid }) {
   const [accounts, setAccounts] = useState([]);
   const [activeAccountId, setActiveAccountId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const unsubscribeRef = useRef(null);
 
-  // Load accounts from storage on app start
   useEffect(() => {
-    loadAccountsFromStorage();
-  }, []);
-
-  // Save accounts to storage whenever accounts change
-  useEffect(() => {
-    if (!isLoading) {
-      saveAccountsToStorage();
-    }
-  }, [accounts, activeAccountId, isLoading]);
-
-  const loadAccountsFromStorage = async () => {
-    try {
-      // loadAccounts returns an object { accounts, activeAccountId }
-      const stored = await loadAccounts();
-      const storedAccounts = Array.isArray(stored.accounts) ? stored.accounts : [];
-      const storedActiveId = stored.activeAccountId || null;
-
-      if (storedAccounts.length > 0) {
-        setAccounts(storedAccounts);
-
-        if (storedActiveId && storedAccounts.find(acc => acc.id === storedActiveId)) {
-          setActiveAccountId(storedActiveId);
-        } else {
-          setActiveAccountId(storedAccounts[0].id);
-        }
-      } else {
-        // No stored accounts - leave empty so onboarding/login can run
-        setAccounts([]);
-        setActiveAccountId(null);
-      }
-    } catch (error) {
-      console.error('Error loading accounts:', error);
-      // On error, do not create a default account; keep accounts empty and allow onboarding
+    // If no uid, clear state and don't subscribe
+    if (!uid) {
       setAccounts([]);
       setActiveAccountId(null);
-    } finally {
       setIsLoading(false);
+      return;
     }
-  };
 
-  const saveAccountsToStorage = async () => {
-    try {
-      // save both accounts and activeAccountId
-      await saveAccounts(accounts, activeAccountId);
-      // Also persist activeAccountId in settings for backward compatibility
-      const settings = await loadSettings();
-      await saveSettings({ ...settings, activeAccountId });
-    } catch (error) {
-      console.error('Error saving accounts:', error);
-    }
-  };
+    setIsLoading(true);
 
-  const createAccount = (accountData) => {
+    // Subscribe to Firestore real-time listener
+    const unsubscribe = FirestoreService.listenToAccounts(
+      uid,
+      ({ accounts: firestoreAccounts, activeAccountId: firestoreActiveId }) => {
+        setAccounts(firestoreAccounts);
+
+        // Resolve active account ID
+        if (firestoreActiveId && firestoreAccounts.find(a => a.id === firestoreActiveId)) {
+          setActiveAccountId(firestoreActiveId);
+        } else if (firestoreAccounts.length > 0) {
+          setActiveAccountId(firestoreAccounts[0].id);
+        } else {
+          setActiveAccountId(null);
+        }
+
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error('Error loading accounts from Firestore:', error);
+        setAccounts([]);
+        setActiveAccountId(null);
+        setIsLoading(false);
+      }
+    );
+
+    unsubscribeRef.current = unsubscribe;
+
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        unsubscribeRef.current = null;
+      }
+    };
+  }, [uid]);
+
+  const createAccount = async (accountData) => {
+    if (!uid) throw new Error('User not authenticated');
+
     const newAccount = {
       ...accountData,
       id: `account-${Date.now()}`,
       createdAt: new Date().toISOString(),
     };
-    
-    setAccounts(prev => [...prev, newAccount]);
-    // Set the newly created account as active immediately
-    setActiveAccountId(newAccount.id);
+
+    await FirestoreService.addAccount(uid, newAccount);
+
+    // Set as active account in Firestore metadata
+    await FirestoreService.setActiveAccountId(uid, newAccount.id);
+
+    // Local state updated automatically by onSnapshot listener
     return newAccount;
   };
 
-  const updateAccount = (accountId, updatedData) => {
-    setAccounts(prev => 
-      prev.map(account => 
-        account.id === accountId ? { ...account, ...updatedData } : account
-      )
-    );
+  const updateAccount = async (accountId, updatedData) => {
+    if (!uid) throw new Error('User not authenticated');
+    await FirestoreService.updateAccount(uid, accountId, updatedData);
   };
 
-  const deleteAccount = (accountId) => {
+  const deleteAccount = async (accountId) => {
+    if (!uid) throw new Error('User not authenticated');
     if (accounts.length <= 1) {
       throw new Error('Cannot delete the last account');
     }
-    
-    setAccounts(prev => prev.filter(account => account.id !== accountId));
-    
-    // If deleting active account, switch to first remaining account
+
+    await FirestoreService.deleteAccount(uid, accountId);
+
+    // If deleting active account, switch to first remaining
     if (activeAccountId === accountId) {
-      const remainingAccounts = accounts.filter(account => account.id !== accountId);
-      setActiveAccountId(remainingAccounts[0]?.id || null);
+      const remaining = accounts.filter(a => a.id !== accountId);
+      if (remaining.length > 0) {
+        await FirestoreService.setActiveAccountId(uid, remaining[0].id);
+      }
     }
   };
 
-  const switchAccount = (accountId) => {
-    if (accounts.find(account => account.id === accountId)) {
-      setActiveAccountId(accountId);
+  const switchAccount = async (accountId) => {
+    if (!uid) return;
+    if (accounts.find(a => a.id === accountId)) {
+      setActiveAccountId(accountId); // Optimistic local update
+      await FirestoreService.setActiveAccountId(uid, accountId);
     }
   };
 

@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { loadTransactions, saveTransactions } from '../utils/storage';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import FirestoreService from '../services/FirestoreService';
 
 // Create the context
 const TransactionContext = createContext();
@@ -28,65 +28,71 @@ export const CATEGORIES = {
 };
 
 // Context Provider Component
-export function TransactionProvider({ children }) {
+// uid: The Firebase user ID — all Firestore reads/writes are scoped to this user.
+export function TransactionProvider({ children, uid }) {
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const unsubscribeRef = useRef(null);
 
-  // Load transactions from AsyncStorage on app start
   useEffect(() => {
-    const loadStoredTransactions = async () => {
-      try {
-        setIsLoading(true);
-        const storedTransactions = await loadTransactions();
-        setTransactions(storedTransactions);
-      } catch (error) {
-        console.error('Error loading transactions:', error);
-        // If loading fails, start with empty array
+    // If no uid, clear state and don't subscribe
+    if (!uid) {
+      setTransactions([]);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+
+    // Subscribe to Firestore real-time listener
+    const unsubscribe = FirestoreService.listenToTransactions(
+      uid,
+      (firestoreTransactions) => {
+        setTransactions(firestoreTransactions);
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error('Error loading transactions from Firestore:', error);
         setTransactions([]);
-      } finally {
         setIsLoading(false);
       }
+    );
+
+    unsubscribeRef.current = unsubscribe;
+
+    // Cleanup listener when uid changes or component unmounts
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        unsubscribeRef.current = null;
+      }
     };
+  }, [uid]);
 
-    loadStoredTransactions();
-  }, []);
+  // Add new transaction — write to Firestore, real-time listener updates local state
+  const addTransaction = async (transaction) => {
+    if (!uid) throw new Error('User not authenticated');
 
-  // Save transactions to AsyncStorage whenever transactions change
-  useEffect(() => {
-    if (!isLoading && transactions.length >= 0) {
-      const saveData = async () => {
-        try {
-          await saveTransactions(transactions);
-        } catch (error) {
-          console.error('Error saving transactions:', error);
-        }
-      };
-      saveData();
-    }
-  }, [transactions, isLoading]);
-
-  // Add new transaction
-  const addTransaction = (transaction) => {
     const newTransaction = {
       ...transaction,
       id: Date.now().toString(),
       date: transaction?.date || new Date().toISOString(),
     };
-    setTransactions(prev => [newTransaction, ...prev]);
+
+    await FirestoreService.addTransaction(uid, newTransaction);
+    // Local state will be updated automatically by the onSnapshot listener
   };
 
   // Update transaction
-  const updateTransaction = (id, updatedTransaction) => {
-    setTransactions(prev => 
-      prev.map(transaction => 
-        transaction.id === id ? { ...transaction, ...updatedTransaction } : transaction
-      )
-    );
+  const updateTransaction = async (id, updatedTransaction) => {
+    if (!uid) throw new Error('User not authenticated');
+    await FirestoreService.updateTransaction(uid, id, updatedTransaction);
   };
 
   // Delete transaction
-  const deleteTransaction = (id) => {
-    setTransactions(prev => prev.filter(transaction => transaction.id !== id));
+  const deleteTransaction = async (id) => {
+    if (!uid) throw new Error('User not authenticated');
+    await FirestoreService.deleteTransaction(uid, id);
   };
 
   // Get transactions by type
@@ -101,7 +107,7 @@ export function TransactionProvider({ children }) {
 
   // Get transactions by type for specific account
   const getTransactionsByTypeForAccount = (type, accountId) => {
-    return transactions.filter(transaction => 
+    return transactions.filter(transaction =>
       transaction.type === type && transaction.accountId === accountId
     );
   };
@@ -110,7 +116,7 @@ export function TransactionProvider({ children }) {
   const getMonthlySpendingForAccount = (accountId) => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
-    
+
     return transactions
       .filter(transaction => {
         if (!transaction || !transaction.date) return false;
@@ -129,7 +135,7 @@ export function TransactionProvider({ children }) {
   const getMonthlySpending = () => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
-    
+
     return transactions
       .filter(transaction => {
         if (!transaction || !transaction.date) return false;
