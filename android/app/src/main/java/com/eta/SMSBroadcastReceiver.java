@@ -1,4 +1,4 @@
-package com.eta;
+package com.atharv.eta;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -28,7 +28,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
                 try {
                     Object[] pdus = (Object[]) bundle.get("pdus");
                     String format = bundle.getString("format");
-                    
+
                     if (pdus != null) {
                         for (Object pdu : pdus) {
                             SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) pdu, format);
@@ -36,15 +36,16 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
                                 String sender = smsMessage.getDisplayOriginatingAddress();
                                 String messageBody = smsMessage.getMessageBody();
                                 long timestamp = smsMessage.getTimestampMillis();
-                                
+
                                 Log.d(TAG, "SMS received from: " + sender);
                                 Log.d(TAG, "SMS body: " + messageBody);
-                                
+
                                 // Check if this is a transaction SMS
                                 if (isTransactionSMS(sender, messageBody)) {
                                     Log.d(TAG, "Transaction SMS detected, notifying React Native");
                                     SMSBridgeModule.notifyTransactionSMS(sender, messageBody, timestamp);
-                                    // Also post a local notification so user can tap to open the app with SMS payload
+                                    // Also post a local notification so user can tap to open the app with SMS
+                                    // payload
                                     try {
                                         createNotification(context, sender, messageBody, timestamp);
                                     } catch (Exception ne) {
@@ -68,8 +69,8 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 
         // Bank sender patterns
         String[] bankSenders = {
-            "BOIIND", "SBIINB", "HDFCBK", "ICICIB", "AXISBK", "KOTAKB", "YESBK", "INDUSB",
-            "BOI", "SBI", "HDFC", "ICICI", "AXIS", "KOTAK", "YES", "INDUS"
+                "BOIIND", "SBIINB", "HDFCBK", "ICICIB", "AXISBK", "KOTAKB", "YESBK", "INDUSB",
+                "BOI", "SBI", "HDFC", "ICICI", "AXIS", "KOTAK", "YES", "INDUS"
         };
 
         boolean isBankSender = false;
@@ -87,9 +88,9 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
         // Transaction keywords
         String upperMessage = messageBody.toUpperCase();
         String[] transactionKeywords = {
-            "DEBITED", "CREDITED", "DEBIT", "CREDIT", "WITHDRAWN", "DEPOSIT",
-            "PAYMENT", "TRANSFER", "TRANSACTION", "PURCHASE", "UPI", "NEFT", "RTGS",
-            "ATM", "POS", "CARD", "A/C", "ACCOUNT"
+                "DEBITED", "CREDITED", "DEBIT", "CREDIT", "WITHDRAWN", "DEPOSIT",
+                "PAYMENT", "TRANSFER", "TRANSACTION", "PURCHASE", "UPI", "NEFT", "RTGS",
+                "ATM", "POS", "CARD", "A/C", "ACCOUNT"
         };
 
         for (String keyword : transactionKeywords) {
@@ -101,17 +102,20 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
         return false;
     }
 
-    // Create a local notification with a PendingIntent that launches MainActivity and includes SMS payload
+    // Create a local notification with a PendingIntent that launches MainActivity
+    // and includes SMS payload
     private void createNotification(Context context, String sender, String messageBody, long timestamp) {
         try {
             String channelId = "SMS_MONITORING_CHANNEL";
             String channelName = "SMS Monitoring";
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH);
+                NotificationChannel channel = new NotificationChannel(channelId, channelName,
+                        NotificationManager.IMPORTANCE_HIGH);
                 channel.setDescription("Detected bank transaction SMS");
                 NotificationManager nm = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
-                if (nm != null) nm.createNotificationChannel(channel);
+                if (nm != null)
+                    nm.createNotificationChannel(channel);
             }
 
             Intent intent = new Intent(context, MainActivity.class);
@@ -121,22 +125,24 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
             PendingIntent pendingIntent = PendingIntent.getActivity(
-                context,
-                (int) (timestamp & 0xffffffff),
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-            );
+                    context,
+                    (int) (timestamp & 0xffffffff),
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setContentTitle("ETA: Transaction Detected")
-                .setContentText((sender != null ? sender + ": " : "") + (messageBody != null ? messageBody.length() > 40 ? messageBody.substring(0, 40) + "..." : messageBody : ""))
-                .setAutoCancel(true)
-                .setContentIntent(pendingIntent)
-                .setPriority(NotificationCompat.PRIORITY_HIGH);
+                    .setSmallIcon(android.R.drawable.ic_dialog_info)
+                    .setContentTitle("ETA: Transaction Detected")
+                    .setContentText((sender != null ? sender + ": " : "") + (messageBody != null
+                            ? messageBody.length() > 40 ? messageBody.substring(0, 40) + "..." : messageBody
+                            : ""))
+                    .setAutoCancel(true)
+                    .setContentIntent(pendingIntent)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH);
 
             NotificationManager nm2 = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
-            if (nm2 != null) nm2.notify((int) (timestamp & 0xffffffff), builder.build());
+            if (nm2 != null)
+                nm2.notify((int) (timestamp & 0xffffffff), builder.build());
         } catch (Exception e) {
             Log.e(TAG, "createNotification error", e);
         }

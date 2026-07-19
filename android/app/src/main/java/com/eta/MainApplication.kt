@@ -1,4 +1,4 @@
-package com.eta
+package com.atharv.eta
 
 import android.app.Application
 import com.facebook.react.PackageList

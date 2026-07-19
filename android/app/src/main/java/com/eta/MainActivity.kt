@@ -1,4 +1,4 @@
-package com.eta
+package com.atharv.eta
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
