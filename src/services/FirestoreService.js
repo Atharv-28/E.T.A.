@@ -142,7 +142,11 @@ const FirestoreService = {
    * @returns {Promise<string>} The document ID used.
    */
   addAccount: async (uid, account) => {
-    const { id, ...data } = account;
+    const { id, ...rawData } = account;
+    // Strip undefined values — Firestore throws invalid-argument for undefined fields
+    const data = Object.fromEntries(
+      Object.entries(rawData).filter(([, v]) => v !== undefined)
+    );
     const docRef = firestore()
       .collection('users')
       .doc(uid)

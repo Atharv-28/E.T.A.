@@ -94,16 +94,20 @@ export function AccountProvider({ children, uid }) {
   const createAccount = async (accountData) => {
     if (!uid) throw new Error('User not authenticated');
 
+    // Destructure out any client-side id so we control the Firestore doc ID
+    const { id: _ignored, createdAt: _createdAt, ...rest } = accountData;
+    const accountId = `account-${Date.now()}`;
+
     const newAccount = {
-      ...accountData,
-      id: `account-${Date.now()}`,
+      ...rest,
+      id: accountId,
       createdAt: new Date().toISOString(),
     };
 
     await FirestoreService.addAccount(uid, newAccount);
 
     // Set as active account in Firestore metadata
-    await FirestoreService.setActiveAccountId(uid, newAccount.id);
+    await FirestoreService.setActiveAccountId(uid, accountId);
 
     // Local state updated automatically by onSnapshot listener
     return newAccount;
