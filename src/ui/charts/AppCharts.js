@@ -19,19 +19,38 @@ function buildYAxisLabels(values) {
 
 export function AppLineChart({ labels, incomeData, expenseData, width: chartWidthOverride }) {
   const defaultWidth = width - layout.screenHorizontal * 2 - spacing.xxl;
-  const chartWidth = chartWidthOverride || Math.max(defaultWidth, labels.length * 72);
-  const yAxisLabels = buildYAxisLabels([...incomeData, ...expenseData]);
   const scrollRef = useRef(null);
+
+  // Sanitize data: replace any non-finite values with 0 to prevent Infinity SVG paths
+  const safeIncome = (Array.isArray(incomeData) ? incomeData : []).map((v) =>
+    Number.isFinite(v) && v >= 0 ? v : 0
+  );
+  const safeExpense = (Array.isArray(expenseData) ? expenseData : []).map((v) =>
+    Number.isFinite(v) && v >= 0 ? v : 0
+  );
+  const safeLabels = Array.isArray(labels) ? labels : [];
+
+  // Must have at least one data point; chart crashes on empty arrays
+  const hasData = safeLabels.length > 0 && safeIncome.length > 0;
+
+  // Clamp to a minimum of 1 so division inside the chart lib never yields Infinity
+  const chartWidth = Math.max(
+    1,
+    chartWidthOverride || Math.max(defaultWidth, safeLabels.length * 72)
+  );
+
+  const yAxisLabels = buildYAxisLabels([...safeIncome, ...safeExpense]);
+
   const data = {
-    labels,
+    labels: safeLabels,
     datasets: [
       {
-        data: incomeData,
+        data: safeIncome.length > 0 ? safeIncome : [0],
         strokeWidth: sizing.chart.strokeMd,
         color: (opacity = 1) => `rgba(13, 148, 136, ${opacity})`,
       },
       {
-        data: expenseData,
+        data: safeExpense.length > 0 ? safeExpense : [0],
         strokeWidth: sizing.chart.strokeMd,
         color: (opacity = 1) => `rgba(194, 14, 55, ${opacity})`,
       },
@@ -48,7 +67,17 @@ export function AppLineChart({ labels, incomeData, expenseData, width: chartWidt
 
     const timer = setTimeout(scrollToLatest, 0);
     return () => clearTimeout(timer);
-  }, [chartWidth, defaultWidth, labels.length]);
+  }, [chartWidth, defaultWidth, safeLabels.length]);
+
+  if (!hasData) {
+    return (
+      <View style={styles.lineChartRow}>
+        <Text style={[styles.yAxisLabel, { flex: 1, textAlign: 'center', paddingVertical: 24 }]}>
+          No trend data yet.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.lineChartRow}>
@@ -99,33 +128,39 @@ export function AppLineChart({ labels, incomeData, expenseData, width: chartWidt
 }
 
 export function AppDonutChart({ total, ratio = 0.7, segments }) {
-  const data = Array.isArray(segments) && segments.length > 0
-    ? segments.map((segment) => ({
-        name: segment.name,
-        amount: segment.amount,
-        color: segment.color,
-        legendFontColor: palette.textPrimary,
-        legendFontSize: sizing.chart.legendNone,
-      }))
-    : (() => {
-        const safeRatio = Math.max(0, Math.min(1, ratio));
-        return [
-          {
-            name: 'Main',
-            amount: safeRatio * 100,
-            color: palette.primary,
-            legendFontColor: palette.textPrimary,
-            legendFontSize: sizing.chart.legendNone,
-          },
-          {
-            name: 'Other',
-            amount: (1 - safeRatio) * 100,
-            color: '#7EE6DD',
-            legendFontColor: palette.textPrimary,
-            legendFontSize: sizing.chart.legendNone,
-          },
-        ];
-      })();
+  // Filter out zero-amount segments — they produce L-Infinity SVG paths
+  const validSegments = Array.isArray(segments)
+    ? segments.filter((s) => s.amount > 0)
+    : [];
+
+  const data =
+    validSegments.length > 0
+      ? validSegments.map((segment) => ({
+          name: segment.name,
+          amount: segment.amount,
+          color: segment.color,
+          legendFontColor: palette.textPrimary,
+          legendFontSize: sizing.chart.legendNone,
+        }))
+      : (() => {
+          const safeRatio = Math.max(0.01, Math.min(0.99, ratio));
+          return [
+            {
+              name: 'Main',
+              amount: safeRatio * 100,
+              color: palette.primary,
+              legendFontColor: palette.textPrimary,
+              legendFontSize: sizing.chart.legendNone,
+            },
+            {
+              name: 'Other',
+              amount: (1 - safeRatio) * 100,
+              color: '#7EE6DD',
+              legendFontColor: palette.textPrimary,
+              legendFontSize: sizing.chart.legendNone,
+            },
+          ];
+        })();
 
   return (
     <PieChart

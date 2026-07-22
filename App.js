@@ -1,13 +1,16 @@
 /**
  * Personal Finance Manager App - ETA
- * Phase 4: Analytics & Reports (Modular Architecture)
+ * Phase 5: Firebase Auth + Firestore (Scalable Architecture)
  *
  * @format
  */
 
 import React, { useState, useEffect } from 'react';
-import { StatusBar, useColorScheme, View, Text, Alert, AppState, DeviceEventEmitter } from 'react-native';
+import { StatusBar, useColorScheme, View, Text, Alert, AppState, DeviceEventEmitter, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// Auth
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 // Context
 import { TransactionProvider, useTransactions } from './src/context/TransactionContext';
@@ -24,6 +27,7 @@ import TransactionsScreen from './src/screens/TransactionsScreen';
 import AccountsScreen from './src/screens/AccountsScreen';
 import ReportsScreen from './src/screens/ReportsScreen';
 import LoginScreen from './src/screens/LoginScreen';
+import AuthScreen from './src/screens/AuthScreen';
 
 // Services
 import NativeSMSService from './src/services/NativeSMSService';
@@ -39,12 +43,48 @@ function App() {
   const statusBarStyle = isDarkMode ? 'light-content' : 'dark-content';
 
   return (
-    <AccountProvider>
-      <TransactionProvider>
-        <SafeAreaProvider>
-          <StatusBar barStyle={statusBarStyle} backgroundColor={palette.surface} translucent={false} />
-          <AppContent />
-        </SafeAreaProvider>
+    <AuthProvider>
+      <SafeAreaProvider>
+        <StatusBar barStyle={statusBarStyle} backgroundColor={palette.surface} translucent={false} />
+        <AuthGate />
+      </SafeAreaProvider>
+    </AuthProvider>
+  );
+}
+
+/**
+ * AuthGate — sits between AuthProvider and the rest of the app.
+ * Shows a splash/loading screen while Firebase restores the session,
+ * then routes to AuthScreen (unauthenticated) or the main app (authenticated).
+ */
+function AuthGate() {
+  const { user, isAuthLoading } = useAuth();
+
+  // While Firebase is rehydrating the session, show a minimal loading screen
+  if (isAuthLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#0A0E1A', alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ fontSize: 26, fontWeight: '800', color: '#F9FAFB', letterSpacing: 3, marginBottom: 8 }}>
+          E.T.A
+        </Text>
+        <Text style={{ fontSize: 11, color: '#6B7280', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 32 }}>
+          Expense · Track · Analyse
+        </Text>
+        <ActivityIndicator color="#6C63FF" size="large" />
+      </View>
+    );
+  }
+
+  // Not logged in — show the auth screen
+  if (!user) {
+    return <AuthScreen />;
+  }
+
+  // Logged in — mount data providers scoped to this user's uid
+  return (
+    <AccountProvider uid={user.uid}>
+      <TransactionProvider uid={user.uid}>
+        <AppContent />
       </TransactionProvider>
     </AccountProvider>
   );
@@ -82,15 +122,12 @@ function AppContent() {
   const { addTransaction } = useTransactions();
   const { accounts, activeAccount, createAccount, switchAccount } = useAccounts();
 
-  // Show login screen if no accounts exist
+  // Show account setup if no accounts exist
   useEffect(() => {
-    // If accounts are not yet loaded or empty, show the first-time login.
-    // If accounts exist, ensure we close the login screen unless the user explicitly opened it to add an account.
     if (!accounts || accounts.length === 0) {
       setShowLoginScreen(true);
       setLoginScreenMode('firstTime');
     } else {
-      // Keep Add Account modal from being auto-closed while user intends to add an account
       if (loginScreenMode !== 'addAccount') {
         setShowLoginScreen(false);
       }
@@ -105,19 +142,13 @@ function AppContent() {
     const initializeSMSMonitoring = async () => {
       try {
         console.log('📱 Initializing SMS monitoring...');
-        
-        // Check if permissions are granted
+
         const hasPermissions = await checkSMSPermissions();
-        
+
         if (hasPermissions) {
           console.log('✅ SMS permissions granted, starting monitoring');
-          
-          // Add listener for SMS transaction events
           smsListener = NativeSMSService.addTransactionListener(handleNativeSMSTransaction);
-          
-          // Start the native monitoring service
           await NativeSMSService.startMonitoring();
-          
           console.log('✅ Native SMS monitoring started successfully');
         } else {
           console.log('⚠️ SMS permissions not granted. User needs to enable them manually from AccountsScreen.');
@@ -135,7 +166,6 @@ function AppContent() {
         const sender = payload?.sender || payload?.address || null;
         const timestamp = payload?.timestamp || new Date().toISOString();
 
-        // Re-use the existing native SMS handler path by building an smsData-like object
         handleNativeSMSTransaction({
           messageBody: raw,
           body: raw,
@@ -149,20 +179,17 @@ function AppContent() {
         console.error('Error handling intent payload', e);
       }
     });
- 
+
     initializeSMSMonitoring();
 
-    // Listen for app state changes
     const handleAppStateChange = (nextAppState) => {
       if (nextAppState === 'active') {
         console.log('🔄 App became active, checking SMS service status');
-        // Could re-check permissions here if needed
       }
     };
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
 
-    // Cleanup when component unmounts
     return () => {
       if (smsListener) {
         NativeSMSService.removeListener(smsListener);
@@ -180,13 +207,11 @@ function AppContent() {
     try {
       console.log('📨 Native SMS transaction received:', smsData);
 
-      // Use the SMSParser default export
       const SMSParser = require('./src/utils/smsParser').default;
       const rawText = smsData.messageBody || smsData.body || smsData.message || '';
       const parsed = SMSParser.parseAnySMS(rawText);
 
       if (parsed) {
-        // Attach sender/raw info and pass to the unified handler
         parsed.sender = smsData.sender || smsData.address;
         parsed.rawSMS = rawText;
         parsed.timestamp = smsData.timestamp || smsData.date || new Date().toISOString();
@@ -194,7 +219,6 @@ function AppContent() {
         handleNewTransaction(parsed, rawText);
       } else {
         console.log('❌ SMS could not be parsed by specialized parser, using fallback');
-        // Pass minimal data so fallback logic can try to extract last-4/amount
         handleNewTransaction({ rawSMS: rawText, sender: smsData.sender || smsData.address, date: smsData.timestamp || new Date().toISOString() }, rawText);
       }
     } catch (error) {
@@ -206,99 +230,78 @@ function AppContent() {
   const handleNewTransaction = (transactionData, rawSmsText = '') => {
     try {
       console.log('🚀 New transaction detected in App.js:', transactionData);
-      
-      // Try to match with active account or find account by account number
+
       let matchedAccountId = null;
       let matchedAccount = null;
 
-      // If parser returned null or incomplete info, attempt a lightweight fallback parsing
       if (!transactionData || !transactionData.accountNumber) {
         const raw = (rawSmsText || transactionData?.rawSMS || '');
-         // Note: some native service provides smsData.messageBody; if not available here, transactionData may be null
-         // We'll attempt to extract amount and last 4 digits heuristically if transactionData missing
-         try {
-           const smsText = (transactionData && transactionData.rawSMS) || raw || '';
-           const amountMatch = smsText.match(/Rs\.?\s*([\d,]+\.?\d*)/i);
-           const accMatch = smsText.match(/A\/?c\s*X{0,2}(\d{4})|Acct(?:ount)?\s*.*?(\d{4})|(?:\b|\D)(\d{4})\b/);
-           const amount = amountMatch ? parseFloat(amountMatch[1].replace(/,/g, '')) : null;
-           // Use robust extractor to handle masked formats like XX1234 or **1234
-           const acc4 = extractLast4FromSMS(smsText);
-           if (!transactionData) transactionData = {};
-           if (amount && !transactionData.amount) transactionData.amount = amount;
-           if (acc4 && !transactionData.accountNumber) transactionData.accountNumber = acc4;
-           if (!transactionData.date) transactionData.date = new Date().toISOString();
-           if (!transactionData.description) transactionData.description = (smsText || '').slice(0, 120);
-           if (!transactionData.type) transactionData.type = 'expense';
-         } catch (e) {
-           console.warn('Fallback SMS parse failed:', e);
-         }
-       }
+        try {
+          const smsText = (transactionData && transactionData.rawSMS) || raw || '';
+          const amountMatch = smsText.match(/Rs\.?\s*([\d,]+\.?\d*)/i);
+          const amount = amountMatch ? parseFloat(amountMatch[1].replace(/,/g, '')) : null;
+          const acc4 = extractLast4FromSMS(smsText);
+          if (!transactionData) transactionData = {};
+          if (amount && !transactionData.amount) transactionData.amount = amount;
+          if (acc4 && !transactionData.accountNumber) transactionData.accountNumber = acc4;
+          if (!transactionData.date) transactionData.date = new Date().toISOString();
+          if (!transactionData.description) transactionData.description = (smsText || '').slice(0, 120);
+          if (!transactionData.type) transactionData.type = 'expense';
+        } catch (e) {
+          console.warn('Fallback SMS parse failed:', e);
+        }
+      }
 
-       if (transactionData.accountNumber) {
-         // Normalize to last 4 digits (strip non-digits) then match strictly against stored account last-4
-         const smsLast4 = transactionData.accountNumber.toString().replace(/\D/g, '').slice(-4);
-         matchedAccount = accounts.find(account => 
-           account.accountNumber && account.accountNumber.slice(-4) === smsLast4
-         );
+      if (transactionData.accountNumber) {
+        const smsLast4 = transactionData.accountNumber.toString().replace(/\D/g, '').slice(-4);
+        matchedAccount = accounts.find(account =>
+          account.accountNumber && account.accountNumber.slice(-4) === smsLast4
+        );
 
-         if (matchedAccount) {
-           matchedAccountId = matchedAccount.id;
-           console.log('✅ Matched account by last4:', matchedAccount.name);
-         } else {
-           // We explicitly do NOT assign to activeAccount here when a last-4 is present but doesn't match any stored account.
-           // This makes the modal show Account: N/A and forces the user to pick where to save the transaction.
-           matchedAccountId = null;
-           console.log('⚠️ No stored account matched last4:', transactionData.accountNumber);
-         }
-       } else {
-         // No last-4 in SMS -> default to active account if available
-         matchedAccountId = activeAccount?.id || null;
-       }
+        if (matchedAccount) {
+          matchedAccountId = matchedAccount.id;
+          console.log('✅ Matched account by last4:', matchedAccount.name);
+        } else {
+          matchedAccountId = null;
+          console.log('⚠️ No stored account matched last4:', transactionData.accountNumber);
+        }
+      } else {
+        matchedAccountId = activeAccount?.id || null;
+      }
 
-       // Add account ID to transaction and include matched bank/account info for UI
-       const transactionWithAccount = {
-         ...transactionData,
-         // accountId may be null when SMS includes an unmatched last-4; modal will show Account: N/A
-         accountId: matchedAccountId,
-         // do not override id here to let addTransaction generate id in context
-         // supply a friendly bank/account label for modal UI
-         bank: matchedAccount ? (matchedAccount.bank || matchedAccount.name) : (transactionData.bank || 'Unknown Bank'),
-         accountNumber: (matchedAccount && matchedAccount.accountNumber) || (transactionData.accountNumber || null),
-       };
+      const transactionWithAccount = {
+        ...transactionData,
+        accountId: matchedAccountId,
+        bank: matchedAccount ? (matchedAccount.bank || matchedAccount.name) : (transactionData.bank || 'Unknown Bank'),
+        accountNumber: (matchedAccount && matchedAccount.accountNumber) || (transactionData.accountNumber || null),
+      };
 
-       console.log('📋 Transaction with account:', transactionWithAccount);
+      console.log('📋 Transaction with account:', transactionWithAccount);
 
-       // Show a quick alert mentioning which bank/account was matched (if any)
-       if (matchedAccount) {
-         // show in-app toast
-         setMatchedToast({
-           title: 'Transaction Detected',
-           message: `Matched to ${matchedAccount.name} (••${matchedAccount.accountNumber.slice(-4)})`,
-         });
-         // auto-hide after 3s
-         setTimeout(() => setMatchedToast(null), 3000);
-         // also open modal when user taps View — for now, auto-open
-         setPendingTransaction(transactionWithAccount);
-         setCategoryModalVisible(true);
-       } else {
-         // No exact account match
-         if (transactionData.accountNumber) {
-           // SMS had a last-4 but no stored account matched it — show explicit toast and open modal without assigning an account
-           setMatchedToast({
-             title: 'Unmatched Account',
-             message: `No saved account found for ••${transactionData.accountNumber.toString().replace(/\D/g,'').slice(-4)}. Please choose an account.`,
-           });
-           setTimeout(() => setMatchedToast(null), 4000);
-           setPendingTransaction(transactionWithAccount);
-           setCategoryModalVisible(true);
-         } else {
-           // No account info in SMS -> default behavior: open modal with active account assigned
-           const defaultAssigned = { ...transactionWithAccount, accountId: activeAccount?.id || accounts[0]?.id };
-           setPendingTransaction(defaultAssigned);
-           setCategoryModalVisible(true);
-         }
-       }
-      
+      if (matchedAccount) {
+        setMatchedToast({
+          title: 'Transaction Detected',
+          message: `Matched to ${matchedAccount.name} (••${matchedAccount.accountNumber.slice(-4)})`,
+        });
+        setTimeout(() => setMatchedToast(null), 3000);
+        setPendingTransaction(transactionWithAccount);
+        setCategoryModalVisible(true);
+      } else {
+        if (transactionData.accountNumber) {
+          setMatchedToast({
+            title: 'Unmatched Account',
+            message: `No saved account found for ••${transactionData.accountNumber.toString().replace(/\D/g,'').slice(-4)}. Please choose an account.`,
+          });
+          setTimeout(() => setMatchedToast(null), 4000);
+          setPendingTransaction(transactionWithAccount);
+          setCategoryModalVisible(true);
+        } else {
+          const defaultAssigned = { ...transactionWithAccount, accountId: activeAccount?.id || accounts[0]?.id };
+          setPendingTransaction(defaultAssigned);
+          setCategoryModalVisible(true);
+        }
+      }
+
       console.log('🎯 Category modal should now be visible');
 
     } catch (error) {
@@ -323,7 +326,7 @@ function AppContent() {
       await addTransaction(finalTransaction);
       setCategoryModalVisible(false);
       setPendingTransaction(null);
-      
+
       Alert.alert(
         'Transaction Added! 💳',
         `${finalTransaction.type === 'income' ? 'Income' : 'Expense'} of ₹${finalTransaction.amount} has been automatically added from your SMS.`,
@@ -346,10 +349,9 @@ function AppContent() {
   };
 
   // Handler for account setup from LoginScreen - create account and switch to it
-  const handleAccountSetup = (accountData) => {
+  const handleAccountSetup = async (accountData) => {
     try {
-      const newAccount = createAccount(accountData);
-      // switch to new account if possible
+      const newAccount = await createAccount(accountData);
       if (newAccount && newAccount.id) {
         switchAccount(newAccount.id);
       }
@@ -371,7 +373,7 @@ function AppContent() {
     switch (activeTab) {
       case 'dashboard':
         return (
-          <DashboardScreen 
+          <DashboardScreen
             onViewAll={() => setActiveTab('transactions')}
             onDetails={() => setActiveTab('reports')}
             onManualTransaction={(transaction) => {
@@ -396,7 +398,7 @@ function AppContent() {
         return <ReportsScreen onSeeAll={() => setActiveTab('transactions')} />;
       default:
         return (
-          <DashboardScreen 
+          <DashboardScreen
             onViewAll={() => setActiveTab('transactions')}
             onDetails={() => setActiveTab('reports')}
             onManualTransaction={(transaction) => {
@@ -408,7 +410,7 @@ function AppContent() {
     }
   };
 
-  // Show LoginScreen modal if needed
+  // Show LoginScreen modal if needed (bank account setup, not auth)
   if (showLoginScreen) {
     return (
       <LoginScreen

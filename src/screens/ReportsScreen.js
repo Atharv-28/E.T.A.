@@ -206,12 +206,14 @@ export default function ReportsScreen({ onSeeAll }) {
   }, [accountTransactions]);
 
   const totalExpense = totals.expense || 1;
-  const pieSegments = categoryRows.map((row, index) => ({
-    id: row.id,
-    name: row.name,
-    amount: row.amount,
-    color: [palette.primary, '#7EE6DD', '#F59E0B', '#8B5CF6', '#10B981'][index] || palette.textMuted,
-  }));
+  const pieSegments = categoryRows
+    .filter((row) => row.amount > 0)
+    .map((row, index) => ({
+      id: row.id,
+      name: row.name,
+      amount: row.amount,
+      color: [palette.primary, '#7EE6DD', '#F59E0B', '#8B5CF6', '#10B981'][index] || palette.textMuted,
+    }));
 
   const selectorLabel = selectedPeriod === 'year'
     ? String(selectedYear)

@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Alert, Modal, Switch } from 'react-native';
 import { useAccounts } from '../context/AccountContext';
 import { useTransactions } from '../context/TransactionContext';
+import { useAuth } from '../context/AuthContext';
 import BackupService from '../services/BackupService';
 import NativeSMSService from '../services/NativeSMSService';
 import { requestSMSPermissionsWithDialog, checkSMSPermissions } from '../utils/permissions';
@@ -22,6 +23,7 @@ import { styles } from './AccountsScreen.styles';
 export default function AccountsScreen({ onAddAccount }) {
   const { accounts, activeAccount, activeAccountId, switchAccount } = useAccounts();
   const { transactions } = useTransactions();
+  const { signOut, user } = useAuth();
 
   const [smsEnabled, setSmsEnabled] = useState(true);
   const [importVisible, setImportVisible] = useState(false);
@@ -93,6 +95,27 @@ export default function AccountsScreen({ onAddAccount }) {
     Alert.alert(
       'Smart Monitoring Status',
       `Permissions: ${granted ? 'Granted' : 'Not granted'}\nService: ${serviceStatus ? 'Running' : 'Stopped'}`
+    );
+  };
+
+  const handleSignOut = () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await signOut();
+            } catch (e) {
+              Alert.alert('Error', e.message);
+            }
+          },
+        },
+      ]
     );
   };
 
@@ -223,6 +246,22 @@ export default function AccountsScreen({ onAddAccount }) {
         </AppView>
 
         <AppButton title="Manage Data Sources" variant="ghost" style={styles.manageButton} />
+
+        {/* ── Account Info & Sign Out ── */}
+        <AppCard style={{ marginTop: 8 }}>
+          <AppView style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+            <AppIcon name="account-circle" size={20} color="#6C63FF" />
+            <AppText variant="body" color="#9CA3AF" style={{ marginLeft: 8 }}>
+              Signed in as: {user?.email || 'Unknown'}
+            </AppText>
+          </AppView>
+          <AppButton
+            title="Sign Out"
+            variant="ghost"
+            onPress={handleSignOut}
+            style={{ borderColor: '#EF4444', borderWidth: 1 }}
+          />
+        </AppCard>
       </AppScreenLayout>
 
       <Modal visible={importVisible} transparent animationType="slide" onRequestClose={() => setImportVisible(false)}>
