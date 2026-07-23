@@ -14,28 +14,38 @@ import firestore from '@react-native-firebase/firestore';
 
 const FirebaseService = {
   // ──────────────────────────────────────────────────────────────────────────
-  // Auth
+  // Auth (Email + Password)
   // ──────────────────────────────────────────────────────────────────────────
 
+  /** Returns the currently signed-in Firebase user, or null. */
+  getCurrentUser() {
+    return auth().currentUser;
+  },
+
+  /** Register a new user with email + password. Returns the uid on success. */
+  async signUp(email, password) {
+    const credential = await auth().createUserWithEmailAndPassword(email.trim(), password);
+    return credential.user.uid;
+  },
+
+  /** Sign in an existing user. Returns the uid on success. */
+  async signIn(email, password) {
+    const credential = await auth().signInWithEmailAndPassword(email.trim(), password);
+    return credential.user.uid;
+  },
+
+  /** Sign the current user out. */
+  async signOut() {
+    await auth().signOut();
+  },
+
   /**
-   * Sign in anonymously and return the Firebase UID.
-   * If the user is already signed in, returns the existing UID.
+   * Returns the current user's uid if already signed in, otherwise null.
+   * Used by bootstrapApp to decide whether to show the auth screen.
    */
-  async initFirebase() {
-    try {
-      let user = auth().currentUser;
-      if (!user) {
-        const credential = await auth().signInAnonymously();
-        user = credential.user;
-        console.log('🔥 Firebase: new anonymous session, uid =', user.uid);
-      } else {
-        console.log('🔥 Firebase: existing session, uid =', user.uid);
-      }
-      return user.uid;
-    } catch (error) {
-      console.error('❌ FirebaseService.initFirebase failed:', error);
-      throw error;
-    }
+  async getAuthenticatedUid() {
+    const user = auth().currentUser;
+    return user ? user.uid : null;
   },
 
   // ──────────────────────────────────────────────────────────────────────────

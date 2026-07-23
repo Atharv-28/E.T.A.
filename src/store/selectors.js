@@ -64,6 +64,9 @@ export const selectAccountsStatus = (state) => state.accounts.status;
 export const selectAccountsLoading = (state) =>
   state.accounts.status === 'loading' || state.accounts.status === 'idle';
 export const selectUid = (state) => state.accounts.uid;
+export const selectIsAuthenticated = (state) => state.accounts.isAuthenticated;
+export const selectUserEmail = (state) => state.accounts.userEmail;
+
 
 export const selectActiveAccount = (state) => {
   const { items, activeAccountId } = state.accounts;

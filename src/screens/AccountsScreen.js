@@ -1,9 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { Alert, Modal, Switch } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import { useAccounts } from '../context/AccountContext';
 import { useTransactions } from '../context/TransactionContext';
 import BackupService from '../services/BackupService';
+import FirebaseService from '../services/FirebaseService';
 import NativeSMSService from '../services/NativeSMSService';
+import { clearAuth } from '../store/slices/accountsSlice';
+import { selectUserEmail } from '../store/selectors';
 import { requestSMSPermissionsWithDialog, checkSMSPermissions } from '../utils/permissions';
 import {
   AppButton,
@@ -20,6 +24,8 @@ import {
 import { styles } from './AccountsScreen.styles';
 
 export default function AccountsScreen({ onAddAccount }) {
+  const dispatch = useDispatch();
+  const userEmail = useSelector(selectUserEmail);
   const { accounts, activeAccount, activeAccountId, switchAccount } = useAccounts();
   const { transactions } = useTransactions();
 
@@ -62,6 +68,29 @@ export default function AccountsScreen({ onAddAccount }) {
     } catch (error) {
       Alert.alert('Import Failed', error?.message || 'Could not import backup data.');
     }
+  };
+
+  const handleSignOut = async () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out of your account?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await FirebaseService.signOut();
+              dispatch(clearAuth());
+            } catch (err) {
+              console.error('Sign out error:', err);
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const toggleSms = async (value) => {
@@ -223,6 +252,26 @@ export default function AccountsScreen({ onAddAccount }) {
         </AppView>
 
         <AppButton title="Manage Data Sources" variant="ghost" style={styles.manageButton} />
+
+        <AppView style={styles.sectionHeader}>
+          <AppIcon name="person" size={30} color={palette.danger} />
+          <AppText variant="h2" style={styles.sectionHeaderTitle}>
+            Account & Session
+          </AppText>
+        </AppView>
+
+        <AppCard>
+          <AppView style={{ marginBottom: spacing.md }}>
+            <AppText variant="body" color={palette.textSecondary}>Logged in as</AppText>
+            <AppText variant="h3">{userEmail || 'Authenticated User'}</AppText>
+          </AppView>
+          <AppButton
+            title="Sign Out"
+            variant="secondary"
+            onPress={handleSignOut}
+            style={{ backgroundColor: palette.danger + '15', borderColor: palette.danger }}
+          />
+        </AppCard>
       </AppScreenLayout>
 
       <Modal visible={importVisible} transparent animationType="slide" onRequestClose={() => setImportVisible(false)}>

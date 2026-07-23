@@ -13,7 +13,9 @@ import { Provider, useDispatch, useSelector } from 'react-redux';
 // Redux
 import store from './src/store';
 import { bootstrapApp } from './src/store/bootstrap';
-import { selectAppReady } from './src/store/selectors';
+import { selectAppReady, selectIsAuthenticated } from './src/store/selectors';
+import { setAuthUser } from './src/store/slices/accountsSlice';
+import auth from '@react-native-firebase/auth';
 
 // Context (shims — kept for backwards compat)
 import { TransactionProvider, useTransactions } from './src/context/TransactionContext';
@@ -28,6 +30,7 @@ import TransactionCategoryModal from './src/components/TransactionCategoryModal'
 import DashboardScreen from './src/screens/DashboardScreen';
 import TransactionsScreen from './src/screens/TransactionsScreen';
 import AccountsScreen from './src/screens/AccountsScreen';
+import AuthScreen from './src/screens/AuthScreen';
 import ReportsScreen from './src/screens/ReportsScreen';
 import LoginScreen from './src/screens/LoginScreen';
 
@@ -63,6 +66,7 @@ function App() {
 function AppContent() {
   const dispatch = useDispatch();
   const appReady = useSelector(selectAppReady);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
   // ── ALL hooks declared here, before any conditional return (Rules of Hooks) ─
   const safeAreaInsets = useSafeAreaInsets();
@@ -76,9 +80,15 @@ function AppContent() {
   const { addTransaction } = useTransactions();
   const { accounts, activeAccount, createAccount, switchAccount } = useAccounts();
 
-  // ── Bootstrap: fetch Firebase data ONCE on app start ─────────────────────
+  // ── Auto-restore existing Firebase auth session on app mount ───────────────
   useEffect(() => {
-    dispatch(bootstrapApp());
+    const unsubscribe = auth().onAuthStateChanged((user) => {
+      if (user) {
+        dispatch(setAuthUser({ uid: user.uid, email: user.email || '' }));
+        dispatch(bootstrapApp(user.uid));
+      }
+    });
+    return unsubscribe;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -94,39 +104,7 @@ function AppContent() {
     }
   }, [accounts, loginScreenMode]);
 
-  // ── Show loading screen AFTER all hooks are declared ─────────────────────
-  if (!appReady) {
-    return (
-      <View style={{ flex: 1, backgroundColor: palette.surface, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={palette.primary} />
-        <Text style={{ color: palette.textSecondary, marginTop: 12, fontFamily: 'Inter-Regular' }}>
-          Loading your data...
-        </Text>
-      </View>
-    );
-  }
-
-  // Helper: extract robust last-4 digits from SMS text (handles XX1234, **1234, A/cXX1234, etc.)
-  const extractLast4FromSMS = (smsText) => {
-    if (!smsText || typeof smsText !== 'string') return null;
-    try {
-      // Prefer explicit A/c or Acct patterns (handles X or * masks)
-      const acMatch = smsText.match(/A\/?c\s*[X\*x\*]*?(\d{4})/i);
-      if (acMatch && acMatch[1]) return acMatch[1];
-
-      const acctMatch = smsText.match(/Acct(?:ount)?\D*?(\d{4})/i);
-      if (acctMatch && acctMatch[1]) return acctMatch[1];
-
-      // Fallback: take the last 4-digit group in the message
-      const allMatches = smsText.match(/(\d{4})/g);
-      if (allMatches && allMatches.length > 0) return allMatches[allMatches.length - 1];
-    } catch (e) {
-      console.warn('extractLast4FromSMS failed', e);
-    }
-    return null;
-  };
-
-  // Start SMS monitoring when app loads
+  // Start SMS monitoring when app loads (must be declared BEFORE any conditional return)
   useEffect(() => {
     let smsListener = null;
     let intentListener = null;
@@ -178,7 +156,7 @@ function AppContent() {
         console.error('Error handling intent payload', e);
       }
     });
- 
+
     initializeSMSMonitoring();
 
     // Listen for app state changes
@@ -202,7 +180,25 @@ function AppContent() {
       NativeSMSService.stopMonitoring();
       subscription?.remove();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── Show Firebase Auth screen if user is not logged in ─────────────────
+  if (!isAuthenticated) {
+    return <AuthScreen />;
+  }
+
+  // ── Show loading screen AFTER all hooks are declared ─────────────────────
+  if (!appReady) {
+    return (
+      <View style={{ flex: 1, backgroundColor: palette.surface, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={palette.primary} />
+        <Text style={{ color: palette.textSecondary, marginTop: 12, fontFamily: 'Inter-Regular' }}>
+          Loading your data...
+        </Text>
+      </View>
+    );
+  }
 
   // Handle SMS transaction from native service
   const handleNativeSMSTransaction = async (smsData) => {

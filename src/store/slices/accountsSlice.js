@@ -82,23 +82,35 @@ const accountsSlice = createSlice({
   initialState: {
     items: [],
     activeAccountId: null,
-    uid: null, // Firebase anonymous auth UID
-    status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
+    uid: null,
+    isAuthenticated: false,
+    userEmail: null,
+    status: 'idle',
     error: null,
   },
   reducers: {
-    /** Bulk-set accounts after bootstrap */
     setAccounts(state, action) {
       const { accounts, activeAccountId } = action.payload;
       state.items = accounts;
       state.activeAccountId = activeAccountId;
       state.status = 'succeeded';
     },
-    /** Store the Firebase anonymous UID for use in all Firestore calls */
     setUid(state, action) {
       state.uid = action.payload;
     },
-    /** Switch the active account locally (also persisted to Firestore meta) */
+    setAuthUser(state, action) {
+      state.uid = action.payload.uid;
+      state.userEmail = action.payload.email;
+      state.isAuthenticated = true;
+    },
+    clearAuth(state) {
+      state.uid = null;
+      state.userEmail = null;
+      state.isAuthenticated = false;
+      state.items = [];
+      state.activeAccountId = null;
+      state.status = 'idle';
+    },
     setActiveAccountId(state, action) {
       state.activeAccountId = action.payload;
     },
@@ -152,5 +164,6 @@ const accountsSlice = createSlice({
   },
 });
 
-export const { setAccounts, setUid, setActiveAccountId } = accountsSlice.actions;
+export const { setAccounts, setUid, setAuthUser, clearAuth, setActiveAccountId } = accountsSlice.actions;
 export default accountsSlice.reducer;
+
