@@ -81,6 +81,8 @@ export default function AccountsScreen({ onAddAccount }) {
           style: 'destructive',
           onPress: async () => {
             try {
+              const { clearAllData } = require('../utils/storage');
+              await clearAllData();
               await FirebaseService.signOut();
               dispatch(clearAuth());
             } catch (err) {

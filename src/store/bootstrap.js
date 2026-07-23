@@ -4,7 +4,7 @@
  * Execution order:
  *  1. Get UID from the already-signed-in Firebase user
  *  2. Fetch accounts + transactions from Firestore in parallel
- *  3. If Firestore is empty (first login on new device), migrate AsyncStorage data
+ *  3. If Firestore is empty (new account), initialize with empty state
  *  4. Dispatch setUid so all future thunks can access it
  *
  * After this thunk resolves, the Redux store is fully hydrated and the app
@@ -33,28 +33,13 @@ export const bootstrapApp = (uid) => async (dispatch) => {
       firestoreTransactions.length === 0;
 
     if (isFirstRun) {
-      // First login on this device — migrate AsyncStorage data to Firestore
-      console.log('📦 bootstrapApp: first run, migrating AsyncStorage → Firestore...');
+      console.log('✨ bootstrapApp: new account detected, initializing empty state...');
 
-      const [storedAccountsData, storedTransactions] = await Promise.all([
-        loadAccounts(),
-        loadTransactions(),
-      ]);
+      // Clean fresh start for new accounts
+      dispatch(setAccounts({ accounts: [], activeAccountId: null }));
+      dispatch(setTransactions([]));
 
-      const storedAccounts = Array.isArray(storedAccountsData.accounts)
-        ? storedAccountsData.accounts
-        : [];
-      const activeAccountId = storedAccountsData.activeAccountId || null;
-
-      await Promise.all([
-        FirebaseService.bulkWriteAccounts(uid, storedAccounts, activeAccountId),
-        FirebaseService.bulkWriteTransactions(uid, storedTransactions),
-      ]);
-
-      dispatch(setAccounts({ accounts: storedAccounts, activeAccountId }));
-      dispatch(setTransactions(storedTransactions));
-
-      console.log('✅ bootstrapApp: migration complete');
+      console.log('✅ bootstrapApp: fresh initialization complete');
     } else {
       // Hydrate Redux with Firestore data
       dispatch(setAccounts(firestoreAccounts));
