@@ -17,21 +17,30 @@ function buildYAxisLabels(values) {
   return Array.from({ length: steps + 1 }, (_, index) => Math.round(maxValue - (maxValue / steps) * index));
 }
 
-export function AppLineChart({ labels, incomeData, expenseData, width: chartWidthOverride }) {
+export function AppLineChart({ labels = [], incomeData = [], expenseData = [], width: chartWidthOverride }) {
+  const safeLabels = Array.isArray(labels) && labels.length > 0 ? labels : ['No Data'];
+  const safeIncome = Array.isArray(incomeData) && incomeData.length > 0 ? incomeData : [0];
+  const safeExpense = Array.isArray(expenseData) && expenseData.length > 0 ? expenseData : [0];
+
+  const maxIncome = Math.max(0, ...safeIncome);
+  const maxExpense = Math.max(0, ...safeExpense);
+  const isAllZero = maxIncome === 0 && maxExpense === 0;
+
   const defaultWidth = width - layout.screenHorizontal * 2 - spacing.xxl;
-  const chartWidth = chartWidthOverride || Math.max(defaultWidth, labels.length * 72);
-  const yAxisLabels = buildYAxisLabels([...incomeData, ...expenseData]);
+  const chartWidth = chartWidthOverride || Math.max(defaultWidth, safeLabels.length * 72);
+  const yAxisLabels = buildYAxisLabels([...safeIncome, ...safeExpense]);
   const scrollRef = useRef(null);
+
   const data = {
-    labels,
+    labels: safeLabels,
     datasets: [
       {
-        data: incomeData,
+        data: isAllZero ? safeIncome.map(() => 0) : safeIncome,
         strokeWidth: sizing.chart.strokeMd,
         color: (opacity = 1) => `rgba(13, 148, 136, ${opacity})`,
       },
       {
-        data: expenseData,
+        data: isAllZero ? safeExpense.map(() => 0) : safeExpense,
         strokeWidth: sizing.chart.strokeMd,
         color: (opacity = 1) => `rgba(194, 14, 55, ${opacity})`,
       },
@@ -48,7 +57,7 @@ export function AppLineChart({ labels, incomeData, expenseData, width: chartWidt
 
     const timer = setTimeout(scrollToLatest, 0);
     return () => clearTimeout(timer);
-  }, [chartWidth, defaultWidth, labels.length]);
+  }, [chartWidth, defaultWidth, safeLabels.length]);
 
   return (
     <View style={styles.lineChartRow}>
@@ -72,7 +81,7 @@ export function AppLineChart({ labels, incomeData, expenseData, width: chartWidt
           height={sizing.chart.heightMd}
           yAxisLabel=""
           yAxisSuffix=""
-          withDots={false}
+          withDots={!isAllZero}
           withInnerLines
           withOuterLines={false}
           withHorizontalLabels={false}
@@ -90,7 +99,7 @@ export function AppLineChart({ labels, incomeData, expenseData, width: chartWidt
               strokeWidth: sizing.chart.strokeSm,
             },
           }}
-          bezier
+          bezier={!isAllZero}
           style={[styles.lineChart, styles.lineChartInner]}
         />
       </ScrollView>
@@ -98,34 +107,26 @@ export function AppLineChart({ labels, incomeData, expenseData, width: chartWidt
   );
 }
 
-export function AppDonutChart({ total, ratio = 0.7, segments }) {
-  const data = Array.isArray(segments) && segments.length > 0
-    ? segments.map((segment) => ({
+export function AppDonutChart({ total = 0, ratio = 0.7, segments = [] }) {
+  const isZeroTotal = !total || total === 0 || !Array.isArray(segments) || segments.length === 0;
+
+  const data = isZeroTotal
+    ? [
+        {
+          name: 'No Expenses',
+          amount: 100,
+          color: palette.border || '#E4E7EC',
+          legendFontColor: palette.textMuted,
+          legendFontSize: sizing.chart.legendNone,
+        },
+      ]
+    : segments.map((segment) => ({
         name: segment.name,
-        amount: segment.amount,
+        amount: Math.max(0, Number(segment.amount) || 0),
         color: segment.color,
         legendFontColor: palette.textPrimary,
         legendFontSize: sizing.chart.legendNone,
-      }))
-    : (() => {
-        const safeRatio = Math.max(0, Math.min(1, ratio));
-        return [
-          {
-            name: 'Main',
-            amount: safeRatio * 100,
-            color: palette.primary,
-            legendFontColor: palette.textPrimary,
-            legendFontSize: sizing.chart.legendNone,
-          },
-          {
-            name: 'Other',
-            amount: (1 - safeRatio) * 100,
-            color: '#7EE6DD',
-            legendFontColor: palette.textPrimary,
-            legendFontSize: sizing.chart.legendNone,
-          },
-        ];
-      })();
+      }));
 
   return (
     <PieChart
