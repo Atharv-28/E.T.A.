@@ -6,10 +6,16 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { StatusBar, useColorScheme, View, Text, Alert, AppState, DeviceEventEmitter } from 'react-native';
+import { ActivityIndicator, StatusBar, useColorScheme, View, Text, Alert, AppState, DeviceEventEmitter } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Provider, useDispatch, useSelector } from 'react-redux';
 
-// Context
+// Redux
+import store from './src/store';
+import { bootstrapApp } from './src/store/bootstrap';
+import { selectAppReady } from './src/store/selectors';
+
+// Context (shims — kept for backwards compat)
 import { TransactionProvider, useTransactions } from './src/context/TransactionContext';
 import { AccountProvider, useAccounts } from './src/context/AccountContext';
 
@@ -39,18 +45,67 @@ function App() {
   const statusBarStyle = isDarkMode ? 'light-content' : 'dark-content';
 
   return (
-    <AccountProvider>
-      <TransactionProvider>
-        <SafeAreaProvider>
-          <StatusBar barStyle={statusBarStyle} backgroundColor={palette.surface} translucent={false} />
-          <AppContent />
-        </SafeAreaProvider>
-      </TransactionProvider>
-    </AccountProvider>
+    // Redux Provider wraps everything — AccountProvider and TransactionProvider
+    // are now no-op shims kept only for backwards-compatible imports.
+    <Provider store={store}>
+      <AccountProvider>
+        <TransactionProvider>
+          <SafeAreaProvider>
+            <StatusBar barStyle={statusBarStyle} backgroundColor={palette.surface} translucent={false} />
+            <AppContent />
+          </SafeAreaProvider>
+        </TransactionProvider>
+      </AccountProvider>
+    </Provider>
   );
 }
 
 function AppContent() {
+  const dispatch = useDispatch();
+  const appReady = useSelector(selectAppReady);
+
+  // ── ALL hooks declared here, before any conditional return (Rules of Hooks) ─
+  const safeAreaInsets = useSafeAreaInsets();
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [pendingTransaction, setPendingTransaction] = useState(null);
+  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
+  const [showLoginScreen, setShowLoginScreen] = useState(false);
+  const [loginScreenMode, setLoginScreenMode] = useState('firstTime');
+  const [matchedToast, setMatchedToast] = useState(null);
+
+  const { addTransaction } = useTransactions();
+  const { accounts, activeAccount, createAccount, switchAccount } = useAccounts();
+
+  // ── Bootstrap: fetch Firebase data ONCE on app start ─────────────────────
+  useEffect(() => {
+    dispatch(bootstrapApp());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Show login screen if no accounts exist
+  useEffect(() => {
+    if (!accounts || accounts.length === 0) {
+      setShowLoginScreen(true);
+      setLoginScreenMode('firstTime');
+    } else {
+      if (loginScreenMode !== 'addAccount') {
+        setShowLoginScreen(false);
+      }
+    }
+  }, [accounts, loginScreenMode]);
+
+  // ── Show loading screen AFTER all hooks are declared ─────────────────────
+  if (!appReady) {
+    return (
+      <View style={{ flex: 1, backgroundColor: palette.surface, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={palette.primary} />
+        <Text style={{ color: palette.textSecondary, marginTop: 12, fontFamily: 'Inter-Regular' }}>
+          Loading your data...
+        </Text>
+      </View>
+    );
+  }
+
   // Helper: extract robust last-4 digits from SMS text (handles XX1234, **1234, A/cXX1234, etc.)
   const extractLast4FromSMS = (smsText) => {
     if (!smsText || typeof smsText !== 'string') return null;
@@ -70,32 +125,6 @@ function AppContent() {
     }
     return null;
   };
-
-  const safeAreaInsets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [pendingTransaction, setPendingTransaction] = useState(null);
-  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
-  const [showLoginScreen, setShowLoginScreen] = useState(false);
-  const [loginScreenMode, setLoginScreenMode] = useState('firstTime'); // 'firstTime' or 'addAccount'
-  const [matchedToast, setMatchedToast] = useState(null);
-
-  const { addTransaction } = useTransactions();
-  const { accounts, activeAccount, createAccount, switchAccount } = useAccounts();
-
-  // Show login screen if no accounts exist
-  useEffect(() => {
-    // If accounts are not yet loaded or empty, show the first-time login.
-    // If accounts exist, ensure we close the login screen unless the user explicitly opened it to add an account.
-    if (!accounts || accounts.length === 0) {
-      setShowLoginScreen(true);
-      setLoginScreenMode('firstTime');
-    } else {
-      // Keep Add Account modal from being auto-closed while user intends to add an account
-      if (loginScreenMode !== 'addAccount') {
-        setShowLoginScreen(false);
-      }
-    }
-  }, [accounts, loginScreenMode]);
 
   // Start SMS monitoring when app loads
   useEffect(() => {
@@ -346,13 +375,11 @@ function AppContent() {
   };
 
   // Handler for account setup from LoginScreen - create account and switch to it
+  // createAccount now dispatches an async Redux thunk which auto-sets the new
+  // account as active, so no explicit switchAccount call is needed.
   const handleAccountSetup = (accountData) => {
     try {
-      const newAccount = createAccount(accountData);
-      // switch to new account if possible
-      if (newAccount && newAccount.id) {
-        switchAccount(newAccount.id);
-      }
+      createAccount(accountData);
       setShowLoginScreen(false);
       setLoginScreenMode('firstTime');
     } catch (error) {
