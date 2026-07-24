@@ -42,11 +42,22 @@ export const bootstrapApp = (uid) => async (dispatch) => {
 
       console.log('✅ bootstrapApp: fresh initialization complete');
     } else {
-      // Hydrate Redux with Firestore data
-      dispatch(setAccounts(firestoreAccounts));
+      // If accounts exist but no activeAccountId was persisted (e.g. account
+      // was added directly in the database), fall back to the first account.
+      const resolvedActiveId =
+        firestoreAccounts.activeAccountId || firestoreAccounts.accounts[0]?.id || null;
+
+      dispatch(setAccounts({ ...firestoreAccounts, activeAccountId: resolvedActiveId }));
       dispatch(setTransactions(firestoreTransactions));
+
+      // Persist the resolved active account back to Firestore so future
+      // sessions don't need to fall back again.
+      if (resolvedActiveId && !firestoreAccounts.activeAccountId) {
+        FirebaseService.saveActiveAccountId(uid, resolvedActiveId).catch(() => {});
+      }
+
       console.log(
-        `✅ bootstrapApp: loaded ${firestoreTransactions.length} transactions, ${firestoreAccounts.accounts.length} accounts`
+        `✅ bootstrapApp: loaded ${firestoreTransactions.length} transactions, ${firestoreAccounts.accounts.length} accounts, activeAccountId=${resolvedActiveId}`
       );
     }
   } catch (error) {

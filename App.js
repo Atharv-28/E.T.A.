@@ -13,7 +13,7 @@ import { Provider, useDispatch, useSelector } from 'react-redux';
 // Redux
 import store from './src/store';
 import { bootstrapApp } from './src/store/bootstrap';
-import { selectAppReady, selectIsAuthenticated } from './src/store/selectors';
+import { selectAppReady, selectIsAuthenticated, selectAccountsLoading, selectAccountsStatus } from './src/store/selectors';
 import { setAuthUser } from './src/store/slices/accountsSlice';
 import auth from '@react-native-firebase/auth';
 
@@ -67,6 +67,8 @@ function AppContent() {
   const dispatch = useDispatch();
   const appReady = useSelector(selectAppReady);
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const accountsLoading = useSelector(selectAccountsLoading);
+  const accountsStatus = useSelector(selectAccountsStatus);
 
   // ── ALL hooks declared here, before any conditional return (Rules of Hooks) ─
   const safeAreaInsets = useSafeAreaInsets();
@@ -80,20 +82,34 @@ function AppContent() {
   const { addTransaction } = useTransactions();
   const { accounts, activeAccount, createAccount, switchAccount } = useAccounts();
 
-  // ── Auto-restore existing Firebase auth session on app mount ───────────────
+  // Auto-restore existing Firebase auth session on app mount.
+  // NOTE: onAuthStateChanged also fires right after a fresh sign-in (from
+  // AuthScreen). Guard against running bootstrapApp a second time when
+  // AuthScreen already started it — the accounts slice will be in 'loading'
+  // or 'succeeded' state in that case.
   useEffect(() => {
     const unsubscribe = auth().onAuthStateChanged((user) => {
       if (user) {
         dispatch(setAuthUser({ uid: user.uid, email: user.email || '' }));
-        dispatch(bootstrapApp(user.uid));
+        // Only bootstrap if not already loading/loaded (prevents double-run
+        // when AuthScreen already dispatched bootstrapApp on the same sign-in).
+        if (accountsStatus === 'idle') {
+          dispatch(bootstrapApp(user.uid));
+        }
       }
     });
     return unsubscribe;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Show login screen if no accounts exist
+  // Show bank-setup screen only AFTER the app has finished loading from
+  // Firestore. Without this guard the effect fires while accounts is still
+  // [] during the async bootstrap, incorrectly launching the onboarding flow
+  // for returning users who have accounts in the database.
   useEffect(() => {
+    // Still fetching — don't touch the login screen state yet
+    if (!appReady || accountsLoading) return;
+
     if (!accounts || accounts.length === 0) {
       setShowLoginScreen(true);
       setLoginScreenMode('firstTime');
@@ -102,7 +118,7 @@ function AppContent() {
         setShowLoginScreen(false);
       }
     }
-  }, [accounts, loginScreenMode]);
+  }, [accounts, loginScreenMode, appReady, accountsLoading]);
 
   // Start SMS monitoring when app loads (must be declared BEFORE any conditional return)
   useEffect(() => {

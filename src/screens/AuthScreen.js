@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
 import FirebaseService from '../services/FirebaseService';
@@ -217,12 +217,14 @@ export default function AuthScreen() {
                 )}
 
                 {isLogin && (
-                  <AppButton
-                    variant="ghost"
-                    title="Forgot Password?"
+                  <TouchableOpacity
                     onPress={() => { setForgotMode(true); setResetEmail(email); }}
-                    style={styles.forgotButton}
-                  />
+                    style={styles.forgotLink}
+                  >
+                    <AppText variant="caption" color={palette.primary}>
+                      Forgot Password?
+                    </AppText>
+                  </TouchableOpacity>
                 )}
 
                 <AppButton

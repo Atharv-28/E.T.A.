@@ -44,8 +44,9 @@ export const styles = StyleSheet.create({
   inputSpacing: {
     marginTop: spacing.md,
   },
-  forgotButton: {
+  forgotLink: {
     alignSelf: 'flex-start',
+    marginTop: spacing.xs,
   },
   submitButton: {
     marginTop: spacing.xl,
