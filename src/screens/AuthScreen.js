@@ -28,6 +28,9 @@ export default function AuthScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
 
   const isLogin = mode === 'login';
 
@@ -68,6 +71,37 @@ export default function AuthScreen() {
       Alert.alert(isLogin ? 'Login Failed' : 'Sign Up Failed', message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    const emailToReset = resetEmail.trim() || email.trim();
+    if (!emailToReset) {
+      return Alert.alert('Error', 'Please enter your email address.');
+    }
+    if (!/\S+@\S+\.\S+/.test(emailToReset)) {
+      return Alert.alert('Error', 'Please enter a valid email address.');
+    }
+    setResetLoading(true);
+    try {
+      await FirebaseService.sendPasswordResetEmail(emailToReset);
+      Alert.alert(
+        'Email Sent ✉️',
+        `A password reset link has been sent to ${emailToReset}. Check your inbox (and spam folder).`,
+        [{ text: 'OK', onPress: () => { setForgotMode(false); setResetEmail(''); } }]
+      );
+    } catch (error) {
+      let message = 'Failed to send reset email. Please try again.';
+      if (error.code === 'auth/user-not-found') {
+        message = 'No account found with this email address.';
+      } else if (error.code === 'auth/invalid-email') {
+        message = 'Please enter a valid email address.';
+      } else if (error.code === 'auth/network-request-failed') {
+        message = 'No internet connection. Please check your network.';
+      }
+      Alert.alert('Reset Failed', message);
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -112,50 +146,93 @@ export default function AuthScreen() {
 
           {/* Main Form Card */}
           <AppCard style={styles.formCard}>
-            <AppText variant="h3">
-              {isLogin ? 'Welcome Back' : 'Create Account'}
-            </AppText>
+            {forgotMode ? (
+              // ── Forgot Password View ────────────────────────────────────
+              <>
+                <AppText variant="h3">Reset Password</AppText>
+                <AppText variant="body" color={palette.textSecondary} style={styles.cardSubtitle}>
+                  Enter your email and we'll send you a reset link.
+                </AppText>
+                <AppInput
+                  label="Email Address"
+                  value={resetEmail}
+                  onChangeText={setResetEmail}
+                  placeholder="you@example.com"
+                  leftIcon="email"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+                <AppButton
+                  title={resetLoading ? 'Sending...' : 'Send Reset Link'}
+                  onPress={handleForgotPassword}
+                  disabled={resetLoading}
+                  style={styles.submitButton}
+                />
+                <AppButton
+                  variant="ghost"
+                  title="Back to Log In"
+                  onPress={() => { setForgotMode(false); setResetEmail(''); }}
+                  style={styles.switchButton}
+                />
+              </>
+            ) : (
+              // ── Normal Login / Signup View ──────────────────────────────
+              <>
+                <AppText variant="h3">
+                  {isLogin ? 'Welcome Back' : 'Create Account'}
+                </AppText>
 
-            <AppInput
-              label="Email Address"
-              value={email}
-              onChangeText={setEmail}
-              placeholder="you@example.com"
-              leftIcon="email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+                <AppInput
+                  label="Email Address"
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="you@example.com"
+                  leftIcon="email"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
 
-            <AppInput
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Min. 6 characters"
-              leftIcon="lock"
-              secureTextEntry={!showPassword}
-              style={styles.inputSpacing}
-              rightIcon={showPassword ? 'visibility-off' : 'visibility'}
-              onRightIconPress={() => setShowPassword(!showPassword)}
-            />
+                <AppInput
+                  label="Password"
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Min. 6 characters"
+                  leftIcon="lock"
+                  secureTextEntry={!showPassword}
+                  style={styles.inputSpacing}
+                  rightIcon={showPassword ? 'visibility-off' : 'visibility'}
+                  onRightIconPress={() => setShowPassword(!showPassword)}
+                />
 
-            {!isLogin && (
-              <AppInput
-                label="Confirm Password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="Repeat your password"
-                leftIcon="lock-outline"
-                secureTextEntry={!showPassword}
-                style={styles.inputSpacing}
-              />
+                {!isLogin && (
+                  <AppInput
+                    label="Confirm Password"
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    placeholder="Repeat your password"
+                    leftIcon="lock-outline"
+                    secureTextEntry={!showPassword}
+                    style={styles.inputSpacing}
+                  />
+                )}
+
+                {isLogin && (
+                  <AppButton
+                    variant="ghost"
+                    title="Forgot Password?"
+                    onPress={() => { setForgotMode(true); setResetEmail(email); }}
+                    style={styles.forgotButton}
+                  />
+                )}
+
+                <AppButton
+                  title={isLogin ? 'Log In' : 'Create Account'}
+                  onPress={handleSubmit}
+                  disabled={loading}
+                  style={styles.submitButton}
+                />
+              </>
             )}
-
-            <AppButton
-              title={isLogin ? 'Log In' : 'Create Account'}
-              onPress={handleSubmit}
-              disabled={loading}
-              style={styles.submitButton}
-            />
           </AppCard>
 
           {/* Mode Switch Link using built-in ghost AppButton */}

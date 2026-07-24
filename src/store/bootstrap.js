@@ -28,9 +28,10 @@ export const bootstrapApp = (uid) => async (dispatch) => {
       FirebaseService.fetchTransactions(uid),
     ]);
 
-    const isFirstRun =
-      firestoreAccounts.accounts.length === 0 &&
-      firestoreTransactions.length === 0;
+    // A user is considered "new" only if they have no accounts yet.
+    // Do NOT require transactions to also be empty — a user with accounts
+    // but zero transactions is a valid returning user, not a first-run.
+    const isFirstRun = firestoreAccounts.accounts.length === 0;
 
     if (isFirstRun) {
       console.log('✨ bootstrapApp: new account detected, initializing empty state...');

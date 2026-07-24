@@ -39,6 +39,11 @@ const FirebaseService = {
     await auth().signOut();
   },
 
+  /** Send a password reset email to the given address. */
+  async sendPasswordResetEmail(email) {
+    await auth().sendPasswordResetEmail(email.trim());
+  },
+
   /**
    * Returns the current user's uid if already signed in, otherwise null.
    * Used by bootstrapApp to decide whether to show the auth screen.
