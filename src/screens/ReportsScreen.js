@@ -9,6 +9,7 @@ import {
   AppCard,
   AppChipTabs,
   AppDonutChart,
+  AppIcon,
   AppLineChart,
   AppScreenLayout,
   AppView,
@@ -336,70 +337,88 @@ export default function ReportsScreen({ onSeeAll }) {
         </Pressable>
       </Modal>
 
-      <AppCard>
-        <AppView style={styles.donutWrap}>
-          <AppDonutChart total={totals.expense} segments={pieSegments} />
-          <AppView style={styles.donutOverlay}>
-            <AppText variant="bodyBold" color={palette.textSecondary}>
-              Total Spent
-            </AppText>
-            <AppText variant="h1" color={palette.primary}>
-              ₹{totals.expense.toFixed(2)}
-            </AppText>
-          </AppView>
-        </AppView>
-
-        <AppView style={styles.categoryLegend}>
-          {pieSegments.map((segment) => (
-            <AppView key={segment.id} style={styles.legendItem}>
-              <AppView style={styles.legendRow}>
-                <AppView style={[styles.legendDot, { backgroundColor: segment.color }]} />
-                <AppView style={styles.legendTextWrap}>
-                  <AppText variant="body">{segment.name}</AppText>
-                  <AppText variant="caption" color={palette.textSecondary}>
-                    ₹{segment.amount.toFixed(2)}
-                  </AppText>
-                  <AppText variant="caption" style={styles.legendValue}>
-                    {Math.round((segment.amount / totalExpense) * 100)}%
-                  </AppText>
-                </AppView>
-              </AppView>
-            </AppView>
-          ))}
-        </AppView>
-      </AppCard>
-
-      <AppView style={styles.sectionHeader}>
-        <AppText variant="h3">Top Expense Categories</AppText>
-        <AppButton title="See All" variant="ghost" onPress={onSeeAll} />
-      </AppView>
-
-      {categoryRows.length === 0 ? (
-        <AppCard>
-          <AppText variant="body" color={palette.textSecondary}>
-            No expense data for the selected period.
+      {accountTransactions.length === 0 ? (
+        <AppCard style={{ alignItems: 'center', paddingVertical: 36, marginTop: 16 }}>
+          <AppIcon name="bar-chart" size={48} color={palette.textMuted} />
+          <AppText variant="h3" style={{ marginTop: 12, textAlign: 'center' }}>
+            No Financial Data
+          </AppText>
+          <AppText
+            variant="body"
+            color={palette.textSecondary}
+            style={{ textAlign: 'center', marginTop: 6, marginBottom: 16 }}
+          >
+            Add your first transaction to generate expense breakdowns and spending trends.
           </AppText>
         </AppCard>
       ) : (
-        categoryRows.map((row, index) => (
-          <CategorySpendCard
-            key={row.id}
-            icon={row.icon}
-            name={row.name}
-            subtitle={index === 0 ? 'Highest category this period' : 'Tracked expense category'}
-            amount={row.amount}
-            progress={row.progress}
-            tone={index === 1 ? 'danger' : index === 2 ? 'success' : 'primary'}
-          />
-        ))
-      )}
+        <>
+          <AppCard>
+            <AppView style={styles.donutWrap}>
+              <AppDonutChart total={totals.expense} segments={pieSegments} />
+              <AppView style={styles.donutOverlay}>
+                <AppText variant="bodyBold" color={palette.textSecondary}>
+                  Total Spent
+                </AppText>
+                <AppText variant="h1" color={palette.primary}>
+                  ₹{totals.expense.toFixed(2)}
+                </AppText>
+              </AppView>
+            </AppView>
 
-      <AppCard>
-        <AppText variant="h3" style={styles.trendTitle}>
-          Spending Trend
-        </AppText>
-        <AppLineChart labels={trend.labels} incomeData={trend.incomeData} expenseData={trend.expenseData} />
-      </AppCard>
+            <AppView style={styles.categoryLegend}>
+              {pieSegments.map((segment) => (
+                <AppView key={segment.id} style={styles.legendItem}>
+                  <AppView style={styles.legendRow}>
+                    <AppView style={[styles.legendDot, { backgroundColor: segment.color }]} />
+                    <AppView style={styles.legendTextWrap}>
+                      <AppText variant="body">{segment.name}</AppText>
+                      <AppText variant="caption" color={palette.textSecondary}>
+                        ₹{segment.amount.toFixed(2)}
+                      </AppText>
+                      <AppText variant="caption" style={styles.legendValue}>
+                        {Math.round((segment.amount / totalExpense) * 100)}%
+                      </AppText>
+                    </AppView>
+                  </AppView>
+                </AppView>
+              ))}
+            </AppView>
+          </AppCard>
+
+          <AppView style={styles.sectionHeader}>
+            <AppText variant="h3">Top Expense Categories</AppText>
+            <AppButton title="See All" variant="ghost" onPress={onSeeAll} />
+          </AppView>
+
+          {categoryRows.length === 0 ? (
+            <AppCard>
+              <AppText variant="body" color={palette.textSecondary}>
+                No expense data for the selected period.
+              </AppText>
+            </AppCard>
+          ) : (
+            categoryRows.map((row, index) => (
+              <CategorySpendCard
+                key={row.id}
+                icon={row.icon}
+                name={row.name}
+                subtitle={index === 0 ? 'Highest category this period' : 'Tracked expense category'}
+                amount={row.amount}
+                progress={row.progress}
+                tone={index === 1 ? 'danger' : index === 2 ? 'success' : 'primary'}
+              />
+            ))
+          )}
+
+          <AppCard>
+            <AppText variant="h3" style={styles.trendTitle}>
+              Spending Trend
+            </AppText>
+            <AppLineChart labels={trend.labels} incomeData={trend.incomeData} expenseData={trend.expenseData} />
+          </AppCard>
+        </>
+      )}
     </AppScreenLayout>
   );
 }

@@ -125,3 +125,6 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+// Firebase — required by @react-native-firebase
+apply plugin: "com.google.gms.google-services"

@@ -17,40 +17,30 @@ function buildYAxisLabels(values) {
   return Array.from({ length: steps + 1 }, (_, index) => Math.round(maxValue - (maxValue / steps) * index));
 }
 
-export function AppLineChart({ labels, incomeData, expenseData, width: chartWidthOverride }) {
+export function AppLineChart({ labels = [], incomeData = [], expenseData = [], width: chartWidthOverride }) {
+  const safeLabels = Array.isArray(labels) && labels.length > 0 ? labels : ['No Data'];
+  const safeIncome = Array.isArray(incomeData) && incomeData.length > 0 ? incomeData : [0];
+  const safeExpense = Array.isArray(expenseData) && expenseData.length > 0 ? expenseData : [0];
+
+  const maxIncome = Math.max(0, ...safeIncome);
+  const maxExpense = Math.max(0, ...safeExpense);
+  const isAllZero = maxIncome === 0 && maxExpense === 0;
+
   const defaultWidth = width - layout.screenHorizontal * 2 - spacing.xxl;
-  const scrollRef = useRef(null);
-
-  // Sanitize data: replace any non-finite values with 0 to prevent Infinity SVG paths
-  const safeIncome = (Array.isArray(incomeData) ? incomeData : []).map((v) =>
-    Number.isFinite(v) && v >= 0 ? v : 0
-  );
-  const safeExpense = (Array.isArray(expenseData) ? expenseData : []).map((v) =>
-    Number.isFinite(v) && v >= 0 ? v : 0
-  );
-  const safeLabels = Array.isArray(labels) ? labels : [];
-
-  // Must have at least one data point; chart crashes on empty arrays
-  const hasData = safeLabels.length > 0 && safeIncome.length > 0;
-
-  // Clamp to a minimum of 1 so division inside the chart lib never yields Infinity
-  const chartWidth = Math.max(
-    1,
-    chartWidthOverride || Math.max(defaultWidth, safeLabels.length * 72)
-  );
-
+  const chartWidth = chartWidthOverride || Math.max(defaultWidth, safeLabels.length * 72);
   const yAxisLabels = buildYAxisLabels([...safeIncome, ...safeExpense]);
+  const scrollRef = useRef(null);
 
   const data = {
     labels: safeLabels,
     datasets: [
       {
-        data: safeIncome.length > 0 ? safeIncome : [0],
+        data: isAllZero ? safeIncome.map(() => 0) : safeIncome,
         strokeWidth: sizing.chart.strokeMd,
         color: (opacity = 1) => `rgba(13, 148, 136, ${opacity})`,
       },
       {
-        data: safeExpense.length > 0 ? safeExpense : [0],
+        data: isAllZero ? safeExpense.map(() => 0) : safeExpense,
         strokeWidth: sizing.chart.strokeMd,
         color: (opacity = 1) => `rgba(194, 14, 55, ${opacity})`,
       },
@@ -68,16 +58,6 @@ export function AppLineChart({ labels, incomeData, expenseData, width: chartWidt
     const timer = setTimeout(scrollToLatest, 0);
     return () => clearTimeout(timer);
   }, [chartWidth, defaultWidth, safeLabels.length]);
-
-  if (!hasData) {
-    return (
-      <View style={styles.lineChartRow}>
-        <Text style={[styles.yAxisLabel, { flex: 1, textAlign: 'center', paddingVertical: 24 }]}>
-          No trend data yet.
-        </Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.lineChartRow}>
@@ -101,7 +81,7 @@ export function AppLineChart({ labels, incomeData, expenseData, width: chartWidt
           height={sizing.chart.heightMd}
           yAxisLabel=""
           yAxisSuffix=""
-          withDots={false}
+          withDots={!isAllZero}
           withInnerLines
           withOuterLines={false}
           withHorizontalLabels={false}
@@ -119,7 +99,7 @@ export function AppLineChart({ labels, incomeData, expenseData, width: chartWidt
               strokeWidth: sizing.chart.strokeSm,
             },
           }}
-          bezier
+          bezier={!isAllZero}
           style={[styles.lineChart, styles.lineChartInner]}
         />
       </ScrollView>
@@ -127,40 +107,26 @@ export function AppLineChart({ labels, incomeData, expenseData, width: chartWidt
   );
 }
 
-export function AppDonutChart({ total, ratio = 0.7, segments }) {
-  // Filter out zero-amount segments — they produce L-Infinity SVG paths
-  const validSegments = Array.isArray(segments)
-    ? segments.filter((s) => s.amount > 0)
-    : [];
+export function AppDonutChart({ total = 0, ratio = 0.7, segments = [] }) {
+  const isZeroTotal = !total || total === 0 || !Array.isArray(segments) || segments.length === 0;
 
-  const data =
-    validSegments.length > 0
-      ? validSegments.map((segment) => ({
-          name: segment.name,
-          amount: segment.amount,
-          color: segment.color,
-          legendFontColor: palette.textPrimary,
+  const data = isZeroTotal
+    ? [
+        {
+          name: 'No Expenses',
+          amount: 100,
+          color: palette.border || '#E4E7EC',
+          legendFontColor: palette.textMuted,
           legendFontSize: sizing.chart.legendNone,
-        }))
-      : (() => {
-          const safeRatio = Math.max(0.01, Math.min(0.99, ratio));
-          return [
-            {
-              name: 'Main',
-              amount: safeRatio * 100,
-              color: palette.primary,
-              legendFontColor: palette.textPrimary,
-              legendFontSize: sizing.chart.legendNone,
-            },
-            {
-              name: 'Other',
-              amount: (1 - safeRatio) * 100,
-              color: '#7EE6DD',
-              legendFontColor: palette.textPrimary,
-              legendFontSize: sizing.chart.legendNone,
-            },
-          ];
-        })();
+        },
+      ]
+    : segments.map((segment) => ({
+        name: segment.name,
+        amount: Math.max(0, Number(segment.amount) || 0),
+        color: segment.color,
+        legendFontColor: palette.textPrimary,
+        legendFontSize: sizing.chart.legendNone,
+      }));
 
   return (
     <PieChart

@@ -6,13 +6,18 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { StatusBar, useColorScheme, View, Text, Alert, AppState, DeviceEventEmitter, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, StatusBar, useColorScheme, View, Text, Alert, AppState, DeviceEventEmitter } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Provider, useDispatch, useSelector } from 'react-redux';
 
-// Auth
-import { AuthProvider, useAuth } from './src/context/AuthContext';
+// Redux
+import store from './src/store';
+import { bootstrapApp } from './src/store/bootstrap';
+import { selectAppReady, selectIsAuthenticated, selectAccountsLoading, selectAccountsStatus } from './src/store/selectors';
+import { setAuthUser } from './src/store/slices/accountsSlice';
+import auth from '@react-native-firebase/auth';
 
-// Context
+// Context (shims — kept for backwards compat)
 import { TransactionProvider, useTransactions } from './src/context/TransactionContext';
 import { AccountProvider, useAccounts } from './src/context/AccountContext';
 
@@ -25,6 +30,7 @@ import TransactionCategoryModal from './src/components/TransactionCategoryModal'
 import DashboardScreen from './src/screens/DashboardScreen';
 import TransactionsScreen from './src/screens/TransactionsScreen';
 import AccountsScreen from './src/screens/AccountsScreen';
+import AuthScreen from './src/screens/AuthScreen';
 import ReportsScreen from './src/screens/ReportsScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import AuthScreen from './src/screens/AuthScreen';
@@ -43,87 +49,68 @@ function App() {
   const statusBarStyle = isDarkMode ? 'light-content' : 'dark-content';
 
   return (
-    <AuthProvider>
-      <SafeAreaProvider>
-        <StatusBar barStyle={statusBarStyle} backgroundColor={palette.surface} translucent={false} />
-        <AuthGate />
-      </SafeAreaProvider>
-    </AuthProvider>
-  );
-}
-
-/**
- * AuthGate — sits between AuthProvider and the rest of the app.
- * Shows a splash/loading screen while Firebase restores the session,
- * then routes to AuthScreen (unauthenticated) or the main app (authenticated).
- */
-function AuthGate() {
-  const { user, isAuthLoading } = useAuth();
-
-  // While Firebase is rehydrating the session, show a minimal loading screen
-  if (isAuthLoading) {
-    return (
-      <View style={{ flex: 1, backgroundColor: '#0A0E1A', alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ fontSize: 26, fontWeight: '800', color: '#F9FAFB', letterSpacing: 3, marginBottom: 8 }}>
-          E.T.A
-        </Text>
-        <Text style={{ fontSize: 11, color: '#6B7280', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 32 }}>
-          Expense · Track · Analyse
-        </Text>
-        <ActivityIndicator color="#6C63FF" size="large" />
-      </View>
-    );
-  }
-
-  // Not logged in — show the auth screen
-  if (!user) {
-    return <AuthScreen />;
-  }
-
-  // Logged in — mount data providers scoped to this user's uid
-  return (
-    <AccountProvider uid={user.uid}>
-      <TransactionProvider uid={user.uid}>
-        <AppContent />
-      </TransactionProvider>
-    </AccountProvider>
+    // Redux Provider wraps everything — AccountProvider and TransactionProvider
+    // are now no-op shims kept only for backwards-compatible imports.
+    <Provider store={store}>
+      <AccountProvider>
+        <TransactionProvider>
+          <SafeAreaProvider>
+            <StatusBar barStyle={statusBarStyle} backgroundColor={palette.surface} translucent={false} />
+            <AppContent />
+          </SafeAreaProvider>
+        </TransactionProvider>
+      </AccountProvider>
+    </Provider>
   );
 }
 
 function AppContent() {
-  // Helper: extract robust last-4 digits from SMS text (handles XX1234, **1234, A/cXX1234, etc.)
-  const extractLast4FromSMS = (smsText) => {
-    if (!smsText || typeof smsText !== 'string') return null;
-    try {
-      // Prefer explicit A/c or Acct patterns (handles X or * masks)
-      const acMatch = smsText.match(/A\/?c\s*[X\*x\*]*?(\d{4})/i);
-      if (acMatch && acMatch[1]) return acMatch[1];
+  const dispatch = useDispatch();
+  const appReady = useSelector(selectAppReady);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const accountsLoading = useSelector(selectAccountsLoading);
+  const accountsStatus = useSelector(selectAccountsStatus);
 
-      const acctMatch = smsText.match(/Acct(?:ount)?\D*?(\d{4})/i);
-      if (acctMatch && acctMatch[1]) return acctMatch[1];
-
-      // Fallback: take the last 4-digit group in the message
-      const allMatches = smsText.match(/(\d{4})/g);
-      if (allMatches && allMatches.length > 0) return allMatches[allMatches.length - 1];
-    } catch (e) {
-      console.warn('extractLast4FromSMS failed', e);
-    }
-    return null;
-  };
-
+  // ── ALL hooks declared here, before any conditional return (Rules of Hooks) ─
   const safeAreaInsets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [pendingTransaction, setPendingTransaction] = useState(null);
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [showLoginScreen, setShowLoginScreen] = useState(false);
-  const [loginScreenMode, setLoginScreenMode] = useState('firstTime'); // 'firstTime' or 'addAccount'
+  const [loginScreenMode, setLoginScreenMode] = useState('firstTime');
   const [matchedToast, setMatchedToast] = useState(null);
 
   const { addTransaction } = useTransactions();
   const { accounts, activeAccount, createAccount, switchAccount } = useAccounts();
 
-  // Show account setup if no accounts exist
+  // Auto-restore existing Firebase auth session on app mount.
+  // NOTE: onAuthStateChanged also fires right after a fresh sign-in (from
+  // AuthScreen). Guard against running bootstrapApp a second time when
+  // AuthScreen already started it — the accounts slice will be in 'loading'
+  // or 'succeeded' state in that case.
   useEffect(() => {
+    const unsubscribe = auth().onAuthStateChanged((user) => {
+      if (user) {
+        dispatch(setAuthUser({ uid: user.uid, email: user.email || '' }));
+        // Only bootstrap if not already loading/loaded (prevents double-run
+        // when AuthScreen already dispatched bootstrapApp on the same sign-in).
+        if (accountsStatus === 'idle') {
+          dispatch(bootstrapApp(user.uid));
+        }
+      }
+    });
+    return unsubscribe;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Show bank-setup screen only AFTER the app has finished loading from
+  // Firestore. Without this guard the effect fires while accounts is still
+  // [] during the async bootstrap, incorrectly launching the onboarding flow
+  // for returning users who have accounts in the database.
+  useEffect(() => {
+    // Still fetching — don't touch the login screen state yet
+    if (!appReady || accountsLoading) return;
+
     if (!accounts || accounts.length === 0) {
       setShowLoginScreen(true);
       setLoginScreenMode('firstTime');
@@ -132,9 +119,9 @@ function AppContent() {
         setShowLoginScreen(false);
       }
     }
-  }, [accounts, loginScreenMode]);
+  }, [accounts, loginScreenMode, appReady, accountsLoading]);
 
-  // Start SMS monitoring when app loads
+  // Start SMS monitoring when app loads (must be declared BEFORE any conditional return)
   useEffect(() => {
     let smsListener = null;
     let intentListener = null;
@@ -200,7 +187,25 @@ function AppContent() {
       NativeSMSService.stopMonitoring();
       subscription?.remove();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── Show Firebase Auth screen if user is not logged in ─────────────────
+  if (!isAuthenticated) {
+    return <AuthScreen />;
+  }
+
+  // ── Show loading screen AFTER all hooks are declared ─────────────────────
+  if (!appReady) {
+    return (
+      <View style={{ flex: 1, backgroundColor: palette.surface, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={palette.primary} />
+        <Text style={{ color: palette.textSecondary, marginTop: 12, fontFamily: 'Inter-Regular' }}>
+          Loading your data...
+        </Text>
+      </View>
+    );
+  }
 
   // Handle SMS transaction from native service
   const handleNativeSMSTransaction = async (smsData) => {
@@ -349,12 +354,11 @@ function AppContent() {
   };
 
   // Handler for account setup from LoginScreen - create account and switch to it
-  const handleAccountSetup = async (accountData) => {
+  // createAccount now dispatches an async Redux thunk which auto-sets the new
+  // account as active, so no explicit switchAccount call is needed.
+  const handleAccountSetup = (accountData) => {
     try {
-      const newAccount = await createAccount(accountData);
-      if (newAccount && newAccount.id) {
-        switchAccount(newAccount.id);
-      }
+      createAccount(accountData);
       setShowLoginScreen(false);
       setLoginScreenMode('firstTime');
     } catch (error) {
