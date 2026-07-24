@@ -1,4 +1,4 @@
-package com.eta;
+package com.atharv.eta;
 
 import android.util.Log;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -57,8 +57,8 @@ public class SMSBridgeModule extends ReactContextBaseJavaModule {
                 Log.d(TAG, "Sending SMS event to React Native: " + sender);
 
                 reactContext
-                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                    .emit(SMS_EVENT, params);
+                        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                        .emit(SMS_EVENT, params);
             } catch (Exception e) {
                 Log.e(TAG, "Error sending SMS event to React Native", e);
             }
