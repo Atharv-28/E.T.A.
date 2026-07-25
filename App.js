@@ -33,7 +33,6 @@ import AccountsScreen from './src/screens/AccountsScreen';
 import AuthScreen from './src/screens/AuthScreen';
 import ReportsScreen from './src/screens/ReportsScreen';
 import LoginScreen from './src/screens/LoginScreen';
-import AuthScreen from './src/screens/AuthScreen';
 
 // Services
 import NativeSMSService from './src/services/NativeSMSService';

@@ -3,7 +3,7 @@ import { Alert, Modal, Switch } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useAccounts } from '../context/AccountContext';
 import { useTransactions } from '../context/TransactionContext';
-import { useAuth } from '../context/AuthContext';
+
 import BackupService from '../services/BackupService';
 import FirebaseService from '../services/FirebaseService';
 import NativeSMSService from '../services/NativeSMSService';
@@ -29,7 +29,7 @@ export default function AccountsScreen({ onAddAccount }) {
   const userEmail = useSelector(selectUserEmail);
   const { accounts, activeAccount, activeAccountId, switchAccount } = useAccounts();
   const { transactions } = useTransactions();
-  const { signOut, user } = useAuth();
+
 
   const [smsEnabled, setSmsEnabled] = useState(true);
   const [importVisible, setImportVisible] = useState(false);
@@ -129,26 +129,6 @@ export default function AccountsScreen({ onAddAccount }) {
     );
   };
 
-  const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await signOut();
-            } catch (e) {
-              Alert.alert('Error', e.message);
-            }
-          },
-        },
-      ]
-    );
-  };
 
   return (
     <>
