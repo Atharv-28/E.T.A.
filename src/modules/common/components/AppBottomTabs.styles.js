@@ -21,9 +21,10 @@ export const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   capsule: {
-    width: sizing.nav.capsuleWidth,
+    width: sizing.nav.capsuleHeight,
     height: sizing.nav.capsuleHeight,
-    borderRadius: radius.lg,
+    borderRadius: sizing.nav.capsuleHeight / 2,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },

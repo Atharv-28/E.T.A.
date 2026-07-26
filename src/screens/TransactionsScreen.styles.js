@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { borderWidth, layout, palette, radius, sizing, spacing, type } from '../ui';
+import { borderWidth, layout, palette, radius, sizing, spacing } from '../ui';
 
 export const styles = StyleSheet.create({
   summaryRow: {
@@ -33,13 +33,9 @@ export const styles = StyleSheet.create({
     flex: 1,
     marginLeft: spacing.sm,
   },
-  deleteButton: {
+  deleteIconBtn: {
     marginTop: spacing.xs,
-    minHeight: sizing.control.smallButton,
-    paddingHorizontal: spacing.sm,
-  },
-  deleteButtonText: {
-    fontSize: type.caption.fontSize,
+    padding: spacing.xs,
   },
   fabWrap: {
     position: 'absolute',
@@ -54,7 +50,7 @@ export const styles = StyleSheet.create({
     paddingVertical: spacing.none,
   },
   fabButtonText: {
-    fontSize: type.h4.fontSize,
-    lineHeight: type.h4.lineHeight,
+    fontSize: 14,
+    lineHeight: 18,
   },
 });

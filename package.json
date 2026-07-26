@@ -1,7 +1,7 @@
 {
   "name": "expense-track-analyse",
   "displayName": "Expense Track & Analyse",
-  "version": "2.1.1",
+  "version": "3.0.1",
   "private": true,
   "scripts": {
     "android": "react-native run-android",

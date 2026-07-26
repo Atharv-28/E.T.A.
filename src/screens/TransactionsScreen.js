@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, TouchableOpacity } from 'react-native';
 import { useTransactions, CATEGORIES } from '../context/TransactionContext';
 import { useAccounts } from '../context/AccountContext';
 import AddTransactionModal from '../components/AddTransactionModal';
@@ -8,11 +8,13 @@ import {
   AppButton,
   AppCard,
   AppChipTabs,
+  AppIcon,
   AppInput,
   AppScreenLayout,
   AppView,
   AppText,
   palette,
+  sizing,
 } from '../ui';
 import { styles } from './TransactionsScreen.styles';
 
@@ -151,13 +153,17 @@ export default function TransactionsScreen() {
                       minute: '2-digit',
                     })}
                     onRight={
-                      <AppButton
-                        title="Delete"
-                        variant="ghost"
+                      <TouchableOpacity
                         onPress={() => removeItem(item.id)}
-                        style={styles.deleteButton}
-                        textStyle={styles.deleteButtonText}
-                      />
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        style={styles.deleteIconBtn}
+                      >
+                        <AppIcon
+                          name="delete-outline"
+                          size={sizing.icon.md}
+                          color={palette.danger}
+                        />
+                      </TouchableOpacity>
                     }
                   />
                 );
