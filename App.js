@@ -44,8 +44,6 @@ import { styles as globalStyles } from './src/styles/GlobalStyles';
 import { styles as appStyles, getContainerInsetStyle, getToastContainerStyle } from './App.styles';
 
 function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-  const statusBarStyle = isDarkMode ? 'light-content' : 'dark-content';
 
   return (
     // Redux Provider wraps everything — AccountProvider and TransactionProvider
@@ -54,7 +52,7 @@ function App() {
       <AccountProvider>
         <TransactionProvider>
           <SafeAreaProvider>
-            <StatusBar barStyle={statusBarStyle} backgroundColor={palette.surface} translucent={false} />
+            <StatusBar barStyle="light-content" backgroundColor={palette.surface} translucent={false} />
             <AppContent />
           </SafeAreaProvider>
         </TransactionProvider>

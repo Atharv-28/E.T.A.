@@ -21,9 +21,9 @@ export const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   capsule: {
-    width: sizing.nav.capsuleWidth,
+    width: sizing.nav.capsuleHeight,
     height: sizing.nav.capsuleHeight,
-    borderRadius: radius.lg,
+    borderRadius: 9999,
     alignItems: 'center',
     justifyContent: 'center',
   },
