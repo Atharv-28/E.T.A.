@@ -23,7 +23,8 @@ export const styles = StyleSheet.create({
   capsule: {
     width: sizing.nav.capsuleHeight,
     height: sizing.nav.capsuleHeight,
-    borderRadius: 9999,
+    borderRadius: sizing.nav.capsuleHeight / 2,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
