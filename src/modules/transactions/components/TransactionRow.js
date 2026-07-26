@@ -26,14 +26,14 @@ export default function TransactionRow({
             <AppText variant="body" color={palette.textSecondary} numberOfLines={1}>
               {subtitle}
             </AppText>
+            <AppText variant="body" color={palette.textSecondary}>
+              {dateLabel}
+            </AppText>
           </AppView>
         </AppView>
         <AppView style={styles.metaCol}>
           <AppText variant="h4" color={income ? palette.success : palette.danger}>
             {income ? '+' : '-'}{formatCurrency(amount)}
-          </AppText>
-          <AppText variant="body" color={palette.textSecondary}>
-            {dateLabel}
           </AppText>
           {onRight}
         </AppView>

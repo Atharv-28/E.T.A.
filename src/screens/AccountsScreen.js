@@ -157,9 +157,9 @@ export default function AccountsScreen({ onAddAccount }) {
                 <AppView
                   style={styles.primaryIconTile}
                 >
-                  <AppIcon name="account-balance" size={sizing.icon.lg + spacing.xxs} color={palette.danger} />
+                  <AppIcon name="account-balance" size={sizing.icon.md + spacing.xs} color={palette.danger} />
                 </AppView>
-                <AppView>
+                <AppView style={{ alignItems: 'center' }}>
                   <AppText variant="label" color={palette.textSecondary}>
                     Linked Status
                   </AppText>
@@ -256,7 +256,6 @@ export default function AccountsScreen({ onAddAccount }) {
           </AppCard>
         </AppView>
 
-        <AppButton title="Manage Data Sources" variant="ghost" style={styles.manageButton} />
 
         <AppView style={styles.sectionHeader}>
           <AppIcon name="person" size={30} color={palette.danger} />
