@@ -104,7 +104,10 @@ export default function DashboardScreen({ onManualTransaction, onViewAll, onDeta
 
     return { total, rows };
   }, [monthlyExpenseItems]);
-  const recent = accountTransactions.slice(0, 6);
+  const recent = accountTransactions
+    .slice()
+    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+    .slice(0, 6);
 
   const handleAddTransaction = (transaction) => {
     const payload = {
